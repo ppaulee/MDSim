@@ -58,12 +58,16 @@ public:
   virtual ~Particle();
 
   const std::array<double, 3> &getX() const;
+  void setX(std::array<double, 3> xNew);
 
   const std::array<double, 3> &getV() const;
+  void setV(std::array<double, 3>  vNew);
 
   const std::array<double, 3> &getF() const;
+  void setF(std::array<double, 3>  fNew);
 
   const std::array<double, 3> &getOldF() const;
+  void setOldF(std::array<double, 3> oldFNew);
 
   double getM() const;
 

@@ -49,6 +49,8 @@ const std::array<double, 3> &Particle::getF() const { return f; }
 
 const std::array<double, 3> &Particle::getOldF() const { return old_f; }
 
+
+
 double Particle::getM() const { return m; }
 
 int Particle::getType() const { return type; }
@@ -63,6 +65,22 @@ std::string Particle::toString() const {
 bool Particle::operator==(Particle &other) {
   return (x == other.x) and (v == other.v) and (f == other.f) and
          (type == other.type) and (m == other.m) and (old_f == other.old_f);
+}
+
+void Particle::setX(std::array<double, 3> xNew) {
+    x = xNew;
+}
+
+void Particle::setV(std::array<double, 3>  vNew) {
+    v = vNew;
+}
+
+void Particle::setF(std::array<double, 3>  fNew) {
+    f = fNew;
+}
+
+void Particle::setOldF(std::array<double, 3> oldFNew) {
+    old_f = oldFNew;
 }
 
 std::ostream &operator<<(std::ostream &stream, Particle &p) {
