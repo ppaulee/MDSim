@@ -49,8 +49,9 @@ int main(int argc, char *argsv[]) {
         end_time = atof(argsv[2]);
         delta_t = atof(argsv[3]);
     } else if (argc != 2) {
-        std::cout << "Erroneous programme call! " << std::endl;
-        std::cout << "./molsym filename" << std::endl;
+        std::cout << "Erroneous programme call! Options: " << std::endl;
+        std::cout << "<filename>" << std::endl;
+        std::cout << "<filename> <end_time default=1000> <delta_t default=0.014>" << std::endl;
     }
 
     FileReader fileReader;
