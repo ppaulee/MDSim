@@ -7,6 +7,7 @@
 
 #include "FileReader.h"
 
+
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -16,7 +17,7 @@ FileReader::FileReader() = default;
 
 FileReader::~FileReader() = default;
 
-void FileReader::readFile(std::vector<Particle> &particles, char *filename) {
+void FileReader::readFile(ParticleContainer &particles, char *filename) {
   std::array<double, 3> x;
   std::array<double, 3> v;
   double m;

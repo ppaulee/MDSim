@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Particle.h"
+#include "ParticleContainer.h"
 
 #include <vector>
 
@@ -17,5 +18,5 @@ public:
   FileReader();
   virtual ~FileReader();
 
-  void readFile(std::vector<Particle> &particles, char *filename);
+  void readFile(ParticleContainer &particles, char *filename);
 };

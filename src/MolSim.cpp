@@ -2,9 +2,9 @@
 #include "FileReader.h"
 #include "outputWriter/VTKWriter.h"
 #include "utils/ArrayUtils.h"
+#include "ParticleContainer.h"
 
 #include <iostream>
-#include <list>
 #include <cmath>
 
 
@@ -30,20 +30,6 @@ void calculateV();
  */
 void plotParticles(int iteration);
 
-/**
- * @param p1 Postition 1
- * @param p2  Position 2
- * @return difference between both vectors
- */
-std::array<double, 3> posDifference(std::array<double, 3> p1, std::array<double, 3> p2);
-
-/**
- *
- * @param p Vector
- * @return euclidean norm
- */
-double eudlideanNorm(std::array<double, 3> p);
-
 double add(double a, double b);
 double multiply(double a, double b);
 double divide(double a, double b);
@@ -54,7 +40,7 @@ double end_time = 1000;
 double delta_t = 0.014;
 
 
-std::vector<Particle> particles;
+ParticleContainer particles;
 
 int main(int argc, char *argsv[]) {
 
@@ -98,16 +84,16 @@ int main(int argc, char *argsv[]) {
 
 
 void calculateF() {
-    for(auto &p : particles) {
+    for(auto &p : particles.getVec()) {
         p.setOldF(p.getF());
         p.setF({0,0,0});
     }
 
-    for (long unsigned int i = 0; i < particles.size(); i++) {
-        auto &p1 = particles[i];
+    for (long unsigned int i = 0; i < particles.getVec().size(); i++) {
+        auto &p1 = particles.getParticle(i);
 
-        for (long unsigned int j = i+1; j < particles.size(); j++) {
-            auto &p2 = particles[j];
+        for (long unsigned int j = i+1; j < particles.getVec().size(); j++) {
+            auto &p2 = particles.getParticle(j);
 
             double f = (p1.getM() * p2.getM()) / pow(ArrayUtils::L2Norm(ArrayUtils::elementWisePairOp(p1.getX(), p2.getX(), sub)), 3);
             std::array<double, 3> vec = ArrayUtils::elementWisePairOp(p2.getX(),p1.getX(), sub);
@@ -121,7 +107,7 @@ void calculateF() {
 }
 
 void calculateX() {
-    for (auto &p: particles) {
+    for (auto &p: particles.getVec()) {
         std::array<double, 3> res = ArrayUtils::elementWiseScalarOp((2*p.getM()), p.getOldF(), divide);
         res = ArrayUtils::elementWiseScalarOp((delta_t*delta_t), res, multiply);
 
@@ -132,7 +118,7 @@ void calculateX() {
 }
 
 void calculateV() {
-    for (auto &p: particles) {
+    for (auto &p: particles.getVec()) {
         std::array<double, 3> res = ArrayUtils::elementWisePairOp(p.getF(), p.getOldF(), add);
         res = ArrayUtils::elementWiseScalarOp((2*p.getM()), res, divide);
         res = ArrayUtils::elementWiseScalarOp(delta_t, res , multiply);
@@ -153,7 +139,7 @@ void plotParticles(int iteration) {
 
     outputWriter::VTKWriter writer;
     writer.initializeOutput(particles.size());
-    for(auto &p : particles) {
+    for(auto p : particles.getVec()) {
         writer.plotParticle(p);
     }
     writer.writeFile(out_name, iteration);
