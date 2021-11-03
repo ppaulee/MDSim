@@ -6,10 +6,7 @@
 
 #include "Particle.h"
 #include "vector"
-#include "memory"
 
-typedef void (* pairFunction)(Particle a, Particle b);
-typedef void (* singleFunction)(Particle p);
 
 class ParticleContainer {
 private:
@@ -17,13 +14,22 @@ private:
 
 public:
     Particle& getParticle(int i);
+
+    /**
+     * @return Reference to Vector
+     */
     std::vector<Particle>& getVec();
+
+    /**
+     * The order of the pair does not matter e.g. (a,b) = (b,a)
+     *
+     * @return Vector of all pairs
+     */
     std::vector< std::pair<Particle,Particle> > pairs();
-    void applyPairs(pairFunction func);
-    void apply(singleFunction func);
+
     void emplace_back(std::array<double, 3> &x, std::array<double, 3> &v, double &m);
+
     int size();
-    ParticleContainer(std::vector<Particle> &p);
     ParticleContainer();
 };
 
