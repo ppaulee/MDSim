@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <getopt.h>
 
 
 /**** forward declaration of the calculation functions ****/
@@ -35,9 +36,12 @@ double multiply(double a, double b);
 double divide(double a, double b);
 double sub(double a, double b);
 
+void printHelp();
+
 constexpr double start_time = 0;
 double end_time = 1000;
 double delta_t = 0.014;
+int outputStep = 100;
 
 
 ParticleContainer particles;
@@ -45,17 +49,37 @@ ParticleContainer particles;
 int main(int argc, char *argsv[]) {
 
     std::cout << "Hello from MolSim for PSE!" << std::endl;
-    if (argc == 4) {
-        end_time = atof(argsv[2]);
-        delta_t = atof(argsv[3]);
-    } else if (argc != 2) {
-        std::cout << "Erroneous programme call! Options: " << std::endl;
-        std::cout << "<filename>" << std::endl;
-        std::cout << "<filename> <end_time default=1000> <delta_t default=0.014>" << std::endl;
+    if(argc <= 1) {
+        printHelp();
+        return 1;
+    }
+    char* file = nullptr;
+    int c;
+    while((c = getopt(argc, argsv, "hf:s:e:w:")) != -1){
+        if(c == 'h'){
+            printHelp();
+            return 0;
+        }
+        if(c == 'f'){
+            file = optarg;
+        }
+        if(c == 's'){
+            delta_t = atof(optarg);
+        }
+        if(c == 'e'){
+            end_time = atof(optarg);
+        }
+        if(c == 'w'){
+            outputStep = std::stoi(optarg);
+        }
     }
 
+    if(file == nullptr){
+        std::cout << "Error: Path to file is missing, use -h for help" << std::endl;
+        return 1;
+    }
     FileReader fileReader;
-    fileReader.readFile(particles, argsv[1]);
+    fileReader.readFile(particles, file);
 
     double current_time = start_time;
 
@@ -71,7 +95,7 @@ int main(int argc, char *argsv[]) {
         calculateV();
 
         iteration++;
-        if (iteration % 10 == 0) {
+        if (iteration % outputStep == 0) {
             plotParticles(iteration);
         }
         std::cout << "Iteration " << iteration << " finished." << std::endl;
@@ -81,6 +105,14 @@ int main(int argc, char *argsv[]) {
 
     std::cout << "output written. Terminating..." << std::endl;
     return 0;
+}
+
+void printHelp() {
+    std::cout << "Usage: -f filename -s step size -e end time -w Output step size" << std::endl;
+    std::cout << "Filename: path to the input file (required)" << std::endl;
+    std::cout << "Step size: size of a timestep in the simulation (optional)" << std::endl;
+    std::cout << "End time: time after which the simulation ends (optional)" << std::endl;
+    std::cout << "Output step size: Every this often steps an output file will be generated (optional)" << std::endl;
 }
 
 
@@ -129,7 +161,7 @@ void calculateV() {
 }
 
 double add(double a, double b){return a+b;};
-double multiply(double a, double b){return a*b;};
+double multiply(double a, double b){return a*b;}
 double divide(double a, double b){return b/a;};
 double sub(double a, double b){return a-b;};
 
