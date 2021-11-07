@@ -20,6 +20,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Install Xerces
+      run: sudo apt install libxerces-c-dev
 
     - name: Configure CMake
       shell: bash
