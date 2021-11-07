@@ -32,7 +32,7 @@ jobs:
       shell: bash
       working-directory: ${{github.workspace}}
       # Build your program with the given configuration
-      run: cd ${{github.workspace}} && make
+      run: cd ${{github.workspace}}/build && make
 
     - name: Test
       shell: bash
