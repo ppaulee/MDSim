@@ -30,6 +30,7 @@ jobs:
 
     - name: Build
       shell: bash
+      working-directory: ${{github.workspace}}
       # Build your program with the given configuration
       run: make
 
