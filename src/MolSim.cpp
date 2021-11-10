@@ -3,6 +3,8 @@
 #include "outputWriter/VTKWriter.h"
 #include "utils/ArrayUtils.h"
 #include "ParticleContainer.h"
+#include "ForceCalculation.h"
+#include "StoermerVerlet.h"
 
 #include <iostream>
 #include <cmath>
@@ -31,10 +33,13 @@ void calculateV();
  */
 void plotParticles(int iteration);
 
-double add(double a, double b);
-double multiply(double a, double b);
-double divide(double a, double b);
-double sub(double a, double b);
+//double add(double a, double b);
+
+//double multiply(double a, double b);
+
+//double divide(double a, double b);
+
+//double sub(double a, double b);
 
 void printHelp();
 
@@ -45,37 +50,49 @@ int outputStep = 100;
 
 
 ParticleContainer particles;
+// Stores the algorithm used for force calculation between 2 particles
+ForceCalculation *algorithm = nullptr;
 
 int main(int argc, char *argsv[]) {
 
     std::cout << "Hello from MolSim for PSE!" << std::endl;
-    if(argc <= 1) {
+    if (argc <= 1) {
         printHelp();
         return 1;
     }
-    char* file = nullptr;
+
+    char *file = nullptr;
     int c;
-    while((c = getopt(argc, argsv, "hf:s:e:w:")) != -1){
-        if(c == 'h'){
+    while ((c = getopt(argc, argsv, "hf:s:e:w:a:")) != -1) {
+        if (c == 'h') {
             printHelp();
             return 0;
         }
-        if(c == 'f'){
+        if (c == 'f') {
             file = optarg;
         }
-        if(c == 's'){
+        if (c == 's') {
             delta_t = atof(optarg);
         }
-        if(c == 'e'){
+        if (c == 'e') {
             end_time = atof(optarg);
         }
-        if(c == 'w'){
+        if (c == 'w') {
             outputStep = std::stoi(optarg);
+        }
+        if (c == 'a') {
+           if(std::string("sv").compare(optarg) == 0){
+               algorithm = new StoermerVerlet();
+           }
         }
     }
 
-    if(file == nullptr){
+    if (file == nullptr) {
         std::cout << "Error: Path to file is missing, use -h for help" << std::endl;
+        return 1;
+    }
+    if (algorithm == nullptr) {
+        std::cout << "Error: Algorithm missing or erroneous algorithm argument, use -h for help" << std::endl;
         return 1;
     }
     FileReader fileReader;
@@ -108,62 +125,76 @@ int main(int argc, char *argsv[]) {
 }
 
 void printHelp() {
-    std::cout << "Usage: -f filename -s step size -e end time -w Output step size" << std::endl;
+    std::cout << "Usage: -f filename -a algorithm -s step size -e end time -w Output step size" << std::endl;
     std::cout << "Filename: path to the input file (required)" << std::endl;
     std::cout << "Step size: size of a timestep in the simulation (optional)" << std::endl;
     std::cout << "End time: time after which the simulation ends (optional)" << std::endl;
     std::cout << "Output step size: Every this often steps an output file will be generated (optional)" << std::endl;
+    std::cout << "Algorithm: Algorithm used for force calculations (required)" << std::endl;
+    std::cout << "Possible Algorithms: sv (Stoermer Verlet)" << std::endl;
 }
 
 
 void calculateF() {
-    for(auto &p : particles.getVec()) {
+    for (auto &p: particles.getVec()) {
         p.setOldF(p.getF());
-        p.setF({0,0,0});
+        p.setF({0, 0, 0});
     }
 
     for (long unsigned int i = 0; i < particles.getVec().size(); i++) {
         auto &p1 = particles.getParticle(i);
 
-        for (long unsigned int j = i+1; j < particles.getVec().size(); j++) {
+        for (long unsigned int j = i + 1; j < particles.getVec().size(); j++) {
             auto &p2 = particles.getParticle(j);
 
-            double f = (p1.getM() * p2.getM()) / pow(ArrayUtils::L2Norm(ArrayUtils::elementWisePairOp(p1.getX(), p2.getX(), sub)), 3);
-            std::array<double, 3> vec = ArrayUtils::elementWisePairOp(p2.getX(),p1.getX(), sub);
-            vec = ArrayUtils::elementWiseScalarOp(f, vec, multiply);
+            std::array<double, 3> vec = algorithm->calculateF(p1, p2);
 
             //F_p1 = -F_p2
-            p1.setF(ArrayUtils::elementWisePairOp(p1.getF(), vec, add));
-            p2.setF(ArrayUtils::elementWisePairOp(p2.getF(), vec, sub));
+            //p1.setF(ArrayUtils::elementWisePairOp(p1.getF(), vec, add));
+            p1.setF(p1.getF() + vec);
+            //p2.setF(ArrayUtils::elementWisePairOp(p2.getF(), vec, sub));
+            p2.setF(p2.getF() - vec);
         }
     }
 }
 
 void calculateX() {
     for (auto &p: particles.getVec()) {
-        std::array<double, 3> res = ArrayUtils::elementWiseScalarOp((2*p.getM()), p.getOldF(), divide);
-        res = ArrayUtils::elementWiseScalarOp((delta_t*delta_t), res, multiply);
+        //std::array<double, 3> res = ArrayUtils::elementWiseScalarOp((2 * p.getM()), p.getOldF(), divide);
+        std::array<double, 3> res = (1 / (2 * p.getM())) * p.getOldF();
+        //res = ArrayUtils::elementWiseScalarOp((delta_t * delta_t), res, multiply);
+        res = (delta_t * delta_t) * res;
 
-        std::array<double, 3> res2 = ArrayUtils::elementWiseScalarOp(delta_t, p.getV(), multiply);
-        res = ArrayUtils::elementWisePairOp(res, res2, add);
-        p.setX(ArrayUtils::elementWisePairOp(res, p.getX(), add));
+        //std::array<double, 3> res2 = ArrayUtils::elementWiseScalarOp(delta_t, p.getV(), multiply);
+        std::array<double, 3> res2 = delta_t * p.getV();
+        //res = ArrayUtils::elementWisePairOp(res, res2, add);
+        res = res + res2;
+        //p.setX(ArrayUtils::elementWisePairOp(res, p.getX(), add));
+        p.setX(res + p.getX());
     }
 }
 
 void calculateV() {
     for (auto &p: particles.getVec()) {
-        std::array<double, 3> res = ArrayUtils::elementWisePairOp(p.getF(), p.getOldF(), add);
-        res = ArrayUtils::elementWiseScalarOp((2*p.getM()), res, divide);
-        res = ArrayUtils::elementWiseScalarOp(delta_t, res , multiply);
-        res = ArrayUtils::elementWisePairOp(res, p.getV(), add);
+        //std::array<double, 3> res = ArrayUtils::elementWisePairOp(p.getF(), p.getOldF(), add);
+        std::array<double, 3> res = p.getF() + p.getOldF();
+        //res = ArrayUtils::elementWiseScalarOp((2 * p.getM()), res, divide);
+        res = (1 / (2 * p.getM())) * res;
+        //res = ArrayUtils::elementWiseScalarOp(delta_t, res, multiply);
+        res = delta_t * res;
+        //res = ArrayUtils::elementWisePairOp(res, p.getV(), add);
+        res = res + p.getV();
         p.setV(res);
     }
 }
 
-double add(double a, double b){return a+b;};
-double multiply(double a, double b){return a*b;}
-double divide(double a, double b){return b/a;};
-double sub(double a, double b){return a-b;};
+//double add(double a, double b) { return a + b; };
+
+//double multiply(double a, double b) { return a * b; }
+
+//double divide(double a, double b) { return b / a; };
+
+//double sub(double a, double b) { return a - b; };
 
 
 void plotParticles(int iteration) {
@@ -172,7 +203,7 @@ void plotParticles(int iteration) {
 
     outputWriter::VTKWriter writer;
     writer.initializeOutput(particles.size());
-    for(auto p : particles.getVec()) {
+    for (auto p: particles.getVec()) {
         writer.plotParticle(p);
     }
     writer.writeFile(out_name, iteration);
