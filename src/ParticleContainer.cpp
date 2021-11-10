@@ -5,7 +5,7 @@
 #include "ParticleContainer.h"
 
 
-ParticleContainer::ParticleContainer() {}
+ParticleContainer::ParticleContainer() = default;
 
 Particle& ParticleContainer::getParticle(int i) {
     return particles[i];

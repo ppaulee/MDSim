@@ -20,6 +20,7 @@ file(GLOB_RECURSE MY_SRC
         )
 
 # create make target
+#add_executable(MolSim ${MY_SRC} src/ForceCalculation.h src/StoermerVerlet.h src/StoermerVerlet.cpp )
 add_executable(MolSim ${MY_SRC})
 
 # set cxx standard. You may raise this if you want.
