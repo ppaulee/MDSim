@@ -2,7 +2,7 @@
 // Created by Jonas on 13.11.21.
 //
 
-#include <utils/ArrayUtils.h>
+#include "utils/ArrayUtils.h"
 #include "LennardJones.h"
 
 std::array<double, 3> LennardJones::calculateF(Particle p1, Particle p2) {
