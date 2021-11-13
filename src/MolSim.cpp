@@ -1,4 +1,3 @@
-
 #include "FileReader.h"
 #include "outputWriter/VTKWriter.h"
 #include "utils/ArrayUtils.h"
@@ -111,20 +110,22 @@ int main(int argc, char *argsv[]) {
         FileReader fileReader;
         fileReader.readFile(particles, file);
     } else {
-        //generateFromFile(particles, file);
-        generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
-        generateCube({8, 8, 1}, {15, 15, 0}, 1.1225, 1, {0, -10, 0}, averageV, particles);
+        generateFromFile(particles, file);
+        //generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
+        //generateCube({8, 8, 1}, {15, 15, 0}, 1.1225, 1, {0, -10, 0}, averageV, particles);
         std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
-        //for (auto &p: particles.getVec()) {
-        //  p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, 2));
-        //}
+        for (auto &p: particles.getVec()) {
+          p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, 2));
+        }
     }
+
     //std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
     double current_time = start_time;
 
-    int iteration = 0;
-
+    int iteration = 1;
     // for this loop, we assume: current x, current f and current v are known
+    plotParticles(0);
+
     while (current_time < end_time) {
         // calculate new x
         calculateX();
