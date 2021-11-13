@@ -69,14 +69,39 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
+
+
 add_executable(
         main_test
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/main_test.cc
 )
+
+
+target_include_directories(main_test
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/libs/libxsd
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests
+        )
+
+target_compile_features(main_test
+        PRIVATE
+        cxx_std_14
+        )
+
+
+
 target_link_libraries(
         main_test
+        PUBLIC
         gtest_main
+        PUBLIC
+        xerces-c
 )
+
+
 
 include(GoogleTest)
 gtest_discover_tests(main_test)
