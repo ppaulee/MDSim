@@ -27,12 +27,13 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
  *  Cube:
  *  x,y,z;v1,v2,v3;N1,N2,N3;h;meanVelocity;mass;
  *
- * This can be repeated with multiple cubes e.g.
- *  2
- *  Cube:
- *  0,0,0;0,0,0;40,8,1;1.1225;0.1;1;
- *  Cube:
- *  15,15,0;0,-10,0;8,8,1;1.1225;0.1;1;
+ * This can be repeated with multiple cubes e.g. (without leading spaces)
+    2
+    Cube:
+    0,0,0;0,0,0;40,8,1;1.1225;0.1;1;
+    Cube:
+    15,15,0;0,-10,0;8,8,1;1.1225;0.1;1;
+
  *
  *
  *
