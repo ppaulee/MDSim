@@ -14,6 +14,8 @@ public:
     /**
      * Calculates force between 2 particles
      *
+     * @param p1 First Particle
+     * @param p2 Second Particle
      * @return new force
      */
     virtual std::array<double, 3> calculateF(Particle p1, Particle p2) = 0;

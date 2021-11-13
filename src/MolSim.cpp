@@ -3,8 +3,11 @@
 #include "outputWriter/VTKWriter.h"
 #include "utils/ArrayUtils.h"
 #include "ParticleContainer.h"
+#include "ParticleGenerator.h"
 #include "ForceCalculation.h"
 #include "StoermerVerlet.h"
+#include "LennardJones.h"
+#include "utils/MaxwellBoltzmannDistribution.h"
 
 #include <iostream>
 #include <cmath>
@@ -47,6 +50,11 @@ constexpr double start_time = 0;
 double end_time = 1000;
 double delta_t = 0.014;
 int outputStep = 100;
+// Parameters for Lennard Jones Potential
+double epsilon = 5;
+double sigma = 1;
+// Brownian Motion average velocity
+double averageV = 0.1;
 
 
 ParticleContainer particles;
@@ -61,6 +69,7 @@ int main(int argc, char *argsv[]) {
         return 1;
     }
 
+    bool cuboids = false;
     char *file = nullptr;
     int c;
     while ((c = getopt(argc, argsv, "hf:s:e:w:a:")) != -1) {
@@ -81,9 +90,12 @@ int main(int argc, char *argsv[]) {
             outputStep = std::stoi(optarg);
         }
         if (c == 'a') {
-           if(std::string("sv").compare(optarg) == 0){
-               algorithm = new StoermerVerlet();
-           }
+            if (std::string("sv") == optarg) {
+                algorithm = new StoermerVerlet();
+            } else if (std::string("lj") == optarg) {
+                algorithm = new LennardJones(epsilon, sigma);
+                cuboids = true;
+            }
         }
     }
 
@@ -95,9 +107,19 @@ int main(int argc, char *argsv[]) {
         std::cout << "Error: Algorithm missing or erroneous algorithm argument, use -h for help" << std::endl;
         return 1;
     }
-    FileReader fileReader;
-    fileReader.readFile(particles, file);
-
+    if (!cuboids) {
+        FileReader fileReader;
+        fileReader.readFile(particles, file);
+    } else {
+        //generateFromFile(particles, file);
+        generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
+        generateCube({8, 8, 1}, {15, 15, 0}, 1.1225, 1, {0, -10, 0}, averageV, particles);
+        std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
+        //for (auto &p: particles.getVec()) {
+        //  p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, 2));
+        //}
+    }
+    //std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
     double current_time = start_time;
 
     int iteration = 0;
@@ -120,6 +142,7 @@ int main(int argc, char *argsv[]) {
         current_time += delta_t;
     }
 
+    ///std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
     std::cout << "output written. Terminating..." << std::endl;
     return 0;
 }
@@ -131,7 +154,7 @@ void printHelp() {
     std::cout << "End time: time after which the simulation ends (optional)" << std::endl;
     std::cout << "Output step size: Every this often steps an output file will be generated (optional)" << std::endl;
     std::cout << "Algorithm: Algorithm used for force calculations (required)" << std::endl;
-    std::cout << "Possible Algorithms: sv (Stoermer Verlet)" << std::endl;
+    std::cout << "Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)" << std::endl;
 }
 
 
