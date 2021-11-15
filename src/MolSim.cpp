@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cmath>
 #include <getopt.h>
+#include <chrono>
 
 
 /**** forward declaration of the calculation functions ****/
@@ -60,6 +61,11 @@ ParticleContainer particles;
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
+// Variables for the benchmark
+bool benchmark_active = false;
+std::chrono::steady_clock::time_point begin;
+std::chrono::steady_clock::time_point beginAfterIO;
+
 int main(int argc, char *argsv[]) {
 
     std::cout << "Hello from MolSim for PSE!" << std::endl;
@@ -71,7 +77,7 @@ int main(int argc, char *argsv[]) {
     bool cuboids = false;
     char *file = nullptr;
     int c;
-    while ((c = getopt(argc, argsv, "hf:s:e:w:a:")) != -1) {
+    while ((c = getopt(argc, argsv, "hf:s:e:w:a:b")) != -1) {
         if (c == 'h') {
             printHelp();
             return 0;
@@ -96,6 +102,12 @@ int main(int argc, char *argsv[]) {
                 cuboids = true;
             }
         }
+        if (c == 'b') {
+            benchmark_active = true;
+        }
+    }
+    if (benchmark_active) {
+        begin = std::chrono::steady_clock::now();
     }
 
     if (file == nullptr) {
@@ -119,12 +131,19 @@ int main(int argc, char *argsv[]) {
         }
     }
 
+    if (benchmark_active) {
+        beginAfterIO = std::chrono::steady_clock::now();
+    }
+
     //std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
     double current_time = start_time;
 
     int iteration = 1;
     // for this loop, we assume: current x, current f and current v are known
-    plotParticles(0);
+
+    if (!benchmark_active) {
+        plotParticles(0);
+    }
 
     while (current_time < end_time) {
         // calculate new x
@@ -135,27 +154,43 @@ int main(int argc, char *argsv[]) {
         calculateV();
 
         iteration++;
-        if (iteration % outputStep == 0) {
+        if (iteration % outputStep == 0 && !benchmark_active) {
             plotParticles(iteration);
         }
-        std::cout << "Iteration " << iteration << " finished." << std::endl;
+
+        if (!benchmark_active) {
+            std::cout << "Iteration " << iteration << " finished." << std::endl;
+        } else if (iteration % outputStep == 0) {
+            std::cout << "Iteration " << iteration << " finished." << std::endl;
+            std::cout << "Current time " << current_time << std::endl;
+        }
+
 
         current_time += delta_t;
     }
 
     ///std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
+
+    if (benchmark_active) {
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::cout << "Time (including reading the input file and setting everything up) = " << std::chrono::duration_cast<std::chrono::seconds> (end - begin).count() << "[s]" << std::endl;
+        std::cout << "Time (only calculations) = " << std::chrono::duration_cast<std::chrono::seconds> (end - beginAfterIO).count() << "[s]" << std::endl;
+    }
+
+
     std::cout << "output written. Terminating..." << std::endl;
     return 0;
 }
 
 void printHelp() {
-    std::cout << "Usage: -f filename -a algorithm -s step size -e end time -w Output step size" << std::endl;
+    std::cout << "Usage: -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark" << std::endl;
     std::cout << "Filename: path to the input file (required)" << std::endl;
     std::cout << "Step size: size of a timestep in the simulation (optional)" << std::endl;
     std::cout << "End time: time after which the simulation ends (optional)" << std::endl;
     std::cout << "Output step size: Every this often steps an output file will be generated (optional)" << std::endl;
     std::cout << "Algorithm: Algorithm used for force calculations (required)" << std::endl;
     std::cout << "Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)" << std::endl;
+    std::cout << "Benachmark: Disables writing files and benchmarks the program" << std::endl;
 }
 
 
