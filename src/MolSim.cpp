@@ -190,7 +190,7 @@ void printHelp() {
     std::cout << "Output step size: Every this often steps an output file will be generated (optional)" << std::endl;
     std::cout << "Algorithm: Algorithm used for force calculations (required)" << std::endl;
     std::cout << "Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)" << std::endl;
-    std::cout << "Benachmark: Disables writing files and benchmarks the program" << std::endl;
+    std::cout << "Benchmark: Disables writing files and benchmarks the program" << std::endl;
 }
 
 
