@@ -7,6 +7,8 @@
 #include "StoermerVerlet.h"
 #include "LennardJones.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
+#include "Log.h"
+
 
 #include <iostream>
 #include <cmath>
@@ -68,7 +70,8 @@ std::chrono::steady_clock::time_point beginAfterIO;
 
 int main(int argc, char *argsv[]) {
 
-    std::cout << "Hello from MolSim for PSE!" << std::endl;
+    MolSim::Log::Init();
+    LOG_INFO("Hello from MolSim for PSE!");
     if (argc <= 1) {
         printHelp();
         return 1;
@@ -111,11 +114,11 @@ int main(int argc, char *argsv[]) {
     }
 
     if (file == nullptr) {
-        std::cout << "Error: Path to file is missing, use -h for help" << std::endl;
+        LOG_ERROR("Error: Path to file is missing, use -h for help");
         return 1;
     }
     if (algorithm == nullptr) {
-        std::cout << "Error: Algorithm missing or erroneous algorithm argument, use -h for help" << std::endl;
+        LOG_ERROR("Error: Algorithm missing or erroneous algorithm argument, use -h for help");
         return 1;
     }
     if (!cuboids) {
@@ -125,7 +128,7 @@ int main(int argc, char *argsv[]) {
         generateFromFile(particles, file);
         //generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
         //generateCube({8, 8, 1}, {15, 15, 0}, 1.1225, 1, {0, -10, 0}, averageV, particles);
-        std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
+        LOG_TRACE("Number of particles: {}", particles.getVec().size());
         for (auto &p: particles.getVec()) {
           p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, 2));
         }
@@ -159,10 +162,10 @@ int main(int argc, char *argsv[]) {
         }
 
         if (!benchmark_active) {
-            std::cout << "Iteration " << iteration << " finished." << std::endl;
+            LOG_TRACE("Iteration {} finished.", iteration);
         } else if (iteration % outputStep == 0) {
-            std::cout << "Iteration " << iteration << " finished." << std::endl;
-            std::cout << "Current time " << current_time << std::endl;
+            std::cout << "Iteration " << iteration << "finished." << std::endl;
+            std::cout << "Current time " << current_time  << std::endl;
         }
 
 
@@ -177,20 +180,18 @@ int main(int argc, char *argsv[]) {
         std::cout << "Time (only calculations) = " << std::chrono::duration_cast<std::chrono::seconds> (end - beginAfterIO).count() << "[s]" << std::endl;
     }
 
-
-    std::cout << "output written. Terminating..." << std::endl;
+    LOG_INFO("output written. Terminating...");
     return 0;
 }
 
 void printHelp() {
-    std::cout << "Usage: -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark" << std::endl;
-    std::cout << "Filename: path to the input file (required)" << std::endl;
-    std::cout << "Step size: size of a timestep in the simulation (optional)" << std::endl;
-    std::cout << "End time: time after which the simulation ends (optional)" << std::endl;
-    std::cout << "Output step size: Every this often steps an output file will be generated (optional)" << std::endl;
-    std::cout << "Algorithm: Algorithm used for force calculations (required)" << std::endl;
-    std::cout << "Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)" << std::endl;
-    std::cout << "Benchmark: Disables writing files and benchmarks the program" << std::endl;
+    LOG_INFO("Usage: -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark");
+    LOG_WARN("Filename: path to the input file (required)");
+    LOG_WARN("Step size: size of a timestep in the simulation (optional)");
+    LOG_WARN("Output step size: Every this often steps an output file will be generated (optional)");
+    LOG_WARN("Algorithm: Algorithm used for force calculations (required)");
+    LOG_INFO("Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)");
+    LOG_INFO("Benchmark: Disables writing files and benchmarks the program");
 }
 
 
