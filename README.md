@@ -14,7 +14,8 @@ https://github.com/ppaulee/MDSim
   cd buildDir  
   cmake -S ../ -B .  
   make  
-  ./MolSim ../input.txt -e 5 -s 0.0002 -a lj
+  ctest \
+  ./MolSim ../input.txt -e 5 -s 0.0002 -a lj -w 100
 ####(with Doxygen):
 * mkdir buildDir  
   cd buildDir  
@@ -24,3 +25,8 @@ https://github.com/ppaulee/MDSim
 
 ###Simulation:
 https://youtu.be/Cdi7o-XbQ14
+
+###FAQ:
+Datei wird nicht richtig eingelesen. \
+Lösung: Line Endings mit \r\n \
+Alternative Lösung: In MolSim.cpp Zeile 128 auskommentieren und Zeilen 129-130 einkommentieren.
