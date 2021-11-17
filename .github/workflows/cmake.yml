@@ -24,6 +24,9 @@ jobs:
     - name: Install Xerces
       run: sudo apt install libxerces-c-dev
 
+    - name: Install SPD Log
+      run: sudo apt-get install libspdlog-dev
+
     - name: Configure CMake
       shell: bash
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
