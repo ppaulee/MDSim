@@ -8,9 +8,18 @@
 
 #include "ForceCalculation.h"
 
+/**
+ * Uses Lennard Jones potential for force calculations
+ */
 class LennardJones : public ForceCalculation {
 private:
+    /**
+     *  Parameter for Lennard Jones potential
+     */
     double epsilon;
+    /**
+     *  Parameter for Lennard Jones potential
+     */
     double sigma;
 public:
 

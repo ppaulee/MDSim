@@ -7,9 +7,13 @@
 
 #include "ForceCalculation.h"
 
+/**
+ * Uses Stoermer-Verlet algorithm for force calculation
+ */
 class StoermerVerlet : public ForceCalculation {
 public:
     StoermerVerlet() = default;
+
     std::array<double, 3> calculateF(Particle p1, Particle p2);
 };
 

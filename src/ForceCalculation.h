@@ -9,10 +9,13 @@
 #include <array>
 #include "Particle.h"
 
+/**
+ * Abstract class whose children represent different types of algorithms for force calculation
+ */
 class ForceCalculation {
 public:
     /**
-     * Calculates force between 2 particles
+     * Calculates force between 2 particles using the classes algorithm
      *
      * @param p1 First Particle
      * @param p2 Second Particle
