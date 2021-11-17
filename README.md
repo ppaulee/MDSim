@@ -14,7 +14,7 @@ https://github.com/ppaulee/MDSim
   cd buildDir  
   cmake -S ../ -B .  
   make  
-  ./MolSim ../eingabe-sonne.txt <end_time> <delta_t>
+  ./MolSim ../input.txt -e 5 -s 0.0002 -a lj
 ####(with Doxygen):
 * mkdir buildDir  
   cd buildDir  
@@ -23,4 +23,4 @@ https://github.com/ppaulee/MDSim
   make doxyDoc
 
 ###Simulation:
-https://youtu.be/Q5dOevq1hPk
+https://youtu.be/Cdi7o-XbQ14
