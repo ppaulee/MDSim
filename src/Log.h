@@ -7,20 +7,30 @@
 
 
 #include <spdlog/spdlog.h>
+
 namespace MolSim {
     class  Log {
         public:
             static void Init();
 
-            inline static std::shared_ptr<spdlog::logger>& getLogger() {return s_Logger;}
+            inline static std::shared_ptr<spdlog::logger>& getConsoleLogger() {return consoleLogger;}
+            inline static std::shared_ptr<spdlog::logger>& getFileLogger() {return fileLogger;}
         private:
-            static std::shared_ptr<spdlog::logger> s_Logger;
+            static std::shared_ptr<spdlog::logger> consoleLogger;
+            static std::shared_ptr<spdlog::logger> fileLogger;
+
     };
 }
-// Log macros
-#define LOG_INFO(...)   ::MolSim::Log::getLogger()->info(__VA_ARGS__)
-#define LOG_TRACE(...)  ::MolSim::Log::getLogger()->trace(__VA_ARGS__)
-#define LOG_WARN(...)   ::MolSim::Log::getLogger()->warn(__VA_ARGS__)
-#define LOG_ERROR(...)  ::MolSim::Log::getLogger()->error(__VA_ARGS__)
+// ConLog macros
+#define LOGC_INFO(...)   ::MolSim::Log::getConsoleLogger()->info(__VA_ARGS__)
+#define LOGC_TRACE(...)  ::MolSim::Log::getConsoleLogger()->trace(__VA_ARGS__)
+#define LOGC_WARN(...)   ::MolSim::Log::getConsoleLogger()->warn(__VA_ARGS__)
+#define LOGC_ERROR(...)  ::MolSim::Log::getConsoleLogger()->error(__VA_ARGS__)
+
+// FileLog macros
+#define LOGF_INFO(...)   ::MolSim::Log::getFileLogger()->info(__VA_ARGS__)
+#define LOGF_TRACE(...)  ::MolSim::Log::getFileLogger()->trace(__VA_ARGS__)
+#define LOGF_WARN(...)   ::MolSim::Log::getFileLogger()->warn(__VA_ARGS__)
+#define LOGF_ERROR(...)  ::MolSim::Log::getFileLogger()->error(__VA_ARGS__)
 
 #endif //PSEMOLDYN_GROUPB_LOG_H

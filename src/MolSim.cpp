@@ -71,7 +71,7 @@ std::chrono::steady_clock::time_point beginAfterIO;
 int main(int argc, char *argsv[]) {
 
     MolSim::Log::Init();
-    LOG_INFO("Hello from MolSim for PSE!");
+    LOGC_INFO("Hello from MolSim for PSE!");
     if (argc <= 1) {
         printHelp();
         return 1;
@@ -114,11 +114,11 @@ int main(int argc, char *argsv[]) {
     }
 
     if (file == nullptr) {
-        LOG_ERROR("Error: Path to file is missing, use -h for help");
+        LOGF_ERROR("Error: Path to file is missing, use -h for help");
         return 1;
     }
     if (algorithm == nullptr) {
-        LOG_ERROR("Error: Algorithm missing or erroneous algorithm argument, use -h for help");
+        LOGC_ERROR("Error: Algorithm missing or erroneous algorithm argument, use -h for help");
         return 1;
     }
     if (!cuboids) {
@@ -128,7 +128,7 @@ int main(int argc, char *argsv[]) {
         generateFromFile(particles, file);
         //generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
         //generateCube({8, 8, 1}, {15, 15, 0}, 1.1225, 1, {0, -10, 0}, averageV, particles);
-        LOG_TRACE("Number of particles: {}", particles.getVec().size());
+        LOGC_TRACE("Number of particles: {}", particles.getVec().size());
         for (auto &p: particles.getVec()) {
           p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, 2));
         }
@@ -162,7 +162,7 @@ int main(int argc, char *argsv[]) {
         }
 
         if (!benchmark_active) {
-            LOG_TRACE("Iteration {} finished.", iteration);
+            LOGC_TRACE("Iteration {} finished.", iteration);
         } else if (iteration % outputStep == 0) {
             std::cout << "Iteration " << iteration << "finished." << std::endl;
             std::cout << "Current time " << current_time  << std::endl;
@@ -180,23 +180,23 @@ int main(int argc, char *argsv[]) {
         std::cout << "Time (only calculations) = " << std::chrono::duration_cast<std::chrono::seconds> (end - beginAfterIO).count() << "[s]" << std::endl;
     }
 
-    LOG_INFO("output written. Terminating...");
+    LOGC_INFO("output written. Terminating...");
     return 0;
 }
 
 void printHelp() {
-    LOG_INFO("Usage: -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark");
-    LOG_WARN("Filename: path to the input file (required)");
-    LOG_WARN("Step size: size of a timestep in the simulation (optional)");
-    LOG_WARN("Output step size: Every this often steps an output file will be generated (optional)");
-    LOG_WARN("Algorithm: Algorithm used for force calculations (required)");
-    LOG_INFO("Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)");
-    LOG_INFO("Benchmark: Disables writing files and benchmarks the program");
+    LOGC_INFO("Usage: -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark");
+    LOGC_WARN("Filename: path to the input file (required)");
+    LOGC_WARN("Step size: size of a timestep in the simulation (optional)");
+    LOGC_WARN("Output step size: Every this often steps an output file will be generated (optional)");
+    LOGC_WARN("Algorithm: Algorithm used for force calculations (required)");
+    LOGC_INFO("Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)");
+    LOGC_INFO("Benchmark: Disables writing files and benchmarks the program");
 }
 
 
 void calculateF() {
-    for (auto &p: particles.getVec()) {
+    for (auto &p: particles) {
         p.setOldF(p.getF());
         p.setF({0, 0, 0});
     }
@@ -219,7 +219,7 @@ void calculateF() {
 }
 
 void calculateX() {
-    for (auto &p: particles.getVec()) {
+    for (auto &p: particles) {
         //std::array<double, 3> res = ArrayUtils::elementWiseScalarOp((2 * p.getM()), p.getOldF(), divide);
         std::array<double, 3> res = (1 / (2 * p.getM())) * p.getOldF();
         //res = ArrayUtils::elementWiseScalarOp((delta_t * delta_t), res, multiply);
@@ -235,7 +235,7 @@ void calculateX() {
 }
 
 void calculateV() {
-    for (auto &p: particles.getVec()) {
+    for (auto &p: particles) {
         //std::array<double, 3> res = ArrayUtils::elementWisePairOp(p.getF(), p.getOldF(), add);
         std::array<double, 3> res = p.getF() + p.getOldF();
         //res = ArrayUtils::elementWiseScalarOp((2 * p.getM()), res, divide);
@@ -263,7 +263,7 @@ void plotParticles(int iteration) {
 
     outputWriter::VTKWriter writer;
     writer.initializeOutput(particles.size());
-    for (auto p: particles.getVec()) {
+    for (auto p: particles) {
         writer.plotParticle(p);
     }
     writer.writeFile(out_name, iteration);

@@ -7,12 +7,16 @@
 
 namespace MolSim{
 
-    std::shared_ptr<spdlog::logger> Log::s_Logger;
+    std::shared_ptr<spdlog::logger> Log::consoleLogger;
+    std::shared_ptr<spdlog::logger> Log::fileLogger;
 
     void Log::Init() {
         spdlog::set_pattern("%^[%T] %n [%l]: %v%$");
-        s_Logger = spdlog::stdout_color_mt("MolSim");
-        s_Logger->set_level(spdlog::level::trace);
+        consoleLogger = spdlog::stdout_color_mt("MolSimConsole");
+        consoleLogger->set_level(spdlog::level::trace);
+
+        fileLogger = spdlog::stdout_color_mt("MolSimFileReader");
+        fileLogger->set_level(spdlog::level::trace);
     }
 
 }
