@@ -55,15 +55,5 @@ public:
 
     int size();
     ParticleContainer();
-
-    /**
-    * Iterate every particle with a given function
-    */
-    void applyToEachParticle(std::function<void (Particle&)> fn);
-
-    /**
-    * Iterate every pair with a given function
-    */
-    void applyToEachPair(std::function<void (Particle&, Particle&)> fn);
 };
 
