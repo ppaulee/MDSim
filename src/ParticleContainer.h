@@ -6,6 +6,7 @@
 
 #include "Particle.h"
 #include "vector"
+#include <functional>
 
 
 class ParticleContainer {
@@ -14,6 +15,29 @@ private:
 
 public:
     Particle& getParticle(int i);
+
+    using iterator = std::vector<Particle>::iterator;
+    using const_iterator = std::vector<Particle>::const_iterator;
+
+    iterator begin()
+    {
+        return particles.begin();
+    }
+
+    iterator end()
+    {
+        return particles.end();
+    }
+
+    const_iterator cbegin() const
+    {
+        return particles.cbegin();
+    }
+
+    const_iterator cend() const
+    {
+        return particles.cend();
+    }
 
     /**
      * @return Reference to Vector
@@ -31,5 +55,15 @@ public:
 
     int size();
     ParticleContainer();
+
+    /**
+    * Iterate every particle with a given function
+    */
+    void applyToEachParticle(std::function<void (Particle&)> fn);
+
+    /**
+    * Iterate every pair with a given function
+    */
+    void applyToEachPair(std::function<void (Particle&, Particle&)> fn);
 };
 
