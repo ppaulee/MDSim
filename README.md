@@ -8,6 +8,10 @@ Group B {#mainpage}
 ###Code
 https://github.com/ppaulee/MDSim
 
+###Compiler:
+GNU Compiler
+
+
 ###Build Instructions:
 ####(without Doxygen):
 * mkdir buildDir  
