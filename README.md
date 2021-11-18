@@ -9,7 +9,7 @@ Group B {#mainpage}
 https://github.com/ppaulee/MDSim
 
 ###Compiler:
-GNU Compiler
+GNU Compiler 9.3.0
 
 
 ###Build Instructions:
@@ -19,7 +19,7 @@ GNU Compiler
   cmake -S ../ -B .  
   make  
   ctest \
-  ./MolSim ../input.txt -e 5 -s 0.0002 -a lj -w 100
+  ./MolSim -f ../input.txt -e 5 -s 0.0002 -a lj -w 100
 ####(with Doxygen):
 * mkdir buildDir  
   cd buildDir  
