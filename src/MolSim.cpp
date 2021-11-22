@@ -8,6 +8,7 @@
 #include "LennardJones.h"
 #include "utils/MaxwellBoltzmannDistribution.h"
 #include "Log.h"
+#include "LinkedCells.h"
 
 
 #include <iostream>
@@ -137,6 +138,9 @@ int main(int argc, char *argsv[]) {
     if (benchmark_active) {
         beginAfterIO = std::chrono::steady_clock::now();
     }
+    LinkedCells* cells = new LinkedCells({50,50,50}, 2);
+    cells->test();
+    return 1;
 
     //std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
     double current_time = start_time;
@@ -220,29 +224,20 @@ void calculateF() {
 
 void calculateX() {
     for (auto &p: particles) {
-        //std::array<double, 3> res = ArrayUtils::elementWiseScalarOp((2 * p.getM()), p.getOldF(), divide);
         std::array<double, 3> res = (1 / (2 * p.getM())) * p.getOldF();
-        //res = ArrayUtils::elementWiseScalarOp((delta_t * delta_t), res, multiply);
         res = (delta_t * delta_t) * res;
 
-        //std::array<double, 3> res2 = ArrayUtils::elementWiseScalarOp(delta_t, p.getV(), multiply);
         std::array<double, 3> res2 = delta_t * p.getV();
-        //res = ArrayUtils::elementWisePairOp(res, res2, add);
         res = res + res2;
-        //p.setX(ArrayUtils::elementWisePairOp(res, p.getX(), add));
         p.setX(res + p.getX());
     }
 }
 
 void calculateV() {
     for (auto &p: particles) {
-        //std::array<double, 3> res = ArrayUtils::elementWisePairOp(p.getF(), p.getOldF(), add);
         std::array<double, 3> res = p.getF() + p.getOldF();
-        //res = ArrayUtils::elementWiseScalarOp((2 * p.getM()), res, divide);
         res = (1 / (2 * p.getM())) * res;
-        //res = ArrayUtils::elementWiseScalarOp(delta_t, res, multiply);
         res = delta_t * res;
-        //res = ArrayUtils::elementWisePairOp(res, p.getV(), add);
         res = res + p.getV();
         p.setV(res);
     }
