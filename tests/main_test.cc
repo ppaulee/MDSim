@@ -7,6 +7,9 @@
 #include "../src/Particle.cpp"
 #include "../src/LennardJones.cpp"
 #include "../src/StoermerVerlet.cpp"
+//#include "../src/LinkedCells.h"
+#include "../src/LinkedCells.cpp"
+
 
 
 // Testing Lennard Jones Potential against hand-calculated values
@@ -51,5 +54,14 @@ TEST(ParticleContainer, getVec) {
     EXPECT_EQ(c.getVec()[0].getX(), result[0].getX());
     EXPECT_EQ(c.getVec()[0].getV(), result[0].getV());
     EXPECT_EQ(c.getVec()[0].getM(), result[0].getM());
+}
+
+// Insert a particle and then remove it. Then check if the list is empty
+TEST(LinkedCells, insertAndRemove) {
+    auto cells = new LinkedCells({1,1,1}, 2);
+    auto p = new Particle({0,0,0},{1,0,0},1,0);
+    cells->insert(*p);
+    cells->remove(*p);
+    EXPECT_EQ(cells->get({0,0,0}).size(), 0);
 }
 
