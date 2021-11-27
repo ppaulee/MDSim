@@ -6,9 +6,9 @@
 #include "ForceCalculation.h"
 #include "StoermerVerlet.h"
 #include "LennardJones.h"
-#include "utils/MaxwellBoltzmannDistribution.h"
 #include "Log.h"
-#include "LinkedCells.h"
+
+
 
 
 #include <iostream>
@@ -37,7 +37,7 @@ void calculateV();
 /**
  * plot the particles to a xyz-file
  */
-void plotParticles(int iteration);
+//void plotParticles(int iteration);
 
 //double add(double a, double b);
 
@@ -59,8 +59,10 @@ double sigma = 1;
 // Brownian Motion average velocity
 double averageV = 0.1;
 
-
-ParticleContainer particles;
+std::array<int, 3> dim = {300,300,0};
+double mesh = 1;
+double cutOff = 1.5;
+LinkedCells* particles = new LinkedCells(dim,mesh,cutOff);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
@@ -70,7 +72,6 @@ std::chrono::steady_clock::time_point begin;
 std::chrono::steady_clock::time_point beginAfterIO;
 
 int main(int argc, char *argsv[]) {
-
     MolSim::Log::Init();
     LOGC_INFO("Hello from MolSim for PSE!");
     if (argc <= 1) {
@@ -123,24 +124,21 @@ int main(int argc, char *argsv[]) {
         return 1;
     }
     if (!cuboids) {
-        FileReader fileReader;
-        fileReader.readFile(particles, file);
+        /**
+            FileReader fileReader;
+            fileReader.readFile(particles, file);
+         */
     } else {
-        generateFromFile(particles, file);
+        generateFromFile(*particles, file);
         //generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
         //generateCube({8, 8, 1}, {15, 15, 0}, 1.1225, 1, {0, -10, 0}, averageV, particles);
-        LOGC_TRACE("Number of particles: {}", particles.getVec().size());
-        for (auto &p: particles.getVec()) {
-          p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, 2));
-        }
+
+        particles->addBrownianMotion(averageV, 2);
     }
 
     if (benchmark_active) {
         beginAfterIO = std::chrono::steady_clock::now();
     }
-    LinkedCells* cells = new LinkedCells({50,50,50}, 1, 1);
-    cells->test();
-    return 1;
 
     //std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
     double current_time = start_time;
@@ -149,20 +147,15 @@ int main(int argc, char *argsv[]) {
     // for this loop, we assume: current x, current f and current v are known
 
     if (!benchmark_active) {
-        plotParticles(0);
+        particles->plotParticles(0);
     }
 
     while (current_time < end_time) {
-        // calculate new x
-        calculateX();
-        // calculate new f
-        calculateF();
-        // calculate new v
-        calculateV();
+        particles->simulate(delta_t, algorithm);
 
         iteration++;
         if (iteration % outputStep == 0 && !benchmark_active) {
-            plotParticles(iteration);
+            particles->plotParticles(iteration);
         }
 
         if (!benchmark_active) {
@@ -198,7 +191,7 @@ void printHelp() {
     LOGC_INFO("Benchmark: Disables writing files and benchmarks the program");
 }
 
-
+/**
 void calculateF() {
     for (auto &p: particles) {
         p.setOldF(p.getF());
@@ -243,13 +236,6 @@ void calculateV() {
     }
 }
 
-//double add(double a, double b) { return a + b; };
-
-//double multiply(double a, double b) { return a * b; }
-
-//double divide(double a, double b) { return b / a; };
-
-//double sub(double a, double b) { return a - b; };
 
 
 void plotParticles(int iteration) {
@@ -257,9 +243,10 @@ void plotParticles(int iteration) {
     std::string out_name("MD_vtk");
 
     outputWriter::VTKWriter writer;
-    writer.initializeOutput(particles.size());
-    for (auto p: particles) {
+    //writer.initializeOutput(particles.size());
+    for (auto &p : particles) {
         writer.plotParticle(p);
     }
     writer.writeFile(out_name, iteration);
 }
+**/

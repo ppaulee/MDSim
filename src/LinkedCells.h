@@ -3,6 +3,7 @@
 //
 
 #include <vector>
+#include <memory>
 #include "Particle.h"
 #include "ForceCalculation.h"
 
@@ -48,9 +49,12 @@ private:
     std::array<int, 3> indexToCoords(int index);
 
 
+
+
 public:
 
     /**
+     * Note that a layer of halo and boundary cells are added on the side. E.g. if we have a 1x1x1 cube then the actual dimensions are (1+4)x(1+4)x(1+4). The coordinate of the inner cell is (0+2,0+2,0+2)
      *
      * @param dimension Dimensions (x,y,z) of the inner cells
      * @param mesh Mesh size of the grid
@@ -106,13 +110,45 @@ public:
 
     /**
      * Calculates new velocity
+     *
+     * @param delta_t Size of timestep
      */
-    void calculateV();
+    void calculateV(double delta_t);
 
     /**
      * Calculates new position
+     *
+     * @param delta_t Size of timestep
      */
-    void calculateX();
+    void calculateX(double delta_t);
+
+    /**
+     * Moves particles which no longer belong to their cell to their corresponding cell. Will be called after in simulate()
+     */
+    void move();
+
+    /**
+     * Runs calculateX(), calculateF(), calculateV(), move() in order
+     *
+     * @param delta_a
+     * @param algorithm
+     */
+    void simulate(double delta_a, ForceCalculation *algorithm);
+
+    /**
+     * Plots particles
+     *
+     * @param iteration current Iteration
+     */
+    void plotParticles(int iteration);
+
+    void addBrownianMotion(double averageV, int dimension);
+
+    /**
+     *
+     * @return Number of particles inside the data structure
+     */
+    int numberParticles();
 
 };
 
