@@ -39,6 +39,11 @@ private:
   double m;
 
   /**
+   * Tells if the particle is marked
+   */
+  bool marked;
+
+  /**
    * Type of the particle. Use it for whatever you want (e.g. to separate
    * molecules belonging to different bodies, matters, and so on)
    */
@@ -72,6 +77,10 @@ public:
   double getM() const;
 
   int getType() const;
+
+  void mark();
+  void unmark();
+  bool isMarked();
 
   bool operator==(Particle &other);
 

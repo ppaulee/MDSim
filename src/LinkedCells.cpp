@@ -3,11 +3,15 @@
 //
 
 #include "LinkedCells.h"
+#include "utils/ArrayUtils.h"
+#include "LennardJones.h"
 #include <iostream>
+#include <algorithm>
 
 
 // TODO 2D Grid
-LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh) {
+LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff) {
+    cutOffRadius = cutOff;
     size = coordToIndex({dimensions[0], dimensions[1], dimensions[2]});
     // Add boundary and halo cells
     dimensions = {dimension[0] + 2, dimension[1] + 2, dimension[2] + 2};
@@ -36,7 +40,7 @@ void LinkedCells::test() {
     insert(*p1);
     std::cout << "### TEST: " << coordToIndex(getCellCoords(*p));
     std::cout << "### TEST: " << getCellCoords(*p)[0] << getCellCoords(*p)[1] << getCellCoords(*p)[2] << std::endl;
-    remove(*p);
+    calculateF(new LennardJones(5,1));
     std::cout << "TEST";
 }
 
@@ -80,7 +84,45 @@ std::vector<Particle>& LinkedCells::get(std::array<double, 3> coords) {
 }
 
 void LinkedCells::calculateF(ForceCalculation *algorithm) {
+    for (auto vec : particles) {
+        for (auto p : vec) {
+            p.setOldF(p.getF());
+            p.setF({0,0,0});
+        }
+    }
+    for (int x = 1; x < dimensions[0]; ++x) {
+        for (int y = 1; y < dimensions[1]; ++y) {
+            for (int z = 1; z < dimensions[2]; ++z) {
+                int index = coordToIndex({x,y,z});
+                for (auto currentParticle : particles[index]) {
+                    // Loop through neighbours
+                    for (int i = std::max(1, x-1); i <= std::min(dimensions[0]-2, x+1); ++i) {
+                        for (int j = std::max(1, y-1); j <= std::min(dimensions[1]-2, y+1) ; ++j) {
+                            // 3D case
+                            if (dimensions[2] != 0) {
+                                for (int k = std::max(1, z-1); k <= std::min(dimensions[2]-2, z+1); ++k) {
+                                    for (auto p : particles[coordToIndex({i,j,k})]) {
+                                        if (ArrayUtils::L2Norm(p.getX() - currentParticle.getX()) < cutOffRadius && !p.isMarked()) {
+                                            std::array<double, 3> force = algorithm->calculateF(currentParticle, p);
+                                            force = {1,2,3};
+                                            currentParticle.setF(currentParticle.getF() + force);
+                                            p.setF(p.getF() - force);
+                                        }
+                                    }
+                                }
+                            // 2D case
+                            } else {
 
+                            }
+
+                        }
+                    }
+                    currentParticle.mark();
+                }
+
+            }
+        }
+    }
 }
 
 

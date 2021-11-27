@@ -21,6 +21,7 @@ private:
     std::array<int, 3> dimensions;
     int size;
     double meshSize;
+    double cutOffRadius;
 
     /**
      * Finds the right cell for the particle
@@ -52,9 +53,10 @@ public:
     /**
      *
      * @param dimension Dimensions (x,y,z) of the inner cells
-     * @param mesh Mesh size of the grid / cut off radius
+     * @param mesh Mesh size of the grid
+     * @param cutOff cut off radius
      */
-    explicit LinkedCells(std::array<int, 3> dimension, double mesh);
+    explicit LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff);
 
     /**
      *
@@ -101,6 +103,16 @@ public:
      * @param algorithm Algorithm to compute the force
      */
     void calculateF(ForceCalculation *algorithm);
+
+    /**
+     * Calculates new velocity
+     */
+    void calculateV();
+
+    /**
+     * Calculates new position
+     */
+    void calculateX();
 
 };
 

@@ -58,7 +58,7 @@ TEST(ParticleContainer, getVec) {
 
 // Insert a particle and then remove it. Then check if the list is empty
 TEST(LinkedCells, insertAndRemove) {
-    auto cells = new LinkedCells({1,1,1}, 2);
+    auto cells = new LinkedCells({1,1,1}, 2, 1);
     auto p = new Particle({0,0,0},{1,0,0},1,0);
     cells->insert(*p);
     cells->remove(*p);

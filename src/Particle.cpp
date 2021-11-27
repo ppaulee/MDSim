@@ -21,6 +21,7 @@ Particle::Particle(const Particle &other) {
   x = other.x;
   v = other.v;
   f = other.f;
+  marked = false;
   old_f = other.old_f;
   m = other.m;
   type = other.type;
@@ -33,6 +34,7 @@ Particle::Particle(std::array<double, 3> x_arg, std::array<double, 3> v_arg,
   x = x_arg;
   v = v_arg;
   m = m_arg;
+  marked = false;
   type = type_arg;
   f = {0., 0., 0.};
   old_f = {0., 0., 0.};
@@ -48,6 +50,10 @@ const std::array<double, 3> &Particle::getV() const { return v; }
 const std::array<double, 3> &Particle::getF() const { return f; }
 
 const std::array<double, 3> &Particle::getOldF() const { return old_f; }
+
+void Particle::mark() {marked=true;}
+void Particle::unmark() {marked=false;}
+bool Particle::isMarked() {return marked;}
 
 
 

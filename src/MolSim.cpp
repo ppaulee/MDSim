@@ -138,7 +138,7 @@ int main(int argc, char *argsv[]) {
     if (benchmark_active) {
         beginAfterIO = std::chrono::steady_clock::now();
     }
-    LinkedCells* cells = new LinkedCells({50,50,50}, 2);
+    LinkedCells* cells = new LinkedCells({50,50,50}, 1, 1);
     cells->test();
     return 1;
 
