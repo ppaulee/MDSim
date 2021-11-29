@@ -9,6 +9,7 @@
 
 #include <array>
 #include <string>
+#include <math.h>
 
 class Particle {
 
@@ -83,6 +84,9 @@ public:
   bool isMarked();
 
   bool operator==(Particle &other);
+
+  bool operator==(const Particle &rhs) const;
+  bool operator==(const Particle* rhs) const;
 
   std::string toString() const;
 };

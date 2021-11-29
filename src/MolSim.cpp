@@ -60,8 +60,8 @@ double sigma = 1;
 double averageV = 0.1;
 
 std::array<int, 3> dim = {300,300,0};
-double mesh = 1;
-double cutOff = 1.5;
+double mesh = 3;
+double cutOff = 3;
 LinkedCells* particles = new LinkedCells(dim,mesh,cutOff);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
@@ -123,6 +123,10 @@ int main(int argc, char *argsv[]) {
         LOGC_ERROR("Error: Algorithm missing or erroneous algorithm argument, use -h for help");
         return 1;
     }
+/**
+    auto cells = new LinkedCells({10,10,0}, 1, 1.5);
+    cells->test();
+    return 0; **/
     if (!cuboids) {
         /**
             FileReader fileReader;
@@ -151,6 +155,9 @@ int main(int argc, char *argsv[]) {
     }
 
     while (current_time < end_time) {
+        if (iteration == 521) {
+            std::cout << "test";
+        }
         particles->simulate(delta_t, algorithm);
 
         iteration++;

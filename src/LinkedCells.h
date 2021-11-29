@@ -3,9 +3,11 @@
 //
 
 #include <vector>
+#include <list>
 #include <memory>
 #include "Particle.h"
 #include "ForceCalculation.h"
+
 
 
 class LinkedCells {
@@ -14,7 +16,7 @@ private:
     /**
      * This vector stores cells. These cells store a vector of particles in this cell
      */
-    std::vector<std::vector<Particle>> particles;
+    std::vector<std::list<Particle>> particles;
 
     /**
      * Width, Height, Depth
@@ -67,7 +69,7 @@ public:
      * @param coords Coordinates of the cell
      * @return Returns the content of a cell
      */
-    std::vector<Particle>& get(std::array<double, 3> coords);
+    std::list<Particle>& get(std::array<double, 3> coords);
 
     /**
      * Inserts a particle into the data structure
@@ -80,8 +82,9 @@ public:
      * Removes a particle from the data structure
      *
      * @param p Particle to remove
+     * @param index optional: removes particle from given index
      */
-    void remove(Particle& p);
+    void remove(Particle& p, int index);
 
     void test();
 
@@ -107,6 +110,9 @@ public:
      * @param algorithm Algorithm to compute the force
      */
     void calculateF(ForceCalculation *algorithm);
+    void calculateFF(ForceCalculation *algorithm);
+
+    bool allInRightCell();
 
     /**
      * Calculates new velocity
@@ -149,6 +155,16 @@ public:
      * @return Number of particles inside the data structure
      */
     int numberParticles();
+
+    /**
+     * Deletess all particles in halo cells
+     */
+    void deleteParticlesInHalo();
+
+    /**
+     * Deletes all particles out of scope
+     */
+    void deleteOutside();
 
 };
 
