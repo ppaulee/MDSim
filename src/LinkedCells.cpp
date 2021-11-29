@@ -42,6 +42,7 @@ int LinkedCells::coordToIndex(std::array<int, 3> coords) {
 
 }
 
+// TODO 2D
 std::array<int, 3> LinkedCells::indexToCoords(int index) {
     int width_index = index / (dimensions[1] * dimensions[2]);
     int height_index = (index - width_index * dimensions[1] * dimensions[2]) / dimensions[2];
@@ -202,7 +203,7 @@ void LinkedCells::move() {
         }
     }
     // Remove and reinsert particles in wrong cells
-    for (int i = 0; i < tmp_stack_insert.size(); ++i) {
+    for (long unsigned int i = 0; i < tmp_stack_insert.size(); ++i) {
         // remove
         auto &to_remove = tmp_stack_remove[i];
         int index = tmp_stack_remove_index[i];
@@ -210,7 +211,7 @@ void LinkedCells::move() {
 
         // insert
         auto &p = tmp_stack_insert[i];
-        if (coordToIndex(getCellCoords(p)) >= 0 && coordToIndex(getCellCoords(p)) < particles.size()) {
+        if (coordToIndex(getCellCoords(p)) >= 0 && (long unsigned int) coordToIndex(getCellCoords(p)) < particles.size()) {
             particles[coordToIndex(getCellCoords(p))].push_back(p);
         }
 
