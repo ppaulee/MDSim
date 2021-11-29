@@ -49,24 +49,6 @@ std::array<int, 3> LinkedCells::indexToCoords(int index) {
     return {width_index, height_index, depth_index};
 }
 
-void LinkedCells::test() {
-    Particle* p = new Particle({2.2,1.2,1.2},{1,0,0},1,0);
-    //insert(*p);
-    Particle* p1 = new Particle({3.3,1.2,0},{1,0,0},1,0);
-    insert(*p1);
-    std::cout << "### TEST vor: " << coordToIndex(getCellCoords(*p1)) << std::endl;;
-    particles[43].front().setX({5,5,0});
-    std::cout << "### TEST: " << coordToIndex(getCellCoords(*p)) << std::endl;
-    std::cout << "### TEST nach: 75" << std::endl;;
-    move();
-    std::cout << "### size index 43: " << particles[43].size() << std::endl;
-    std::cout << "### size index 75: " << particles[75].size() << std::endl;
-    std::cout << "### TEST: " << allInRightCell() << std::endl;
-
-    calculateF(new LennardJones(5,1));
-    std::cout << "TEST";
-}
-
 void LinkedCells::insert(Particle &p) {
     particles[coordToIndex(getCellCoords(p))].push_back(p);
 }
@@ -102,7 +84,7 @@ std::list<Particle>& LinkedCells::get(std::array<double, 3> coords) {
 }
 
 
-void LinkedCells::calculateFF(ForceCalculation *algorithm) {
+void LinkedCells::calculateF(ForceCalculation *algorithm) {
     for (auto &vec : particles) {
         for (auto &p : vec) {
             p.setOldF(p.getF());
@@ -173,31 +155,6 @@ void LinkedCells::calculateFF(ForceCalculation *algorithm) {
                 }
             }
 
-        }
-    }
-}
-
-
-void LinkedCells:: calculateF(ForceCalculation *algorithm) {
-    for (auto &vec : particles) {
-        for (auto &p : vec) {
-            p.setOldF(p.getF());
-            p.setF({0, 0, 0});
-        }
-    }
-
-    for (auto &vec1 : particles) {
-        for (auto &p1 : vec1) {
-            std::array<double, 3> f = {0,0,0};
-            for (auto &vec2 : particles) {
-                for (auto &p2 : vec2) {
-                    if (p1 == p2)
-                        continue;
-                    std::array<double, 3> tmp = algorithm->calculateF(p1, p2);
-                    f = f + tmp;
-                }
-            }
-            p1.setF(f);
         }
     }
 }
@@ -274,25 +231,22 @@ bool LinkedCells::allInRightCell() {
 void LinkedCells::simulate(double delta_t, ForceCalculation *algorithm) {
     // calculate new x
     calculateX(delta_t);
+
     deleteParticlesInHalo();
     // moves particles to correct cell
     move();
     // TODO here boundary conditions
     deleteParticlesInHalo();
 
-    if (!allInRightCell()) {
-        std::cout << "NOT IN RIGHT CELL" << std::endl;
-    }
 
     // calculate new f
-    calculateFF(algorithm);
+    calculateF(algorithm);
 
     // calculate new v
     calculateV(delta_t);
 }
 
 void LinkedCells::plotParticles(int iteration) {
-
     std::string out_name("MD_vtk");
 
     outputWriter::VTKWriter writer;

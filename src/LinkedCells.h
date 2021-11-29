@@ -86,7 +86,6 @@ public:
      */
     void remove(Particle& p, int index);
 
-    void test();
 
     /**
      * Checks if the cell with these coordinates is a halo cell
@@ -110,8 +109,13 @@ public:
      * @param algorithm Algorithm to compute the force
      */
     void calculateF(ForceCalculation *algorithm);
-    void calculateFF(ForceCalculation *algorithm);
 
+
+    /**
+     * Checks if all particles are in the right cell
+     *
+     * @return
+     */
     bool allInRightCell();
 
     /**
