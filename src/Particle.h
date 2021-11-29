@@ -9,6 +9,7 @@
 
 #include <array>
 #include <string>
+#include <math.h>
 
 class Particle {
 
@@ -37,6 +38,11 @@ private:
    * Mass of this particle
    */
   double m;
+
+  /**
+   * Tells if the particle is marked
+   */
+  bool marked;
 
   /**
    * Type of the particle. Use it for whatever you want (e.g. to separate
@@ -73,7 +79,14 @@ public:
 
   int getType() const;
 
+  void mark();
+  void unmark();
+  bool isMarked();
+
   bool operator==(Particle &other);
+
+  bool operator==(const Particle &rhs) const;
+  bool operator==(const Particle* rhs) const;
 
   std::string toString() const;
 };

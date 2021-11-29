@@ -8,18 +8,19 @@
 #include <sstream>
 #include "vector"
 
-void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, ParticleContainer &container) {
+void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, LinkedCells &container) {
     for (double x = 0; x < dimension[0]; x++) {
         for (double y = 0; y < dimension[1]; y++) {
             for (double z = 0; z < dimension[2]; z++) {
                 // Add particle to ParticleContainer
-                container.getVec().push_back(Particle({x*h+startPoint[0],y*h+startPoint[1],z*h+startPoint[2]},v,m));
+                Particle p = Particle({x*h+startPoint[0],y*h+startPoint[1],z*h+startPoint[2]},v,m);
+                container.insert(p);
             }
         }
     }
 }
 
-void generateFromFile(ParticleContainer &particles, char *filename) {
+void generateFromFile(LinkedCells &particles, char *filename) {
     int num = 0;
 
     std::ifstream input_file(filename);
@@ -44,7 +45,7 @@ void generateFromFile(ParticleContainer &particles, char *filename) {
             getline(input_file, tmp_string);
             std::cout << "Read line: " << tmp_string << std::endl;
 
-            if (tmp_string == "Cube:\r") {
+            if (tmp_string == "Cube:\r" || tmp_string == "Cube:\n") {
                 getline(input_file, tmp_string);
                 parseCube(tmp_string, particles);
             }
@@ -55,7 +56,7 @@ void generateFromFile(ParticleContainer &particles, char *filename) {
     }
 }
 
-void parseCube(std::string str, ParticleContainer& particleContainer) {
+void parseCube(std::string str, LinkedCells& particleContainer) {
     std::vector<std::string> strings = splitToString(str, ';');
     //Read input to arrays/doubles
     std::array<double, 3> startPoint = convertToFixedArray(splitToDouble(strings[0], ','));

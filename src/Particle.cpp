@@ -21,6 +21,7 @@ Particle::Particle(const Particle &other) {
   x = other.x;
   v = other.v;
   f = other.f;
+  marked = false;
   old_f = other.old_f;
   m = other.m;
   type = other.type;
@@ -33,6 +34,7 @@ Particle::Particle(std::array<double, 3> x_arg, std::array<double, 3> v_arg,
   x = x_arg;
   v = v_arg;
   m = m_arg;
+  marked = false;
   type = type_arg;
   f = {0., 0., 0.};
   old_f = {0., 0., 0.};
@@ -49,6 +51,10 @@ const std::array<double, 3> &Particle::getF() const { return f; }
 
 const std::array<double, 3> &Particle::getOldF() const { return old_f; }
 
+void Particle::mark() {marked=true;}
+void Particle::unmark() {marked=false;}
+bool Particle::isMarked() {return marked;}
+
 
 
 double Particle::getM() const { return m; }
@@ -63,8 +69,16 @@ std::string Particle::toString() const {
 }
 
 bool Particle::operator==(Particle &other) {
-  return (x == other.x) and (v == other.v) and (f == other.f) and
+  return (x == other.x) and (v == other.v) and (f == other.f or isnan(f[0])) and
          (type == other.type) and (m == other.m) and (old_f == other.old_f);
+}
+
+bool Particle::operator==(const Particle &rhs) const {
+    return (x == rhs.x);
+}
+
+bool Particle::operator==(const Particle* rhs) const {
+    return (x == rhs->x);
 }
 
 void Particle::setX(std::array<double, 3> xNew) {
