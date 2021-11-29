@@ -84,7 +84,7 @@ public:
      * @param p Particle to remove
      * @param index optional: removes particle from given index
      */
-    void remove(Particle& p, int index);
+    void remove(Particle& p);
 
     void test();
 
