@@ -78,19 +78,8 @@ std::array<int, 3> LinkedCells::getCellCoords(Particle &p) {
     return {x,y,z};
 }
 
-void LinkedCells::remove(Particle& p, int index = -1) {
-    int particleIndex = index;
-    if (particleIndex == -1) {
-        particleIndex = coordToIndex(getCellCoords(p));
-    }
-    // Search for right element
-    std::vector<Particle> tmp = {};
-    for (auto &p1 : particles[particleIndex]) {
-        if (!(p1 == p)) {
-            tmp.push_back(p1);
-        }
-    }
-
+void LinkedCells::remove(Particle& p) {
+    particles[index].remove(p);
 }
 
 bool LinkedCells::isHaloCell(std::array<int, 3> coords) {
