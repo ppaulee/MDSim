@@ -23,6 +23,10 @@ private:
      */
     std::array<int, 3> dimensions;
     int size;
+
+    /**
+     * This is the length of the sides of one cube/square
+     */
     double meshSize;
     double cutOffRadius;
 
@@ -50,6 +54,14 @@ private:
      */
     std::array<int, 3> indexToCoords(int index);
 
+    /**
+     * Removes a particle from the data structure
+     *
+     * @param p Particle to remove
+     * @param index optional: removes particle from given index
+     */
+    void remove(Particle& p, int index);
+
 
 
 
@@ -57,8 +69,10 @@ public:
 
     /**
      * Note that a layer of halo and boundary cells are added on the side. E.g. if we have a 1x1x1 cube then the actual dimensions are (1+4)x(1+4)x(1+4). The coordinate of the inner cell is (0+2,0+2,0+2)
+     * General note: intern the smallest possible coordinate is (0,0,0) but we want to support also negative coordinates. Therefore to the position of the particle we add half the dimension in every dimension. The output will be retransferred to
+     * the original coordinates (minus half the dimension in every dimension)
      *
-     * @param dimension Dimensions (x,y,z) of the inner cells
+     * @param dimension Dimensions (x,y,z) of the inner cells. All numbers must be even! -x/2,-y/2,-z/2 are the minimum coordinates and x/2,y/2,z/2 are the maximum coordinates
      * @param mesh Mesh size of the grid
      * @param cutOff cut off radius
      */
@@ -77,15 +91,6 @@ public:
      * @param p Particle to insert
      */
     void insert(Particle& p);
-
-    /**
-     * Removes a particle from the data structure
-     *
-     * @param p Particle to remove
-     * @param index optional: removes particle from given index
-     */
-    void remove(Particle& p, int index);
-
 
     /**
      * Checks if the cell with these coordinates is a halo cell
@@ -169,6 +174,30 @@ public:
      * Deletes all particles out of scope
      */
     void deleteOutside();
+
+    /**
+     *
+     * @return dimensions
+     */
+    std::array<int, 3> getDimensions();
+
+    /**
+     * Transfers the coordiantes to a format which we can work with
+     * We add half the dimension on each dimension
+     *
+     * @param p Particle which should be transferred
+     * @return Transferred Particle
+     */
+    Particle& transfer(Particle& p);
+
+    /**
+     * Transferes the particle back
+     * See transform() for transformation rule
+     *
+     * @param p Particle which should be transferred
+     * @return Retransferred Particle
+     */
+    Particle& retransfer(Particle& p);
 
 };
 

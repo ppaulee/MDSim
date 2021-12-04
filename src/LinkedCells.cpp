@@ -4,16 +4,16 @@
 
 #include "LinkedCells.h"
 #include "utils/ArrayUtils.h"
-#include "LennardJones.h"
-#include <iostream>
-#include <algorithm>
 #include <outputWriter/VTKWriter.h>
 #include "utils/MaxwellBoltzmannDistribution.h"
-#include <math.h>
+#include <stdexcept>
 
 
-// TODO 2D Grid
 LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff) {
+    if (dimension[0] % 2 != 0 || dimension[1] % 2 != 0 || dimension[2] % 2 != 0) {
+        throw std::invalid_argument( "Dimensions must be even" );
+    }
+
     cutOffRadius = cutOff;
     // Add boundary and halo cells
     if (dimension[2] == 0) {
@@ -35,14 +35,13 @@ LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOf
 
 int LinkedCells::coordToIndex(std::array<int, 3> coords) {
     if (dimensions[2] == 0) {
-        return coords[0] * dimensions[0] + coords[1];
+        return (coords[0]) * dimensions[0] + (coords[1]);
     } else {
         return coords[0] * dimensions[1] * dimensions[2] + coords[1] * dimensions[2] + coords[2];
     }
-
 }
 
-// TODO 2D
+// Only 3D
 std::array<int, 3> LinkedCells::indexToCoords(int index) {
     int width_index = index / (dimensions[1] * dimensions[2]);
     int height_index = (index - width_index * dimensions[1] * dimensions[2]) / dimensions[2];
@@ -51,6 +50,14 @@ std::array<int, 3> LinkedCells::indexToCoords(int index) {
 }
 
 void LinkedCells::insert(Particle &p) {
+    // Transfer the coordinates into a system where (0,0,0) is the smallest coordinate
+    if (dimensions[2] == 0) {
+        std::array<double, 3> tmp = {(double) dimensions[0]/2, (double) dimensions[1]/2, 0};
+        p.setX(tmp + p.getX());
+    } else {
+        std::array<double, 3> tmp = {(double) dimensions[0]/2, (double) dimensions[1]/2, (double) dimensions[2]/2 };
+        p.setX(tmp + p.getX());
+    }
     particles[coordToIndex(getCellCoords(p))].push_back(p);
 }
 
@@ -84,7 +91,6 @@ std::list<Particle>& LinkedCells::get(std::array<double, 3> coords) {
     return particles[coordToIndex({x,y,z})];
 }
 
-
 void LinkedCells::calculateF(ForceCalculation *algorithm) {
     for (auto &vec : particles) {
         for (auto &p : vec) {
@@ -94,8 +100,8 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
         }
     }
 
-    for (int x = 1; x < dimensions[0]-1; ++x) {
-        for (int y = 1; y < dimensions[1]-1; ++y) {
+    for (int x = 0; x < dimensions[0]-1; ++x) {
+        for (int y = 0; y < dimensions[1]-1; ++y) {
             if (dimensions[2] == 0) {
                 //2D case
                 // Loop over all particles in cell
@@ -106,6 +112,10 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
                         for (int y_diff = -1; y_diff <= 1; ++y_diff) {
                             // Coordinates including offset for neighboured cells
                             std::array<int, 3> c = {x + x_diff, y + y_diff, 0};
+
+                            if (coordToIndex(c) < 0) {
+                                continue;
+                            }
 
                             // Particles in neighboured cells
                             for (auto &p : particles[coordToIndex(c)]) {
@@ -186,12 +196,11 @@ void LinkedCells::calculateX(double delta_t) {
     }
 }
 
-
 void LinkedCells::move() {
     std::vector<Particle> tmp_stack_insert = {};
     std::vector<Particle> tmp_stack_remove = {};
     std::vector<int> tmp_stack_remove_index = {};
-    // Find partticles in wrong cells and add them to the vectors above
+    // Find particles in wrong cells and add them to the vectors above
     for (int i = 0; i < size; ++i) {
         for (auto &p : particles[i]) {
             if (coordToIndex(getCellCoords(p)) != i) {
@@ -211,6 +220,7 @@ void LinkedCells::move() {
 
         // insert
         auto &p = tmp_stack_insert[i];
+
         if (coordToIndex(getCellCoords(p)) >= 0 && (long unsigned int) coordToIndex(getCellCoords(p)) < particles.size()) {
             particles[coordToIndex(getCellCoords(p))].push_back(p);
         }
@@ -239,7 +249,6 @@ void LinkedCells::simulate(double delta_t, ForceCalculation *algorithm) {
     // TODO here boundary conditions
     deleteParticlesInHalo();
 
-
     // calculate new f
     calculateF(algorithm);
 
@@ -254,7 +263,19 @@ void LinkedCells::plotParticles(int iteration) {
     writer.initializeOutput(numberParticles());
     for (auto &vec : particles) {
         for (auto &p : vec) {
+            std::array<double, 3> tmp;
+            if (dimensions[2] == 0) {
+                // Transfer the coordinates back to original scheme
+                tmp = {(double) dimensions[0]/2, (double) dimensions[1]/2, 0};
+                p.setX((std::array<double, 3>) (p.getX() - tmp));
+            } else {
+                // Transfer the coordinates back to original scheme
+                tmp = {(double) dimensions[0]/2, (double) dimensions[1]/2, (double) dimensions[2]/2 };
+                p.setX((std::array<double, 3>) (p.getX() - tmp));
+            }
             writer.plotParticle(p);
+            // Transfer the coordinates back to calculate them correctly again
+            p.setX((std::array<double, 3>) (p.getX() + tmp));
         }
 
     }
@@ -294,6 +315,11 @@ void LinkedCells::deleteParticlesInHalo() {
         }
     }
 }
+
+std::array<int, 3> LinkedCells::getDimensions() {
+    return dimensions;
+}
+
 
 
 
