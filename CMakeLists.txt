@@ -21,7 +21,7 @@ file(GLOB_RECURSE MY_SRC
 
 # create make target
 #add_executable(MolSim ${MY_SRC} src/ForceCalculation.h src/StoermerVerlet.h src/StoermerVerlet.cpp )
-add_executable(MolSim ${MY_SRC} src/LennardJones.cpp src/LennardJones.h)
+add_executable(MolSim ${MY_SRC} src/LennardJones.cpp src/LennardJones.h src/LinkedCells.cpp src/LinkedCells.h src/LinkedCells.cpp src/LinkedCells.h)
 
 # set cxx standard. You may raise this if you want.
 target_compile_features(MolSim
@@ -73,7 +73,7 @@ enable_testing()
 
 add_executable(
         main_test
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/main_test.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/main_test.cpp
 )
 
 
