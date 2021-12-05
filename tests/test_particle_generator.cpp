@@ -11,7 +11,7 @@
 TEST(ParticleGenerator, generate) {
     auto container = new ParticleContainer();
 
-    generateFromFile(*container, (char*) "../../../../tests/test_input_particle_generator.txt");
+    generateFromFile(*container, (char*) "../../tests/test_input_particle_generator.txt");
 
     // There must be exactly one particle in the container
     EXPECT_EQ(container->getVec().size(), 1);
