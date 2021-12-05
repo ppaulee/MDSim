@@ -2,15 +2,15 @@
 // Created by paulu on 03.11.2021.
 //
 
-#pragma once
-
 #include "Particle.h"
-
 #include "vector"
 #include <functional>
+#include "forceCalculation/ForceCalculation.h"
+#include "SimulationContainer.h"
 
 
-class ParticleContainer {
+
+class ParticleContainer : public SimulationContainer {
 private:
     std::vector<Particle> particles;
 
@@ -56,5 +56,15 @@ public:
 
     int size();
     ParticleContainer();
+
+    void calculateF(ForceCalculation *algorithm);
+    void calculateX(double delta_t);
+    void calculateV(double delta_t);
+    void plotParticles(int iteration) override;
+
+    void simulate(ForceCalculation *algorithm, double delta_t) override;
+
+    void insert(Particle& p) override;
+    void addBrownianMotion(double averageV, int dimension) override;
 };
 

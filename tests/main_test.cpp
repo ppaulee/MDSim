@@ -1,16 +1,18 @@
 #include <gtest/gtest.h>
 
-#include "../src/ParticleContainer.cpp"
+#include "container/ParticleContainer.cpp"
+#include "../src/utils/MaxwellBoltzmannDistribution.cpp"
 #include "../src/Particle.cpp"
-#include "../src/LennardJones.cpp"
-#include "../src/StoermerVerlet.cpp"
-#include "../src/LinkedCells.cpp"
+#include "forceCalculation/LennardJones.cpp"
+#include "forceCalculation/StoermerVerlet.cpp"
+#include "container/LinkedCells.cpp"
 #include "../src/outputWriter/vtk-unstructured.cpp"
 #include "../src/outputWriter/VTKWriter.cpp"
 
 #include "test_force_calc.cpp"
 #include "test_linkedcells.cpp"
 #include "test_particle_container.cpp"
+#include "test_particle_generator.cpp"
 
 
 int main(int argc, char **argv) {

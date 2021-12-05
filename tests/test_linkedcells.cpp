@@ -16,3 +16,26 @@ TEST(LinkedCells, gridConstruction) {
         }
     }
 }
+
+// Create 2 particles, then the function numberParticles() must return 2
+TEST(LinkedCells, numberParticles) {
+    auto cells = new LinkedCells({2,2,2}, 1, 1);
+    auto p1 = new Particle({0,0,0},{0,0,0},1,1);
+    auto p2 = new Particle({1,1,1},{0,0,0},1,1);
+    cells->insert(*p1);
+    cells->insert(*p2);
+
+    EXPECT_EQ(cells->numberParticles(), 2);
+}
+
+// Create particle then change the position and then let the datastrucutre move the particle into the right cell
+TEST(LinkedCells, move) {
+    auto cells = new LinkedCells({10,10,10}, 1, 1);
+    auto p1 = new Particle({0,0,0},{0,0,0},1,1);
+    cells->insert(*p1);
+    p1->setX({0,0,0});
+
+    cells->move();
+
+    EXPECT_TRUE(cells->allInRightCell());
+}
