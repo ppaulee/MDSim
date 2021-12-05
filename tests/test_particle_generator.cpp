@@ -4,16 +4,14 @@
 
 #include "gtest/gtest.h"
 #include "../src/ParticleGenerator.cpp"
-#include <iostream>
 #include <fstream>
+#include <string>
 
 // Tests the generateFromFile function with given test file
 TEST(ParticleGenerator, generate) {
     auto container = new ParticleContainer();
 
-    char *filename = (char*) "..\\tests\\test_input_particle_generator.txt";
-
-    generateFromFile(*container, filename);
+    generateFromFile(*container, (char*) "../../../../tests/test_input_particle_generator.txt");
 
     // There must be exactly one particle in the container
     EXPECT_EQ(container->getVec().size(), 1);
