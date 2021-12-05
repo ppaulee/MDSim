@@ -4,11 +4,14 @@
 
 #include "gtest/gtest.h"
 #include "../src/ParticleGenerator.cpp"
+#include <iostream>
+#include <fstream>
 
 // Tests the generateFromFile function with given test file
 TEST(ParticleGenerator, generate) {
     auto container = new ParticleContainer();
-    char *filename = (char*) "../tests/test_input_particle_generator.txt";
+
+    char *filename = (char*) "..\\tests\\test_input_particle_generator.txt";
 
     generateFromFile(*container, filename);
 
