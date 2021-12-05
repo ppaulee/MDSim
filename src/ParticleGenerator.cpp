@@ -8,6 +8,7 @@
 #include <sstream>
 #include "vector"
 
+
 void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, SimulationContainer &container) {
     for (double x = 0; x < dimension[0]; x++) {
         for (double y = 0; y < dimension[1]; y++) {
@@ -16,6 +17,24 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
                 Particle p = Particle({x*h+startPoint[0],y*h+startPoint[1],z*h+startPoint[2]},v,m);
                 container.insert(p);
             }
+        }
+    }
+}
+
+void generateFromFile(SimulationContainer &particles, std::string f) {
+    int num = 0;
+
+    std::string tmp_string;
+
+    auto vec = splitToString(f, '\n');
+    for (auto s : vec) {
+        if (num == 0) {
+            std::cout << "Reading " << s << "." << std::endl;
+            num = std::stoi(s);
+        } else {
+            if (s == "Cube:")
+                continue;
+            parseCube(s, particles);
         }
     }
 }

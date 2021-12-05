@@ -77,3 +77,11 @@ std::array<double,3> convertToFixedArray(std::vector<double> v);
  */
 void parseCube(std::string str, SimulationContainer& particleContainer);
 
+/**
+ * see generateFromFile(SimulationContainer &particles, char *filename)
+ *
+ * @param particles
+ * @param f file content
+ */
+void generateFromFile(SimulationContainer &particles, std::string f);
+
