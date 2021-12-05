@@ -3,9 +3,9 @@
 //
 
 #pragma once
+
 #include "array"
-#include "ParticleContainer.h"
-#include "LinkedCells.h"
+#include "container/SimulationContainer.h"
 
 
 /**
@@ -19,7 +19,7 @@
  * @param meanV The mean-value of the velocity of the Brownian Motion
  * @param container
  */
-void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, LinkedCells &container);
+void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, SimulationContainer &container);
 
 /**
  * Generates cubes from input file
@@ -41,7 +41,7 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
  * @param particles Particle container
  * @param filename Path to input file
  */
-void generateFromFile(LinkedCells &particles, char *filename);
+void generateFromFile(SimulationContainer &particles, char *filename);
 
 /**
  * Splits a string into a vector of string
@@ -75,5 +75,5 @@ std::array<double,3> convertToFixedArray(std::vector<double> v);
  * @param str Input string (format see: generateFromFile())
  * @param particleContainer
  */
-void parseCube(std::string str, LinkedCells& particleContainer);
+void parseCube(std::string str, SimulationContainer& particleContainer);
 

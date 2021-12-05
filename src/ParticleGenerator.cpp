@@ -8,7 +8,7 @@
 #include <sstream>
 #include "vector"
 
-void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, LinkedCells &container) {
+void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, SimulationContainer &container) {
     for (double x = 0; x < dimension[0]; x++) {
         for (double y = 0; y < dimension[1]; y++) {
             for (double z = 0; z < dimension[2]; z++) {
@@ -20,7 +20,7 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
     }
 }
 
-void generateFromFile(LinkedCells &particles, char *filename) {
+void generateFromFile(SimulationContainer &particles, char *filename) {
     int num = 0;
 
     std::ifstream input_file(filename);
@@ -56,7 +56,7 @@ void generateFromFile(LinkedCells &particles, char *filename) {
     }
 }
 
-void parseCube(std::string str, LinkedCells& particleContainer) {
+void parseCube(std::string str, SimulationContainer& particleContainer) {
     std::vector<std::string> strings = splitToString(str, ';');
     //Read input to arrays/doubles
     std::array<double, 3> startPoint = convertToFixedArray(splitToDouble(strings[0], ','));

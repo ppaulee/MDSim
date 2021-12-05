@@ -8,8 +8,7 @@
 #pragma once
 
 #include "Particle.h"
-#include "ParticleContainer.h"
-
+#include "container/SimulationContainer.h"
 #include <vector>
 
 class FileReader {
@@ -18,5 +17,5 @@ public:
   FileReader();
   virtual ~FileReader();
 
-  void readFile(ParticleContainer &particles, char *filename);
+  void readFile(SimulationContainer &particles, char *filename);
 };

@@ -4,10 +4,7 @@
  *  Created on: 23.02.2010
  *      Author: eckhardw
  */
-
 #include "FileReader.h"
-
-
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -17,7 +14,7 @@ FileReader::FileReader() = default;
 
 FileReader::~FileReader() = default;
 
-void FileReader::readFile(ParticleContainer &particles, char *filename) {
+void FileReader::readFile(SimulationContainer &particles, char *filename) {
   std::array<double, 3> x;
   std::array<double, 3> v;
   double m;
@@ -58,7 +55,9 @@ void FileReader::readFile(ParticleContainer &particles, char *filename) {
         exit(-1);
       }
       datastream >> m;
-      particles.emplace_back(x, v, m);
+      int type = 0;
+      auto new_p = new Particle(x, v, m, type);
+      particles.insert(*new_p);
 
       getline(input_file, tmp_string);
       std::cout << "Read line: " << tmp_string << std::endl;

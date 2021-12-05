@@ -1,52 +1,14 @@
 #include "FileReader.h"
-#include "outputWriter/VTKWriter.h"
-#include "utils/ArrayUtils.h"
-#include "ParticleContainer.h"
 #include "ParticleGenerator.h"
-#include "ForceCalculation.h"
-#include "StoermerVerlet.h"
-#include "LennardJones.h"
+#include "container/LinkedCells.h"
+#include "forceCalculation/StoermerVerlet.h"
+#include "forceCalculation/LennardJones.h"
 #include "Log.h"
-
-
-
-
 #include <iostream>
-#include <cmath>
-#include <getopt.h>
 #include <chrono>
 
 
 /**** forward declaration of the calculation functions ****/
-
-/**
- * calculate the force for all particles
- */
-void calculateF();
-
-/**
- * calculate the position for all particles
- */
-void calculateX();
-
-/**
- * calculate the position for all particles
- */
-void calculateV();
-
-/**
- * plot the particles to a xyz-file
- */
-//void plotParticles(int iteration);
-
-//double add(double a, double b);
-
-//double multiply(double a, double b);
-
-//double divide(double a, double b);
-
-//double sub(double a, double b);
-
 void printHelp();
 
 constexpr double start_time = 0;
@@ -62,7 +24,7 @@ double averageV = 0.1;
 std::array<int, 3> dim = {300,300,0};
 double mesh = 3;
 double cutOff = 3;
-LinkedCells* particles = new LinkedCells(dim,mesh,cutOff);
+SimulationContainer* particles = new LinkedCells(dim,mesh,cutOff);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
@@ -123,10 +85,6 @@ int main(int argc, char *argsv[]) {
         LOGC_ERROR("Error: Algorithm missing or erroneous algorithm argument, use -h for help");
         return 1;
     }
-/**
-    auto cells = new LinkedCells({10,10,0}, 1, 1.5);
-    cells->test();
-    return 0; **/
     if (!cuboids) {
         /**
             FileReader fileReader;
@@ -155,10 +113,7 @@ int main(int argc, char *argsv[]) {
     }
 
     while (current_time < end_time) {
-        if (iteration == 521) {
-            std::cout << "test";
-        }
-        particles->simulate(delta_t, algorithm);
+        particles->simulate(algorithm, delta_t);
 
         iteration++;
         if (iteration % outputStep == 0 && !benchmark_active) {
@@ -175,8 +130,6 @@ int main(int argc, char *argsv[]) {
 
         current_time += delta_t;
     }
-
-    ///std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
 
     if (benchmark_active) {
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
@@ -197,63 +150,3 @@ void printHelp() {
     LOGC_INFO("Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)");
     LOGC_INFO("Benchmark: Disables writing files and benchmarks the program");
 }
-
-/**
-void calculateF() {
-    for (auto &p: particles) {
-        p.setOldF(p.getF());
-        p.setF({0, 0, 0});
-    }
-
-    for (long unsigned int i = 0; i < particles.getVec().size(); i++) {
-        auto &p1 = particles.getParticle(i);
-
-        for (long unsigned int j = i + 1; j < particles.getVec().size(); j++) {
-            auto &p2 = particles.getParticle(j);
-
-            std::array<double, 3> vec = algorithm->calculateF(p1, p2);
-
-            //F_p1 = -F_p2
-            //p1.setF(ArrayUtils::elementWisePairOp(p1.getF(), vec, add));
-            p1.setF(p1.getF() + vec);
-            //p2.setF(ArrayUtils::elementWisePairOp(p2.getF(), vec, sub));
-            p2.setF(p2.getF() - vec);
-        }
-    }
-}
-
-void calculateX() {
-    for (auto &p: particles) {
-        std::array<double, 3> res = (1 / (2 * p.getM())) * p.getOldF();
-        res = (delta_t * delta_t) * res;
-
-        std::array<double, 3> res2 = delta_t * p.getV();
-        res = res + res2;
-        p.setX(res + p.getX());
-    }
-}
-
-void calculateV() {
-    for (auto &p: particles) {
-        std::array<double, 3> res = p.getF() + p.getOldF();
-        res = (1 / (2 * p.getM())) * res;
-        res = delta_t * res;
-        res = res + p.getV();
-        p.setV(res);
-    }
-}
-
-
-
-void plotParticles(int iteration) {
-
-    std::string out_name("MD_vtk");
-
-    outputWriter::VTKWriter writer;
-    //writer.initializeOutput(particles.size());
-    for (auto &p : particles) {
-        writer.plotParticle(p);
-    }
-    writer.writeFile(out_name, iteration);
-}
-**/

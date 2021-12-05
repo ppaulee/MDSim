@@ -173,33 +173,10 @@ public:
     void deleteParticlesInHalo();
 
     /**
-     * Deletes all particles out of scope
-     */
-    void deleteOutside();
-
-    /**
      *
      * @return dimensions
      */
     std::array<int, 3> getDimensions();
-
-    /**
-     * Transfers the coordiantes to a format which we can work with
-     * We add half the dimension on each dimension
-     *
-     * @param p Particle which should be transferred
-     * @return Transferred Particle
-     */
-    Particle& transfer(Particle& p);
-
-    /**
-     * Transferes the particle back
-     * See transform() for transformation rule
-     *
-     * @param p Particle which should be transferred
-     * @return Retransferred Particle
-     */
-    Particle& retransfer(Particle& p);
 
 };
 
