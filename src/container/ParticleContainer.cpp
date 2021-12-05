@@ -4,6 +4,7 @@
 #include "ParticleContainer.h"
 #include "utils/ArrayUtils.h"
 #include "outputWriter/VTKWriter.h"
+#include <iostream>
 
 
 ParticleContainer::ParticleContainer() = default;
@@ -86,6 +87,7 @@ void ParticleContainer::plotParticles(int iteration) {
     std::string out_name("MD_vtk");
 
     outputWriter::VTKWriter writer;
+    writer.initializeOutput(particles.size());
     //writer.initializeOutput(particles.size());
     for (auto &p : particles) {
         writer.plotParticle(p);
@@ -94,6 +96,8 @@ void ParticleContainer::plotParticles(int iteration) {
 }
 
 void ParticleContainer::simulate(ForceCalculation *algorithm, double delta_t) {
+
+    std::cout << "Number of particles: " << particles.size() << std::endl;
     // calculate new x
     calculateX(delta_t);
 
