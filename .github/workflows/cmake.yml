@@ -39,6 +39,10 @@ jobs:
       working-directory: ${{github.workspace}}
       # Build your program with the given configuration
       run: cd ${{github.workspace}}/build && make
+      
+    - name: Debug
+      shell: bash
+      run: ls -LR
 
     - name: Test
       shell: bash
