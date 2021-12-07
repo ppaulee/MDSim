@@ -6,6 +6,7 @@
 #include "Log.h"
 #include <iostream>
 #include <chrono>
+#include <getopt.h>
 
 
 /**** forward declaration of the calculation functions ****/
