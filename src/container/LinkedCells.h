@@ -37,6 +37,7 @@ private:
      * This vector stores cells. These cells store a vector of particles in this cell
      */
     std::vector<std::list<Particle>> particles;
+    double reflectionDistance;
 
     /**
      * Width, Height, Depth
@@ -50,21 +51,6 @@ private:
     double meshSize;
     double cutOffRadius;
 
-    /**
-     * Finds the right cell for the particle
-     *
-     * @param p Particle
-     * @return Cell coordinates (x,y,z)
-     */
-    std::array<int, 3> getCellCoords(Particle& p);
-
-    /**
-     * Translates coordinates to a single index for the vector
-     *
-     * @param coords Coordinates (x,y,z)
-     * @return Index of the vector
-     */
-    int coordToIndex(std::array<int, 3> coords);
 
     /**
      * Translates a single index to coordinates
@@ -80,12 +66,17 @@ private:
      * @param p Particle to remove
      * @param index optional: removes particle from given index
      */
-    void remove(Particle& p, int index);
-
-
+    void remove(Particle &p, int index);
 
 
 public:
+/**
+     * Finds the right cell for the particle
+     *
+     * @param p Particle
+     * @return Cell coordinates (x,y,z)
+     */
+    std::array<int, 3> getCellCoords(Particle &p);
 
     /**
      * Note that a layer of halo and boundary cells are added on the side. E.g. if we have a 1x1x1 cube then the actual dimensions are (1+4)x(1+4)x(1+4). The coordinate of the inner cell is (0+2,0+2,0+2)
@@ -95,22 +86,54 @@ public:
      * @param dimension Dimensions (x,y,z) of the inner cells. All numbers must be even! -x/2,-y/2,-z/2 are the minimum coordinates and x/2,y/2,z/2 are the maximum coordinates
      * @param mesh Mesh size of the grid
      * @param cutOff cut off radius
+     * @param sigma sigma parameter of Lennard Jones Potential
      */
-    explicit LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff);
+    explicit LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff, double sigma);
+
+    /**
+     * Translates coordinates to a single index for the vector
+     *
+     * @param coords Coordinates (x,y,z)
+     * @return Index of the vector
+     */
+    int coordToIndex(std::array<int, 3> coords);
 
     /**
      *
      * @param coords Coordinates of the cell
      * @return Returns the content of a cell
      */
-    std::list<Particle>& get(std::array<double, 3> coords);
+    std::list<Particle> &get(std::array<double, 3> coords);
+
+    /**
+     * Same as get, but uses a "L" shaped coordinate system instead of a cross, meaning only indices >= 0 are allowed
+     *
+     * @param coords Coordinates of the cell
+     * @return Returns the content of a cell
+     */
+    std::list<Particle> &absoluteGet(std::array<double, 3> coords);
+
+    /**
+     * Get cell using an index
+     *
+     * @param i index of a cell
+     * @return The content of a cell
+     */
+    std::list<Particle> &indexGet(int i);
 
     /**
      * Inserts a particle into the data structure
      *
      * @param p Particle to insert
      */
-    void insert(Particle& p) override;
+    void insert(Particle &p) override;
+
+    /**
+     * Inserts a particle into the data structure without changing its positional attribute
+     *
+     * @param p Particle to insert
+     */
+    void forceInsert(Particle &p);
 
     /**
      * Checks if the cell with these coordinates is a halo cell
@@ -171,6 +194,11 @@ public:
     void simulate(ForceCalculation *algorithm, double delta_a) override;
 
     /**
+     * Iterates over particle in boundary cells and creates ghost particles for reflection if they are near enough to the boundary
+     */
+    void createGhosts();
+
+    /**
      * Plots particles
      *
      * @param iteration current Iteration
@@ -197,5 +225,6 @@ public:
     std::array<int, 3> getDimensions();
 
 };
+
 
 

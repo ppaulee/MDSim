@@ -21,10 +21,10 @@ double sigma = 1;
 // Brownian Motion average velocity
 double averageV = 0.1;
 
-std::array<int, 3> dim = {300,300,0};
+std::array<int, 3> dim = {300, 300, 0};
 double mesh = 3;
 double cutOff = 3;
-SimulationContainer* particles = new LinkedCells(dim,mesh,cutOff);
+SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, sigma);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
@@ -124,7 +124,7 @@ int main(int argc, char *argsv[]) {
             LOGC_TRACE("Iteration {} finished.", iteration);
         } else if (iteration % outputStep == 0) {
             std::cout << "Iteration " << iteration << "finished." << std::endl;
-            std::cout << "Current time " << current_time  << std::endl;
+            std::cout << "Current time " << current_time << std::endl;
         }
 
 
@@ -133,8 +133,10 @@ int main(int argc, char *argsv[]) {
 
     if (benchmark_active) {
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        std::cout << "Time (including reading the input file and setting everything up) = " << std::chrono::duration_cast<std::chrono::seconds> (end - begin).count() << "[s]" << std::endl;
-        std::cout << "Time (only calculations) = " << std::chrono::duration_cast<std::chrono::seconds> (end - beginAfterIO).count() << "[s]" << std::endl;
+        std::cout << "Time (including reading the input file and setting everything up) = "
+                  << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
+        std::cout << "Time (only calculations) = "
+                  << std::chrono::duration_cast<std::chrono::seconds>(end - beginAfterIO).count() << "[s]" << std::endl;
     }
 
     LOGC_INFO("output written. Terminating...");

@@ -5,13 +5,15 @@
 #include "utils/ArrayUtils.h"
 #include <outputWriter/VTKWriter.h>
 #include <stdexcept>
+#include <iostream>
 
 
-LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff) {
+LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff, double sigma) {
     if (dimension[0] % 2 != 0 || dimension[1] % 2 != 0 || dimension[2] % 2 != 0) {
-        throw std::invalid_argument( "Dimensions must be even" );
+        throw std::invalid_argument("Dimensions must be even");
     }
 
+    reflectionDistance = cbrt(sqrt(2)) * sigma;
     cutOffRadius = cutOff;
     // Add boundary and halo cells
     if (dimension[2] == 0) {
@@ -26,7 +28,7 @@ LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOf
 
     meshSize = mesh;
     // Initialise all vectors
-    for(int i = 0; i < coordToIndex({dimensions[0], dimensions[1], dimensions[2]})+1; i++) {
+    for (int i = 0; i < coordToIndex({dimensions[0], dimensions[1], dimensions[2]}) + 1; i++) {
         particles.push_back(std::list<Particle>({}));
     }
 }
@@ -50,23 +52,29 @@ std::array<int, 3> LinkedCells::indexToCoords(int index) {
 void LinkedCells::insert(Particle &p) {
     // Transfer the coordinates into a system where (0,0,0) is the smallest coordinate
     if (dimensions[2] == 0) {
-        std::array<double, 3> tmp = {(double) dimensions[0]/2, (double) dimensions[1]/2, 0};
+        std::array<double, 3> tmp = {(double) dimensions[0] / 2, (double) dimensions[1] / 2, 0};
         p.setX(tmp + p.getX());
     } else {
-        std::array<double, 3> tmp = {(double) dimensions[0]/2, (double) dimensions[1]/2, (double) dimensions[2]/2 };
+        std::array<double, 3> tmp = {(double) dimensions[0] / 2, (double) dimensions[1] / 2,
+                                     (double) dimensions[2] / 2};
         p.setX(tmp + p.getX());
     }
     particles[coordToIndex(getCellCoords(p))].push_back(p);
 }
 
-std::array<int, 3> LinkedCells::getCellCoords(Particle &p) {
-    int x = ((int) (p.getX()[0] / meshSize));
-    int y = ((int) (p.getX()[1] / meshSize) );
-    int z = ((int) (p.getX()[2] / meshSize) );
-    return {x,y,z};
+void LinkedCells::forceInsert(Particle &p) {
+
+    particles[coordToIndex(getCellCoords(p))].push_back(p);
 }
 
-void LinkedCells::remove(Particle& p, int index = -1) {
+std::array<int, 3> LinkedCells::getCellCoords(Particle &p) {
+    int x = ((int) (p.getX()[0] / meshSize));
+    int y = ((int) (p.getX()[1] / meshSize));
+    int z = ((int) (p.getX()[2] / meshSize));
+    return {x, y, z};
+}
+
+void LinkedCells::remove(Particle &p, int index = -1) {
     int i = index;
     if (index == -1) {
         i = coordToIndex(getCellCoords(p));
@@ -75,35 +83,41 @@ void LinkedCells::remove(Particle& p, int index = -1) {
 }
 
 bool LinkedCells::isHaloCell(std::array<int, 3> coords) {
-    return coords[0] == dimensions[0]-1 || coords[1] == dimensions[1]-1 || coords[2] == dimensions[2]-1 || coords[0] == 0 || coords[1] == 0 || (coords[2] == 0 && dimensions[2] != 0);
+    return coords[0] == dimensions[0] - 1 || coords[1] == dimensions[1] - 1 || coords[2] == dimensions[2] - 1 ||
+           coords[0] == 0 || coords[1] == 0 || (coords[2] == 0 && dimensions[2] != 0);
 }
 
 bool LinkedCells::isBoundaryCell(std::array<int, 3> coords) {
-    return coords[0] == dimensions[0]-2 || coords[1] == dimensions[1]-2 || coords[2] == dimensions[2]-2 || coords[0] == 1 || coords[1] == 1 || coords[2] == 1;
+    return coords[0] == dimensions[0] - 2 || coords[1] == dimensions[1] - 2 || coords[2] == dimensions[2] - 2 ||
+           coords[0] == 1 || coords[1] == 1 || coords[2] == 1;
 }
 
-std::list<Particle>& LinkedCells::get(std::array<double, 3> coords) {
+std::list<Particle> &LinkedCells::get(std::array<double, 3> coords) {
     int x = ((int) (coords[0] / meshSize));
-    int y = ((int) (coords[1] / meshSize) );
-    int z = ((int) (coords[2] / meshSize) );
-    return particles[coordToIndex({x,y,z})];
+    int y = ((int) (coords[1] / meshSize));
+    int z = ((int) (coords[2] / meshSize));
+    return particles[coordToIndex({x, y, z})];
+}
+
+std::list<Particle> &LinkedCells::indexGet(int i) {
+    return particles[i];
 }
 
 void LinkedCells::calculateF(ForceCalculation *algorithm) {
-    for (auto &vec : particles) {
-        for (auto &p : vec) {
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
             p.setOldF(p.getF());
-            p.setF({0,0,0});
+            p.setF({0, 0, 0});
             p.unmark();
         }
     }
 
-    for (int x = 0; x < dimensions[0]-1; ++x) {
-        for (int y = 0; y < dimensions[1]-1; ++y) {
+    for (int x = 0; x < dimensions[0] - 1; ++x) {
+        for (int y = 0; y < dimensions[1] - 1; ++y) {
             if (dimensions[2] == 0) {
                 //2D case
                 // Loop over all particles in cell
-                for (auto &current_particle : particles[coordToIndex({x,y,0})]) {
+                for (auto &current_particle: particles[coordToIndex({x, y, 0})]) {
                     current_particle.mark();
                     // Get neighbours
                     for (int x_diff = -1; x_diff <= 1; ++x_diff) {
@@ -116,9 +130,10 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
                             }
 
                             // Particles in neighboured cells
-                            for (auto &p : particles[coordToIndex(c)]) {
+                            for (auto &p: particles[coordToIndex(c)]) {
                                 // Check if particle is inside the cut-off radius
-                                if (ArrayUtils::L2Norm(p.getX()-current_particle.getX()) <= cutOffRadius && !(p == current_particle) && !p.isMarked()) {
+                                if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
+                                    !(p == current_particle) && !p.isMarked()) {
                                     // Actual force calculation according to the used algorithm
                                     std::array<double, 3> force = algorithm->calculateF(current_particle, p);
 
@@ -130,11 +145,10 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
                         }
                     }
                 }
-            }
-            else {
-                for (int z = 1; z < dimensions[2]-1; ++z) {
+            } else {
+                for (int z = 1; z < dimensions[2] - 1; ++z) {
                     // Loop over all particles in cell
-                    for (auto &current_particle : particles[coordToIndex({x,y,z})]) {
+                    for (auto &current_particle: particles[coordToIndex({x, y, z})]) {
                         current_particle.mark();
                         // Get neighbours
                         for (int x_diff = -1; x_diff <= 1; ++x_diff) {
@@ -144,9 +158,10 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
                                     // Coordinates including offset for neighboured cells
                                     std::array<int, 3> c = {x + x_diff, y + y_diff, z + z_diff};
                                     // Particles in neighboured cells
-                                    for (auto &p : particles[coordToIndex(c)]) {
+                                    for (auto &p: particles[coordToIndex(c)]) {
                                         // Check if particle is inside of the cut off radius
-                                        if (ArrayUtils::L2Norm(p.getX()-current_particle.getX()) <= cutOffRadius && !(p == current_particle) && !p.isMarked()) {
+                                        if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
+                                            !(p == current_particle) && !p.isMarked()) {
                                             // Actual force calculation according to the used algorithm
                                             std::array<double, 3> force = algorithm->calculateF(current_particle, p);
                                             // Make use of Newtons third law
@@ -170,7 +185,7 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
 
 void LinkedCells::calculateV(double delta_t) {
     for (auto &vec: particles) {
-        for (auto &p : vec) {
+        for (auto &p: vec) {
             std::array<double, 3> res = p.getF() + p.getOldF();
             res = (1 / (2 * p.getM())) * res;
             res = delta_t * res;
@@ -182,7 +197,7 @@ void LinkedCells::calculateV(double delta_t) {
 
 void LinkedCells::calculateX(double delta_t) {
     for (auto &vec: particles) {
-        for (auto &p : vec) {
+        for (auto &p: vec) {
             std::array<double, 3> res = (1 / (2 * p.getM())) * p.getOldF();
             res = (delta_t * delta_t) * res;
 
@@ -200,7 +215,7 @@ void LinkedCells::move() {
     std::vector<int> tmp_stack_remove_index = {};
     // Find particles in wrong cells and add them to the vectors above
     for (int i = 0; i < size; ++i) {
-        for (auto &p : particles[i]) {
+        for (auto &p: particles[i]) {
             if (coordToIndex(getCellCoords(p)) != i) {
                 tmp_stack_remove.push_back(p);
                 tmp_stack_insert.push_back(p);
@@ -219,7 +234,8 @@ void LinkedCells::move() {
         // insert
         auto &p = tmp_stack_insert[i];
 
-        if (coordToIndex(getCellCoords(p)) >= 0 && (long unsigned int) coordToIndex(getCellCoords(p)) < particles.size()) {
+        if (coordToIndex(getCellCoords(p)) >= 0 &&
+            (long unsigned int) coordToIndex(getCellCoords(p)) < particles.size()) {
             particles[coordToIndex(getCellCoords(p))].push_back(p);
         }
 
@@ -228,7 +244,7 @@ void LinkedCells::move() {
 
 bool LinkedCells::allInRightCell() {
     for (int i = 0; i < size; ++i) {
-        for (auto &p : particles[i]) {
+        for (auto &p: particles[i]) {
             if (coordToIndex(getCellCoords(p)) != i) {
                 return false;
             }
@@ -241,17 +257,73 @@ void LinkedCells::simulate(ForceCalculation *algorithm, double delta_t) {
     // calculate new x
     calculateX(delta_t);
 
-    deleteParticlesInHalo();
+    //deleteParticlesInHalo();
     // moves particles to correct cell
     move();
     // TODO here boundary conditions
-    deleteParticlesInHalo();
+    //reflection with ghost particle
+    createGhosts();
 
     // calculate new f
     calculateF(algorithm);
-
+    deleteParticlesInHalo();
     // calculate new v
     calculateV(delta_t);
+}
+
+void LinkedCells::createGhosts() {
+    std::list<Particle> ghosts;
+    for (auto &vec: particles) {
+        if (!vec.empty()) {
+            //if (isBoundaryCell(getCellCoords(vec.front()))) {
+            for (auto &p: vec) {
+                // check distance of the particle to every boundary, create ghost particle if it's smaller than reflectionDistance
+                // add all ghost particles to be added to a list and create them after iterating over the particles
+                double leftDistance = p.getX()[0] - meshSize;
+                if (leftDistance <= reflectionDistance) {
+                    ghosts.emplace_front(
+                            Particle({(meshSize - leftDistance), p.getX()[1], p.getX()[2]}, {0, 0, 0}, p.getM(),
+                                     p.getType()));
+                    std::cout << "left ghost created:\n";
+                }
+                double bottomDistance = p.getX()[1] - meshSize;
+                if (bottomDistance <= reflectionDistance) {
+                    ghosts.emplace_front(
+                            Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]}, {0, 0, 0}, p.getM(),
+                                     p.getType()));
+                    std::cout << "bottom ghost created:\n";
+                    std::cout << p.getX()[0] << "," << (meshSize - bottomDistance) << "," << p.getX()[2] << "\n";
+                    std::cout << "Original:\n";
+                    std::cout << p.getX()[0] << "," << p.getX()[1] << "," << p.getX()[2] << "\n";
+                    //exit(1);
+                }
+                double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
+                if (rightDistance <= reflectionDistance) {
+                    ghosts.emplace_front(
+                            Particle({((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1], p.getX()[2]},
+                                     {0, 0, 0},
+                                     p.getM(),
+                                     p.getType()));
+                    std::cout << "right ghost created:\n";
+                }
+                double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
+                if (topDistance <= reflectionDistance) {
+                    ghosts.emplace_front(
+                            Particle({(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
+                                     {0, 0, 0}, p.getM(),
+                                     p.getType()));
+                    std::cout << "top ghost created:\n";
+                }
+
+                //}
+            }
+
+        }
+    }
+    for (auto par: ghosts) {
+        forceInsert(par);
+    }
+    //ghosts.clear();
 }
 
 void LinkedCells::plotParticles(int iteration) {
@@ -259,16 +331,16 @@ void LinkedCells::plotParticles(int iteration) {
 
     outputWriter::VTKWriter writer;
     writer.initializeOutput(numberParticles());
-    for (auto &vec : particles) {
-        for (auto &p : vec) {
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
             std::array<double, 3> tmp;
             if (dimensions[2] == 0) {
                 // Transfer the coordinates back to original scheme
-                tmp = {(double) dimensions[0]/2, (double) dimensions[1]/2, 0};
+                tmp = {(double) dimensions[0] / 2, (double) dimensions[1] / 2, 0};
                 p.setX((std::array<double, 3>) (p.getX() - tmp));
             } else {
                 // Transfer the coordinates back to original scheme
-                tmp = {(double) dimensions[0]/2, (double) dimensions[1]/2, (double) dimensions[2]/2 };
+                tmp = {(double) dimensions[0] / 2, (double) dimensions[1] / 2, (double) dimensions[2] / 2};
                 p.setX((std::array<double, 3>) (p.getX() - tmp));
             }
             writer.plotParticle(p);
@@ -281,8 +353,8 @@ void LinkedCells::plotParticles(int iteration) {
 }
 
 void LinkedCells::addBrownianMotion(double averageV, int dimension) {
-    for (auto &vec : particles) {
-        for (auto &p : vec) {
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
             p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, dimension));
         }
     }
@@ -290,23 +362,26 @@ void LinkedCells::addBrownianMotion(double averageV, int dimension) {
 
 int LinkedCells::numberParticles() {
     int result = 0;
-    for (auto &vec : particles) {
+    for (auto &vec: particles) {
         result += vec.size();
     }
     return result;
 }
 
 void LinkedCells::deleteParticlesInHalo() {
-    for (int x = 1; x < dimensions[0]-1; ++x) {
-        for (int y = 1; y < dimensions[1]-1; ++y) {
+    for (int x = 0; x < dimensions[0] - 1; x++) {
+        for (int y = 0; y < dimensions[1] - 1; y++) {
             if (dimensions[2] == 0) {
-                if (isHaloCell({x,y,0})) {
-                    particles[coordToIndex({x,y,0})].clear();
+                if (isHaloCell({x, y, 0}) && !particles.at(coordToIndex({x, y, 0})).empty()) {
+                    std::list<Particle> newList;
+                    particles.at(coordToIndex({x, y, 0})) = newList;
+                    std::cout << "Particle in halo detected \n";
+                    //exit(1);
                 }
             } else {
-                for (int z = 1; z < dimensions[2]-1; ++z) {
-                    if (isHaloCell({x,y,z})) {
-                        particles[coordToIndex({x,y,z})].clear();
+                for (int z = 1; z < dimensions[2] - 1; ++z) {
+                    if (isHaloCell({x, y, z})) {
+                        particles[coordToIndex({x, y, z})].clear();
                     }
                 }
             }
