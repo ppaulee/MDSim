@@ -2,19 +2,19 @@
 // Created by schnitzel on 10.11.21.
 //
 
-#ifndef PSEMOLDYN_GROUPB_STOERMERVERLET_H
-#define PSEMOLDYN_GROUPB_STOERMERVERLET_H
+#ifndef PSEMOLDYN_GROUPB_GRAVITATION_H
+#define PSEMOLDYN_GROUPB_GRAVITATION_H
 
 #include "ForceCalculation.h"
 
 /**
  * Uses Stoermer-Verlet algorithm for force calculation
  */
-class StoermerVerlet : public ForceCalculation {
+class Gravitation : public ForceCalculation {
 public:
-    StoermerVerlet() = default;
+    Gravitation() = default;
 
     std::array<double, 3> calculateF(Particle p1, Particle p2);
 };
 
-#endif //PSEMOLDYN_GROUPB_STOERMERVERLET_H
+#endif //PSEMOLDYN_GROUPB_GRAVITATION_H

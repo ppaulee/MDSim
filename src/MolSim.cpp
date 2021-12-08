@@ -1,7 +1,7 @@
 #include "FileReader.h"
 #include "ParticleGenerator.h"
 #include "container/LinkedCells.h"
-#include "forceCalculation/StoermerVerlet.h"
+#include "forceCalculation/Gravitation.h"
 #include "forceCalculation/LennardJones.h"
 #include "Log.h"
 #include <iostream>
@@ -63,7 +63,7 @@ int main(int argc, char *argsv[]) {
         }
         if (c == 'a') {
             if (std::string("sv") == optarg) {
-                algorithm = new StoermerVerlet();
+                algorithm = new Gravitation();
             } else if (std::string("lj") == optarg) {
                 algorithm = new LennardJones(epsilon, sigma);
                 cuboids = true;

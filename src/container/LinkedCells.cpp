@@ -284,17 +284,17 @@ void LinkedCells::createGhosts() {
                     ghosts.emplace_front(
                             Particle({(meshSize - leftDistance), p.getX()[1], p.getX()[2]}, {0, 0, 0}, p.getM(),
                                      p.getType()));
-                    std::cout << "left ghost created:\n";
+                    //std::cout << "left ghost created:\n";
                 }
                 double bottomDistance = p.getX()[1] - meshSize;
                 if (bottomDistance <= reflectionDistance) {
                     ghosts.emplace_front(
                             Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]}, {0, 0, 0}, p.getM(),
                                      p.getType()));
-                    std::cout << "bottom ghost created:\n";
-                    std::cout << p.getX()[0] << "," << (meshSize - bottomDistance) << "," << p.getX()[2] << "\n";
-                    std::cout << "Original:\n";
-                    std::cout << p.getX()[0] << "," << p.getX()[1] << "," << p.getX()[2] << "\n";
+                    //std::cout << "bottom ghost created:\n";
+                    //std::cout << p.getX()[0] << "," << (meshSize - bottomDistance) << "," << p.getX()[2] << "\n";
+                    //std::cout << "Original:\n";
+                    //std::cout << p.getX()[0] << "," << p.getX()[1] << "," << p.getX()[2] << "\n";
                     //exit(1);
                 }
                 double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
@@ -304,7 +304,7 @@ void LinkedCells::createGhosts() {
                                      {0, 0, 0},
                                      p.getM(),
                                      p.getType()));
-                    std::cout << "right ghost created:\n";
+                    //std::cout << "right ghost created:\n";
                 }
                 double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
                 if (topDistance <= reflectionDistance) {
@@ -312,7 +312,7 @@ void LinkedCells::createGhosts() {
                             Particle({(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
                                      {0, 0, 0}, p.getM(),
                                      p.getType()));
-                    std::cout << "top ghost created:\n";
+                    //std::cout << "top ghost created:\n";
                 }
 
                 //}
@@ -375,7 +375,7 @@ void LinkedCells::deleteParticlesInHalo() {
                 if (isHaloCell({x, y, 0}) && !particles.at(coordToIndex({x, y, 0})).empty()) {
                     std::list<Particle> newList;
                     particles.at(coordToIndex({x, y, 0})) = newList;
-                    std::cout << "Particle in halo detected \n";
+                    //std::cout << "Particle in halo detected \n";
                     //exit(1);
                 }
             } else {

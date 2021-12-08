@@ -11,9 +11,9 @@ TEST(ForceCalculation, LennardJonesPotential) {
     EXPECT_EQ(0, vec[2]);
 }
 
-// Testing Stoermer Verlet against hand-calculated values
-TEST(ForceCalculation, StoermerVerlet) {
-    ForceCalculation *algorithm = new StoermerVerlet();
+// Testing Gravitation against hand-calculated values
+TEST(ForceCalculation, Gravitation) {
+    ForceCalculation *algorithm = new Gravitation();
     auto *p1 = new Particle({0,0,0},{1,0,0},1,0);
     auto *p2 = new Particle({0,2,0},{1,1,0},1,0);
     std::array<double, 3> vec = algorithm->calculateF(*p1, *p2);
