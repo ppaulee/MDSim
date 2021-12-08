@@ -17,16 +17,20 @@
  *
  * Here we can see the performance difference between the different algorithms. The LinkedCells algorithm is encoded as 1 and the naive force calculation is encoded as 0.
  *
- * We can create a linear regression model with this data. In fact we can observe a quadratic relationship therefore, we use a linear model with a polynomial with degree 2. Below the regression model for the naive approach is plotted.
+ * We can create a linear regression model with this data. In fact we can observe a quadratic relationship therefore, we use a linear model with a polynomial with degree 2. (time = a_0 + a_1*numberOfParticles + a_2*numberOfParticles^2 + e   where e ~ N(0,1)) Below the regression model for the naive approach is plotted.
  * \image html naive_regression.png
+ * \image latex naive_regression.eps
  * Both of the covariates are highly significant. And R^2 is 1, which tells us that our model fits perfectly.
  * Now we can take a look at the plot where we used the LinkedCells algorithm instead of the naive approach:
  * \image html lc_regression.png
+ * \image latex lc_regression.eps
  * Both of the covariates are again significant. But now the quadratic term becomes less significant (p-value < 0.019). We can interpret this that this improved approach is "more linear". R^2 is again very high (0.99).
  * Here is a plot where we can observe that the LinkedCells algorithm is a way better than the first naive approach.
  * \image html both_regression.png
+ * \image latex both_regression.eps
  * Now we can extrapolate our models.
  * \image html extrapolation.png
+ * \image latex extrapolation.eps
  * For one iteration with 100000 Particles the LinkedCells algorithm is 133.4s faster than the naive approach.
  *
  */
