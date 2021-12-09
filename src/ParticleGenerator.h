@@ -83,5 +83,5 @@ void parseCube(std::string str, SimulationContainer& particleContainer);
  * @param particles
  * @param f file content
  */
-void generateFromFile(SimulationContainer &particles, std::string f);
+void generateFromFileTest(SimulationContainer &particles, std::string f);
 

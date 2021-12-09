@@ -149,7 +149,8 @@ int main(int argc, char *argsv[]) {
             fileReader.readFile(particles, file);
          */
     } else {
-        generateFromFile(*particles, file);
+        char* file_char = &file[0];
+        generateFromFile(*particles, file_char);
         //generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
         //generateCube({8, 8, 1}, {15, 15, 0}, 1.1225, 1, {0, -10, 0}, averageV, particles);
 
@@ -159,6 +160,7 @@ int main(int argc, char *argsv[]) {
     if (benchmark_active) {
         beginAfterIO = std::chrono::steady_clock::now();
     }
+
 
     //std::cout << "NUmber of particles: " << particles.getVec().size() << std::endl;
     double current_time = start_time;

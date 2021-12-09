@@ -21,7 +21,7 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
     }
 }
 
-void generateFromFile(SimulationContainer &particles, std::string f) {
+void generateFromFileTest(SimulationContainer &particles, std::string f) {
     int num = 0;
 
     std::string tmp_string;
