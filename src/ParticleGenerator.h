@@ -31,8 +31,21 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
  * @param meanV The mean-value of the velocity of the Brownian Motion
  * @param container
  */
-void generateSphere(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
+void generateSphere3D(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
                     SimulationContainer &container);
+
+/**
+ * Generates a 2D sphere (so a circle) of particles with given parameters. Those particles will be added to the given container.
+ * @param center center point of the sphere
+ * @param v Initial velocity v of the particles
+ * @param r Radius of the sphere (given in the amount of particles)
+ * @param h Distance h of the particles (mesh width of the grid)
+ * @param m Mass m of one particle
+ * @param meanV The mean-value of the velocity of the Brownian Motion
+ * @param container
+ */
+void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
+                      SimulationContainer &container);
 
 /**
  * Generates cubes from input file

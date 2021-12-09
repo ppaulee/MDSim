@@ -24,23 +24,36 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
     }
 }
 
-void generateSphere(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
+void generateSphere3D(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
                     SimulationContainer &container) {
     //first generate cube of size 2*r, then only insert particles that fit into the wanted sphere, "cutting" the sphere out of the cube
-    std::list<Particle> cube;
-    std::array<double, 3> startPoint = {center[0] - (r * h), center[1] - (r * h), center[2] + (r * h)};
-    for (double x = 0; x < 2 * r; x++) {
-        for (double y = 0; y < 2 * r; y++) {
-            for (double z = 0; z < 2 * r; z++) {
+    std::array<double, 3> startPoint = {center[0] - (r * h), center[1] - (r * h), center[2] - (r * h)};
+    for (double x = 0; x < (2 * r); x++) {
+        for (double y = 0; y < (2 * r); y++) {
+            for (double z = 0; z < (2 * r); z++) {
                 Particle p = Particle({x * h + startPoint[0], y * h + startPoint[1], z * h + startPoint[2]}, v, m);
-                cube.emplace_front(p);
+                if (ArrayUtils::L2Norm(p.getX() - center) <= (r * h)) {
+                    container.insert(p);
+                }
 
             }
         }
     }
-    for (auto &p: cube) {
-        if (ArrayUtils::L2Norm(p.getX() - center) <= (r * h)) {
-            container.insert(p);
+}
+
+void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
+                      SimulationContainer &container) {
+    //first generate cube of size 2*r, then only insert particles that fit into the wanted sphere, "cutting" the sphere out of the cube
+    std::array<double, 3> startPoint = {center[0] - (r * h), center[1] - (r * h), center[2]};
+    for (double x = 0; x < (2 * r); x++) {
+        for (double y = 0; y < (2 * r); y++) {
+            for (double z = 0; z < 1; z++) {
+                Particle p = Particle({x * h + startPoint[0], y * h + startPoint[1], z * h + startPoint[2]}, v, m);
+                if (ArrayUtils::L2Norm(p.getX() - center) <= (r * h)) {
+                    container.insert(p);
+                }
+
+            }
         }
     }
 }
