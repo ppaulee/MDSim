@@ -6,17 +6,41 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <list>
 #include "vector"
+#include "utils/ArrayUtils.h"
 
 
-void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, SimulationContainer &container) {
+void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m,
+                  std::array<double, 3> v, double meanV, SimulationContainer &container) {
     for (double x = 0; x < dimension[0]; x++) {
         for (double y = 0; y < dimension[1]; y++) {
             for (double z = 0; z < dimension[2]; z++) {
                 // Add particle to ParticleContainer
-                Particle p = Particle({x*h+startPoint[0],y*h+startPoint[1],z*h+startPoint[2]},v,m);
+                Particle p = Particle({x * h + startPoint[0], y * h + startPoint[1], z * h + startPoint[2]}, v, m);
                 container.insert(p);
             }
+        }
+    }
+}
+
+void generateSphere(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
+                    SimulationContainer &container) {
+    //first generate cube of size 2*r, then only insert particles that fit into the wanted sphere, "cutting" the sphere out of the cube
+    std::list<Particle> cube;
+    std::array<double, 3> startPoint = {center[0] - (r * h), center[1] - (r * h), center[2] + (r * h)};
+    for (double x = 0; x < 2 * r; x++) {
+        for (double y = 0; y < 2 * r; y++) {
+            for (double z = 0; z < 2 * r; z++) {
+                Particle p = Particle({x * h + startPoint[0], y * h + startPoint[1], z * h + startPoint[2]}, v, m);
+                cube.emplace_front(p);
+
+            }
+        }
+    }
+    for (auto &p: cube) {
+        if (ArrayUtils::L2Norm(p.getX() - center) <= (r * h)) {
+            container.insert(p);
         }
     }
 }
@@ -27,7 +51,7 @@ void generateFromFileTest(SimulationContainer &particles, std::string f) {
     std::string tmp_string;
 
     auto vec = splitToString(f, '\n');
-    for (auto s : vec) {
+    for (auto s: vec) {
         if (num == 0) {
             std::cout << "Reading " << s << "." << std::endl;
             num = std::stoi(s);
@@ -60,7 +84,7 @@ void generateFromFile(SimulationContainer &particles, char *filename) {
         std::cout << "Reading " << num << "." << std::endl;
 
 
-        for (int i = 0; i < num*2; i++) {
+        for (int i = 0; i < num * 2; i++) {
             getline(input_file, tmp_string);
             std::cout << "Read line: " << tmp_string << std::endl;
 
@@ -75,7 +99,7 @@ void generateFromFile(SimulationContainer &particles, char *filename) {
     }
 }
 
-void parseCube(std::string str, SimulationContainer& particleContainer) {
+void parseCube(std::string str, SimulationContainer &particleContainer) {
     std::vector<std::string> strings = splitToString(str, ';');
     //Read input to arrays/doubles
     std::array<double, 3> startPoint = convertToFixedArray(splitToDouble(strings[0], ','));
@@ -92,7 +116,7 @@ std::vector<std::string> splitToString(std::string str, char delimiter) {
     std::vector<std::string> strings;
     std::istringstream f(str);
     std::string s;
-    while(getline(f, s, delimiter)) {
+    while (getline(f, s, delimiter)) {
         std::cout << s << std::endl;
         strings.push_back(s);
     }
@@ -103,14 +127,14 @@ std::vector<double> splitToDouble(std::string str, char delimiter) {
     std::vector<double> strings;
     std::istringstream f(str);
     std::string s;
-    while(getline(f, s, delimiter)) {
+    while (getline(f, s, delimiter)) {
         std::cout << s << std::endl;
         strings.push_back(std::stod(s));
     }
     return strings;
 }
 
-std::array<double,3> convertToFixedArray(std::vector<double> v) {
+std::array<double, 3> convertToFixedArray(std::vector<double> v) {
     return {v[0], v[1], v[2]};
 }
 
