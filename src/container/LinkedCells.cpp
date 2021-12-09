@@ -146,7 +146,7 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
                     }
                 }
             } else {
-                for (int z = 1; z < dimensions[2] - 1; ++z) {
+                for (int z = 0; z < dimensions[2] - 1; ++z) {
                     // Loop over all particles in cell
                     for (auto &current_particle: particles[coordToIndex({x, y, z})]) {
                         current_particle.mark();
