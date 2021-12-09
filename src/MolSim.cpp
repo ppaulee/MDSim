@@ -23,7 +23,7 @@ double sigma = 1;
 // Brownian Motion average velocity
 double averageV = 0.1;
 
-std::array<int, 3> dim = {300, 300, 0};
+std::array<int, 3> dim = {180, 90, 0};
 double mesh = 3;
 double cutOff = 3;
 SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, sigma);
