@@ -157,6 +157,11 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
 
                                     // Coordinates including offset for neighboured cells
                                     std::array<int, 3> c = {x + x_diff, y + y_diff, z + z_diff};
+
+                                    if (coordToIndex(c) < 0) {
+                                        continue;
+                                    }
+                                    
                                     // Particles in neighboured cells
                                     for (auto &p: particles[coordToIndex(c)]) {
                                         // Check if particle is inside of the cut off radius
