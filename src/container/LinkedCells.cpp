@@ -275,47 +275,64 @@ void LinkedCells::createGhosts() {
     std::list<Particle> ghosts;
     for (auto &vec: particles) {
         if (!vec.empty()) {
-            //if (isBoundaryCell(getCellCoords(vec.front()))) {
-            for (auto &p: vec) {
-                // check distance of the particle to every boundary, create ghost particle if it's smaller than reflectionDistance
-                // add all ghost particles to be added to a list and create them after iterating over the particles
-                double leftDistance = p.getX()[0] - meshSize;
-                if (leftDistance <= reflectionDistance) {
-                    ghosts.emplace_front(
-                            Particle({(meshSize - leftDistance), p.getX()[1], p.getX()[2]}, {0, 0, 0}, p.getM(),
-                                     p.getType()));
-                    //std::cout << "left ghost created:\n";
+            if (isBoundaryCell(getCellCoords(vec.front()))) {
+                for (auto &p: vec) {
+                    // check distance of the particle to every boundary, create ghost particle if it's smaller than reflectionDistance
+                    // add all ghost particles to be added to a list and create them after iterating over the particles
+                    double leftDistance = p.getX()[0] - meshSize;
+                    if (leftDistance <= reflectionDistance) {
+                        ghosts.emplace_front(
+                                Particle({(meshSize - leftDistance), p.getX()[1], p.getX()[2]}, {0, 0, 0}, p.getM(),
+                                         p.getType()));
+                        //std::cout << "left ghost created:\n";
+                    }
+                    double bottomDistance = p.getX()[1] - meshSize;
+                    if (bottomDistance <= reflectionDistance) {
+                        ghosts.emplace_front(
+                                Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]}, {0, 0, 0}, p.getM(),
+                                         p.getType()));
+                        //std::cout << "bottom ghost created:\n";
+                        //std::cout << p.getX()[0] << "," << (meshSize - bottomDistance) << "," << p.getX()[2] << "\n";
+                        //std::cout << "Original:\n";
+                        //std::cout << p.getX()[0] << "," << p.getX()[1] << "," << p.getX()[2] << "\n";
+                        //exit(1);
+                    }
+                    double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
+                    if (rightDistance <= reflectionDistance) {
+                        ghosts.emplace_front(
+                                Particle({((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1], p.getX()[2]},
+                                         {0, 0, 0},
+                                         p.getM(),
+                                         p.getType()));
+                        //std::cout << "right ghost created:\n";
+                    }
+                    double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
+                    if (topDistance <= reflectionDistance) {
+                        ghosts.emplace_front(
+                                Particle({(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
+                                         {0, 0, 0}, p.getM(),
+                                         p.getType()));
+                        //std::cout << "top ghost created:\n";
+                    }
+                    if(dimensions[2] != 0){
+                        double frontDistance = p.getX()[2] - meshSize;
+                        if(frontDistance <= reflectionDistance){
+                            ghosts.emplace_front(
+                                    Particle({p.getX()[0], p.getX()[1], (meshSize - frontDistance)},
+                                             {0, 0, 0},
+                                             p.getM(),
+                                             p.getType()));
+                        }
+                        double backDistance = (dimensions[2] - 1) * meshSize - p.getX()[2];
+                        if(backDistance <= reflectionDistance){
+                            ghosts.emplace_front(
+                                    Particle({p.getX()[0], p.getX()[1], (dimensions[2] - 1) * meshSize + backDistance},
+                                             {0, 0, 0},
+                                             p.getM(),
+                                             p.getType()));
+                        }
+                    }
                 }
-                double bottomDistance = p.getX()[1] - meshSize;
-                if (bottomDistance <= reflectionDistance) {
-                    ghosts.emplace_front(
-                            Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]}, {0, 0, 0}, p.getM(),
-                                     p.getType()));
-                    //std::cout << "bottom ghost created:\n";
-                    //std::cout << p.getX()[0] << "," << (meshSize - bottomDistance) << "," << p.getX()[2] << "\n";
-                    //std::cout << "Original:\n";
-                    //std::cout << p.getX()[0] << "," << p.getX()[1] << "," << p.getX()[2] << "\n";
-                    //exit(1);
-                }
-                double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
-                if (rightDistance <= reflectionDistance) {
-                    ghosts.emplace_front(
-                            Particle({((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1], p.getX()[2]},
-                                     {0, 0, 0},
-                                     p.getM(),
-                                     p.getType()));
-                    //std::cout << "right ghost created:\n";
-                }
-                double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
-                if (topDistance <= reflectionDistance) {
-                    ghosts.emplace_front(
-                            Particle({(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
-                                     {0, 0, 0}, p.getM(),
-                                     p.getType()));
-                    //std::cout << "top ghost created:\n";
-                }
-
-                //}
             }
 
         }
@@ -323,7 +340,7 @@ void LinkedCells::createGhosts() {
     for (auto par: ghosts) {
         forceInsert(par);
     }
-    //ghosts.clear();
+    ghosts.clear();
 }
 
 void LinkedCells::plotParticles(int iteration) {
