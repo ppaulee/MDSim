@@ -3,6 +3,7 @@
 #include "container/LinkedCells.h"
 #include "forceCalculation/Gravitation.h"
 #include "forceCalculation/LennardJones.h"
+#include "XMLReader/MolSim-pimpl.h"
 #include "Log.h"
 #include <iostream>
 #include <chrono>
@@ -43,12 +44,69 @@ int main(int argc, char *argsv[]) {
     }
 
     bool cuboids = false;
-    char *file = nullptr;
+    std::string file;
     int c;
-    while ((c = getopt(argc, argsv, "hf:s:e:w:a:b")) != -1) {
+    while ((c = getopt(argc, argsv, "hx:f:s:e:w:a:b")) != -1) {
         if (c == 'h') {
             printHelp();
             return 0;
+        }
+        if (c == 'x') {
+            try
+            {
+                // Instantiate individual parsers.
+                //
+                ::molsim_pimpl molsim_p;
+                ::input_file_pimpl input_file_p;
+                ::delta_t_pimpl delta_t_p;
+                ::end_time_pimpl end_time_p;
+                ::output_step_pimpl output_step_p;
+                ::algorithm_pimpl algorithm_p;
+                ::benchmark_pimpl benchmark_p;
+
+                // Connect the parsers together.
+                //
+                molsim_p.parsers (input_file_p,
+                                  delta_t_p,
+                                  end_time_p,
+                                  output_step_p,
+                                  algorithm_p,
+                                  benchmark_p);
+
+                // Parse the XML document.
+                //
+                ::xml_schema::document doc_p (molsim_p, "molsim");
+
+                molsim_p.pre ();
+
+                doc_p.parse (optarg);
+                molsim_p.post_molsim ();
+
+                file = input_file_p.get_input_file();
+                delta_t = delta_t_p.get_delta_t();
+                end_time = end_time_p.get_end_time();
+                outputStep = output_step_p.get_output_step();
+                if (std::string("sv") == algorithm_p.get_algorithm()) {
+                    algorithm = new Gravitation();
+                } else if (std::string("lj") == algorithm_p.get_algorithm()) {
+                    algorithm = new LennardJones(epsilon, sigma);
+                    cuboids = true;
+                }
+                if (benchmark_p.get_benchmark()==std::string("yes")) {
+                    benchmark_active = true;
+                }
+            }
+            catch (const ::xml_schema::exception& e)
+            {
+                std::cerr << e << std::endl;
+                return 1;
+            }
+            catch (const std::ios_base::failure&)
+            {
+                std::cerr << optarg << ": error: io failure" << std::endl;
+                return 1;
+            }
+            break;
         }
         if (c == 'f') {
             file = optarg;
@@ -77,8 +135,7 @@ int main(int argc, char *argsv[]) {
     if (benchmark_active) {
         begin = std::chrono::steady_clock::now();
     }
-
-    if (file == nullptr) {
+    if (file == "") {
         LOGF_ERROR("Error: Path to file is missing, use -h for help");
         return 1;
     }
@@ -145,7 +202,8 @@ int main(int argc, char *argsv[]) {
 }
 
 void printHelp() {
-    LOGC_INFO("Usage: -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark");
+    LOGC_INFO("Usage: -x xml file -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark");
+    LOGC_WARN("xmlfile: if you choose to use xml input, you are not required to fill others");
     LOGC_WARN("Filename: path to the input file (required)");
     LOGC_WARN("Step size: size of a timestep in the simulation (optional)");
     LOGC_WARN("Output step size: Every this often steps an output file will be generated (optional)");
