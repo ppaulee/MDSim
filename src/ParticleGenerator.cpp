@@ -45,7 +45,7 @@ void generateSphere(std::array<double, 3> center, std::array<double, 3> v, int r
     }
 }
 
-void generateFromFile(SimulationContainer &particles, std::string f) {
+void generateFromFileTest(SimulationContainer &particles, std::string f) {
     int num = 0;
 
     std::string tmp_string;

@@ -11,7 +11,7 @@
 TEST(ParticleGenerator, generate) {
     auto container = new ParticleContainer();
 
-    generateFromFile(*container, (std::string) "1\nCube:\n0,0,0;1,2,3;1,1,1;1.1225;0.1;1;");
+    generateFromFileTest(*container, (std::string) "1\nCube:\n0,0,0;1,2,3;1,1,1;1.1225;0.1;1;");
 
     // There must be exactly one particle in the container
     EXPECT_EQ(container->getVec().size(), 1);
