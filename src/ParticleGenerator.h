@@ -19,7 +19,8 @@
  * @param meanV The mean-value of the velocity of the Brownian Motion
  * @param container
  */
-void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m, std::array<double, 3> v, double meanV, SimulationContainer &container);
+void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m,
+                  std::array<double, 3> v, double meanV, SimulationContainer &container);
 
 /**
  * Generates a sphere of particles with given parameters. Those particles will be added to the given container.
@@ -32,7 +33,7 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
  * @param container
  */
 void generateSphere3D(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
-                    SimulationContainer &container);
+                      SimulationContainer &container);
 
 /**
  * Generates a 2D sphere (so a circle) of particles with given parameters. Those particles will be added to the given container.
@@ -62,7 +63,11 @@ void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int
     15,15,0;0,-10,0;8,8,1;1.1225;0.1;1;
 
  *
+ *Instead of Cube you can use Sphere for 2D spheres like this:
  *
+ * Sphere:
+ * x,y,z;v1,v2,v3;r;h;meanVelocity;mass;
+ * note that r (radius in particle count) is an integer
  *
  * @param particles Particle container
  * @param filename Path to input file
@@ -93,7 +98,7 @@ std::vector<double> splitToDouble(std::string str, char delimiter);
  * @param v vector of size 3
  * @return array of size 3
  */
-std::array<double,3> convertToFixedArray(std::vector<double> v);
+std::array<double, 3> convertToFixedArray(std::vector<double> v);
 
 /**
  * Parses and generates a sphere with given input (see generateFromFile())
@@ -109,7 +114,7 @@ void parseSphere2D(std::string str, SimulationContainer &particleContainer);
  * @param str Input string (format see: generateFromFile())
  * @param particleContainer
  */
-void parseCube(std::string str, SimulationContainer& particleContainer);
+void parseCube(std::string str, SimulationContainer &particleContainer);
 
 /**
  * see generateFromFile(SimulationContainer &particles, char *filename)
