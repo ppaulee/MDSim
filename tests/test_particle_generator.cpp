@@ -6,6 +6,7 @@
 #include "../src/ParticleGenerator.cpp"
 #include <fstream>
 #include <string>
+#include "utils/ArrayUtils.h"
 
 // Tests the generateFromFile function with given test file
 TEST(ParticleGenerator, generate) {
@@ -27,3 +28,18 @@ TEST(ParticleGenerator, generate) {
     EXPECT_EQ(container->getVec()[0].getV()[2], 3);
 }
 
+TEST(ParticleGenerator, generateSphere2D){
+    auto container = new ParticleContainer();
+
+    generateSphere2D({0,0,0}, {0,0,0}, 2, 1, 1, 0.1, *container);
+    int s= container->getVec().size();
+    EXPECT_EQ(container->getVec().size(), 11);
+    bool center = false;
+    std::array<double, 3> comp = {0,0,0};
+    for(auto &p : container->getVec()){
+        if(p.getX() == comp)
+            center = true;
+    }
+    EXPECT_TRUE(center);
+
+}
