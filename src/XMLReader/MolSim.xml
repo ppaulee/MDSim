@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<molsim xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="MolSim.xsd">
+
+    <input_file>../input.txt</input_file>
+
+    <delta_t>0.014</delta_t>
+
+    <end_time>1000</end_time>
+
+    <output_step>100</output_step>
+
+    <epsilon>5</epsilon>
+
+    <sigma>1</sigma>
+
+    <averageV>0.1</averageV>
+
+    <dimension>
+        <x>300</x>
+        <y>300</y>
+        <z>300</z>
+    </dimension>
+
+    <mesh>3</mesh>
+
+    <cutoff>3</cutoff>
+
+    <algorithm>lj</algorithm>
+
+    <benchmark>yes</benchmark>
+
+</molsim>

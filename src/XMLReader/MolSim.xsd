@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:simpleType name="input_file">
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="delta_t">
+        <xsd:restriction base="xsd:double"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="end_time">
+        <xsd:restriction base="xsd:double"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="output_step">
+        <xsd:restriction base="xsd:int"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="epsilon">
+        <xsd:restriction base="xsd:double"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="sigma">
+        <xsd:restriction base="xsd:double"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="averageV">
+        <xsd:restriction base="xsd:double"/>
+    </xsd:simpleType>
+    
+    <xsd:complexType name="dimension">
+        <xsd:sequence>
+            <xsd:element name="x" type="xsd:int"/>
+            <xsd:element name="y" type="xsd:int"/>
+            <xsd:element name="z" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="mesh">
+        <xsd:restriction base="xsd:double"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="cutoff">
+        <xsd:restriction base="xsd:double"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="algorithm">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="sv"/>
+            <xsd:enumeration value="lj"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="benchmark">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="yes"/>
+            <xsd:enumeration value="no"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="molsim">
+        <xsd:sequence>
+            <xsd:element name="input_file" type="input_file"/>
+            <xsd:element name="delta_t" type="delta_t"/>
+            <xsd:element name="end_time" type="end_time"/>
+            <xsd:element name="output_step" type="output_step"/>
+            <xsd:element name="epsilon" type="epsilon"/>
+            <xsd:element name="sigma" type="sigma"/>
+            <xsd:element name="averageV" type ="averageV"/>
+            <xsd:element name="dimension" type="dimension"/>
+            <xsd:element name="mesh" type="mesh"/>
+            <xsd:element name="cutoff" type="cutoff"/>
+            <xsd:element name="algorithm" type="algorithm"/>
+            <xsd:element name="benchmark" type="benchmark"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="molsim" type="molsim"/>
+
+</xsd:schema>
