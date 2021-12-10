@@ -105,11 +105,28 @@ void generateFromFile(SimulationContainer &particles, char *filename) {
                 getline(input_file, tmp_string);
                 parseCube(tmp_string, particles);
             }
+            if (tmp_string == "Sphere:\r" || tmp_string == "Sphere:\n") {
+                getline(input_file, tmp_string);
+                parseSphere2D(tmp_string, particles);
+            }
         }
     } else {
         std::cout << "Error: could not open file " << filename << std::endl;
         exit(-1);
     }
+}
+
+void parseSphere2D(std::string str, SimulationContainer &particleContainer){
+    std::vector<std::string> strings = splitToString(str, ';');
+    //Read input to arrays/doubles
+    std::array<double, 3> startPoint = convertToFixedArray(splitToDouble(strings[0], ','));
+    std::array<double, 3> v = convertToFixedArray(splitToDouble(strings[1], ','));
+    double r = std::stoi(strings[2]);
+    double h = std::stod(strings[3]);
+    double meanV = std::stod(strings[4]);
+    double mass = std::stod(strings[5]);
+
+    generateSphere2D(startPoint, v, r, h, mass, meanV, particleContainer);
 }
 
 void parseCube(std::string str, SimulationContainer &particleContainer) {

@@ -96,6 +96,14 @@ std::vector<double> splitToDouble(std::string str, char delimiter);
 std::array<double,3> convertToFixedArray(std::vector<double> v);
 
 /**
+ * Parses and generates a sphere with given input (see generateFromFile())
+ *
+ * @param str Input string (format see: generateFromFile())
+ * @param particleContainer
+ */
+void parseSphere2D(std::string str, SimulationContainer &particleContainer);
+
+/**
  * Parses and generates a cube with given input (see generateFromFile())
  *
  * @param str Input string (format see: generateFromFile())
