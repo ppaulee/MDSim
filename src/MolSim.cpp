@@ -52,8 +52,7 @@ int main(int argc, char *argsv[]) {
             return 0;
         }
         if (c == 'x') {
-            try
-            {
+            try {
                 // Instantiate individual parsers.
                 //
                 ::molsim_pimpl molsim_p;
@@ -61,38 +60,61 @@ int main(int argc, char *argsv[]) {
                 ::delta_t_pimpl delta_t_p;
                 ::end_time_pimpl end_time_p;
                 ::output_step_pimpl output_step_p;
+                ::epsilon_pimpl epsilon_p;
+                ::sigma_pimpl sigma_p;
+                ::averageV_pimpl averageV_p;
+                ::dimension_pimpl dimension_p;
+                ::xml_schema::int_pimpl int_p;
+                ::mesh_pimpl mesh_p;
+                ::cutoff_pimpl cutoff_p;
                 ::algorithm_pimpl algorithm_p;
                 ::benchmark_pimpl benchmark_p;
 
                 // Connect the parsers together.
                 //
-                molsim_p.parsers (input_file_p,
-                                  delta_t_p,
-                                  end_time_p,
-                                  output_step_p,
-                                  algorithm_p,
-                                  benchmark_p);
+                molsim_p.parsers(input_file_p,
+                                 delta_t_p,
+                                 end_time_p,
+                                 output_step_p,
+                                 epsilon_p,
+                                 sigma_p,
+                                 averageV_p,
+                                 dimension_p,
+                                 mesh_p,
+                                 cutoff_p,
+                                 algorithm_p,
+                                 benchmark_p);
+
+                dimension_p.parsers(int_p,
+                                    int_p,
+                                    int_p);
 
                 // Parse the XML document.
                 //
-                ::xml_schema::document doc_p (molsim_p, "molsim");
+                ::xml_schema::document doc_p(molsim_p, "molsim");
 
-                molsim_p.pre ();
-
-                doc_p.parse (optarg);
-                molsim_p.post_molsim ();
+                molsim_p.pre();
+                doc_p.parse(optarg);
+                molsim_p.post_molsim();
 
                 file = input_file_p.get_input_file();
                 delta_t = delta_t_p.get_delta_t();
                 end_time = end_time_p.get_end_time();
                 outputStep = output_step_p.get_output_step();
+                epsilon = epsilon_p.get_epsilon();
+                sigma = sigma_p.get_sigma();
+                averageV = averageV_p.get_averageV();
+                dim = {dimension_p.getX(), dimension_p.getY(), dimension_p.getZ()};
+                mesh = mesh_p.get_mesh();
+                cutOff = cutoff_p.get_cutoff();
+                particles = new LinkedCells(dim, mesh, cutOff, sigma);
                 if (std::string("sv") == algorithm_p.get_algorithm()) {
                     algorithm = new Gravitation();
                 } else if (std::string("lj") == algorithm_p.get_algorithm()) {
                     algorithm = new LennardJones(epsilon, sigma);
                     cuboids = true;
                 }
-                if (benchmark_p.get_benchmark()==std::string("yes")) {
+                if (benchmark_p.get_benchmark() == std::string("yes")) {
                     benchmark_active = true;
                 }
             }
