@@ -13,6 +13,7 @@
 #include "test_linkedcells.cpp"
 #include "test_particle_container.cpp"
 #include "test_particle_generator.cpp"
+#include "test_thermostats.cpp"
 
 
 int main(int argc, char **argv) {

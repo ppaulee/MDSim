@@ -66,5 +66,11 @@ public:
 
     void insert(Particle& p) override;
     void addBrownianMotion(double averageV, int dimension) override;
+
+    double calcKineticEnergy() override;
+
+    int numberParticles() override;
+
+    void scaleVelocity(double scale) override;
 };
 

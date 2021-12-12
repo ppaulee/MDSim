@@ -215,7 +215,7 @@ public:
      *
      * @return Number of particles inside the data structure
      */
-    int numberParticles();
+    int numberParticles() override;
 
     /**
      * Deletess all particles in halo cells
@@ -227,6 +227,9 @@ public:
      * @return dimensions
      */
     std::array<int, 3> getDimensions();
+
+    double calcKineticEnergy() override;
+    void scaleVelocity(double scale) override;
 
 };
 

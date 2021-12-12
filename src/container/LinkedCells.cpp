@@ -415,6 +415,25 @@ std::array<int, 3> LinkedCells::getDimensions() {
     return dimensions;
 }
 
+double LinkedCells::calcKineticEnergy() {
+    double energy = 0;
+    for (auto &vec : particles) {
+        for (auto &p : vec) {
+            double scalar_product = p.getV()[0] * p.getV()[0] + p.getV()[1] * p.getV()[1] + p.getV()[2] * p.getV()[2];
+            energy += p.getM() * scalar_product / 2;
+        }
+    }
+    return energy;
+}
+
+void LinkedCells::scaleVelocity(double scale) {
+    for (auto &vec : particles) {
+        for (auto &p : vec) {
+            p.setV(scale * p.getV());
+        }
+    }
+}
+
 
 
 

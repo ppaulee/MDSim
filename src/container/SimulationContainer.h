@@ -40,5 +40,25 @@ public:
      * @param dimension
      */
     virtual void addBrownianMotion(double averageV, int dimension) = 0;
+
+    /**
+     * Calculates the kinetic energy in the system
+     *
+     * @return Kinetic energy in the whole system
+     */
+    virtual double calcKineticEnergy() = 0;
+
+    /**
+     *
+     * @return Number of particles
+     */
+    virtual int numberParticles() = 0;
+
+    /**
+     * Scale all velocities by a specific value
+     *
+     * @param scale Value to scale
+     */
+    virtual void scaleVelocity(double scale) = 0;
 };
 

@@ -118,4 +118,21 @@ void ParticleContainer::addBrownianMotion(double averageV, int dimension) {
     }
 }
 
+double ParticleContainer::calcKineticEnergy() {
+    double energy = 0;
+    for (auto &p : particles) {
+        double scalar_product = p.getV()[0] * p.getV()[0] + p.getV()[1] * p.getV()[1] + p.getV()[2] * p.getV()[2];
+        energy += p.getM() * scalar_product / 2;
+    }
+    return energy;
+}
 
+int ParticleContainer::numberParticles() {
+    return particles.size();
+}
+
+void ParticleContainer::scaleVelocity(double scale) {
+    for (auto &p : particles) {
+        p.setV(scale * p.getV());
+    }
+}

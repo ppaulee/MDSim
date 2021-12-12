@@ -1,5 +1,6 @@
 #include "FileReader.h"
 #include "ParticleGenerator.h"
+#include "Thermostats.h"
 #include "container/LinkedCells.h"
 #include "forceCalculation/Gravitation.h"
 #include "forceCalculation/LennardJones.h"
@@ -194,8 +195,39 @@ int main(int argc, char *argsv[]) {
         particles->plotParticles(0);
     }
 
+    int dimensions = 3;
+    if (dim[0] == 0) {
+        dimensions = 2;
+    }
+
+    // TODO set to XML values
+    /*
+    <xsd:complexType name="thermostats">
+        <xsd:sequence>
+            <xsd:element name="initialTemperature" type="xsd:double"/>
+            <xsd:element name="targetTemperature" type="xsd:double"/>
+            <xsd:element name="maxDelta" type="xsd:double"/>
+            <xsd:element name="stepSize" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+     **/
+    double initial_temp = 20;
+    int stepSize = 1;
+    double target_temp = 1000;
+    // TODO Dieser Parameter ist optional, wenn nicht angegeben wird -1 übergeben
+    double max_delta_temp = -1;
+
+    auto thermostat = new Thermostats( *particles , delta_t, end_time, initial_temp, stepSize, dimensions, target_temp, max_delta_temp);
+
+    thermostat->calcCurrentTemperature(*particles);
+    thermostat->adjustTemperature(*particles, current_time);
     while (current_time < end_time) {
         particles->simulate(algorithm, delta_t);
+
+        // Control temperature
+        thermostat->calcCurrentTemperature(*particles);
+        thermostat->adjustTemperature(*particles, current_time);
+        thermostat->calcCurrentTemperature(*particles);
 
         iteration++;
         if (iteration % outputStep == 0 && !benchmark_active) {
@@ -208,11 +240,10 @@ int main(int argc, char *argsv[]) {
             std::cout << "Iteration " << iteration << "finished." << std::endl;
             std::cout << "Current time " << current_time << std::endl;
         }
-
-
         current_time += delta_t;
     }
 
+    std::cout << "TEMP: " << thermostat->getCurrentTemperature() << std::endl;
     if (benchmark_active) {
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
         std::cout << "Time (including reading the input file and setting everything up) = "
