@@ -29,6 +29,12 @@ private:
     double deltaT;
     double endTime;
 
+    /**
+     * Calculates the sign of the number
+     *
+     * @param x
+     * @return -1 for <0, 0 for ==0, 1 for >0
+     */
     int sign(double x);
 
 public:
@@ -45,10 +51,18 @@ public:
     explicit Thermostats(SimulationContainer& container, double delta_t, double end_time, double initialTemp, int stepSize, int dimensions, double targetTemp = -1, double max_delta_temp = -1);
 
     /**
-     * Calculates current Temperature in the system
+     * Calculates current Temperature in the system and sets currentTemperature
+     *
+     * @param container Data structure with particles
      */
     void calcCurrentTemperature(SimulationContainer& container);
 
+    /**
+     * Control the temperature
+     *
+     * @param container Data structure with particles
+     * @param current_time Current time in simulation
+     */
     void adjustTemperature(SimulationContainer& container, double current_time);
 
     /**
