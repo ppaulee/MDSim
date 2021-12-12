@@ -59,13 +59,16 @@ void Thermostats::adjustTemperature(SimulationContainer& container, double curre
             if (maxDeltaTemp != -1) {
                 difference_capped = sign(difference) * std::min(std::abs(difference), maxDeltaTemp);
             }
+            // Calculate the increase of temperature for one timestep in the current system
             double tempPerStep = (difference_capped) / numberOfStepsLeft;
-            double temp = step * tempPerStep;
 
+            // Scale the tempPerStep with the stepSize
+            double temp = step * tempPerStep;
+            // If the stepSize is less than the remaining steps then we use this to scale
             if (step > numberOfStepsLeft) {
                 temp = numberOfStepsLeft * tempPerStep;
             }
-
+            // Cap again to maxDeltaTemp
             if (maxDeltaTemp != -1) {
                 temp = std::min(temp, maxDeltaTemp);
             }
