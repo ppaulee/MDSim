@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+
+<molsim xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="src/XMLReader/MolSim.xsd">
+
+    <input_file>../input.txt</input_file>
+
+    <delta_t>0.014</delta_t>
+
+    <end_time>1000</end_time>
+
+    <output_step>100</output_step>
+
+    <epsilon>5</epsilon>
+
+    <sigma>1</sigma>
+
+    <gravity>10</gravity>
+
+    <averageV>0.1</averageV>
+
+    <algorithm>lj</algorithm>
+
+    <simulationContainer containerAlgorithm="linkedCells">
+        <boundaryConditions>reflection</boundaryConditions>
+        <dimension>
+            <x>300</x>
+            <y>300</y>
+            <z>300</z>
+        </dimension>
+        <mesh>3</mesh>
+        <cutOff>3</cutOff>
+    </simulationContainer>
+
+    <particles>
+        <Cube>
+            <dimension>
+                <x>50</x>
+                <y>14</y>
+                <z>1</z>
+            </dimension>
+            <startPoint>
+                <x>0.6</x>
+                <y>2</y>
+                <z>0</z>
+            </startPoint>
+            <h>1.2</h>
+            <mass>1</mass>
+            <velocity>
+                <x>0</x>
+                <y>0</y>
+                <z>0</z>
+            </velocity>
+            <epsilon>1</epsilon>
+            <sigma>1</sigma>
+        </Cube>
+        <Cube>
+            <dimension>
+                <x>50</x>
+                <y>14</y>
+                <z>1</z>
+            </dimension>
+            <startPoint>
+                <x>0.6</x>
+                <y>19</y>
+                <z>0</z>
+            </startPoint>
+            <h>1.2</h>
+            <mass>2</mass>
+            <velocity>
+                <x>0</x>
+                <y>0</y>
+                <z>0</z>
+            </velocity>
+            <epsilon>1</epsilon>
+            <sigma>0.9412</sigma>
+        </Cube>
+    </particles>
+
+    <benchmark>yes</benchmark>
+
+</molsim>
