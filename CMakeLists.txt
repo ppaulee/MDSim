@@ -21,7 +21,7 @@ file(GLOB_RECURSE MY_SRC
 
 # create make target
 #add_executable(MolSim ${MY_SRC} src/ForceCalculation.h src/Gravitation.h src/Gravitation.cpp src/XMLReader)
-add_executable(MolSim ${MY_SRC} src/forceCalculation/LennardJones.cpp src/forceCalculation/LennardJones.h src/container/LinkedCells.cpp src/container/LinkedCells.h src/container/LinkedCells.cpp src/container/LinkedCells.h src/XMLReader/MolSim-pimpl.h)
+add_executable(MolSim ${MY_SRC} src/forceCalculation/LennardJones.cpp src/forceCalculation/LennardJones.h src/container/LinkedCells.cpp src/container/LinkedCells.h src/container/LinkedCells.cpp src/container/LinkedCells.h src/XMLReader/MolSimImpl.h)
 
 # set cxx standard. You may raise this if you want.
 target_compile_features(MolSim
