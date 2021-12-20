@@ -11,7 +11,7 @@
 #include "utils/ArrayUtils.h"
 
 
-void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPoint, double h, double m,
+void generateCube(std::array<int, 3> dimension, std::array<double, 3> startPoint, double h, double m,
                   std::array<double, 3> v, double meanV, SimulationContainer &container) {
     for (double x = 0; x < dimension[0]; x++) {
         for (double y = 0; y < dimension[1]; y++) {
@@ -24,8 +24,24 @@ void generateCube(std::array<double, 3> dimension, std::array<double, 3> startPo
     }
 }
 
+void generateCube(std::array<int, 3> dimension, std::array<double, 3> startPoint, double h, double m,
+                  std::array<double, 3> v, double meanV, int type, double sigma, double epsilon,
+                  SimulationContainer &container) {
+    for (double x = 0; x < dimension[0]; x++) {
+        for (double y = 0; y < dimension[1]; y++) {
+            for (double z = 0; z < dimension[2]; z++) {
+                // Add particle to ParticleContainer
+                Particle p = Particle({x * h + startPoint[0], y * h + startPoint[1], z * h + startPoint[2]}, v, m, type,
+                                      sigma, epsilon);
+                p.setType(type);
+                container.insert(p);
+            }
+        }
+    }
+}
+
 void generateSphere3D(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
-                    SimulationContainer &container) {
+                      SimulationContainer &container) {
     //first generate cube of size 2*r, then only insert particles that fit into the wanted sphere, "cutting" the sphere out of the cube
     std::array<double, 3> startPoint = {center[0] - (r * h), center[1] - (r * h), center[2] - (r * h)};
     for (double x = 0; x < (2 * r); x++) {
@@ -50,6 +66,24 @@ void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int
             for (double z = 0; z < 1; z++) {
                 Particle p = Particle({x * h + startPoint[0], y * h + startPoint[1], z * h + startPoint[2]}, v, m);
                 if (ArrayUtils::L2Norm(p.getX() - center) <= (r * h)) {
+                    container.insert(p);
+                }
+
+            }
+        }
+    }
+}
+
+void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
+                      int type, SimulationContainer &container) {
+//first generate cube of size 2*r, then only insert particles that fit into the wanted sphere, "cutting" the sphere out of the cube
+    std::array<double, 3> startPoint = {center[0] - (r * h), center[1] - (r * h), center[2]};
+    for (double x = 0; x < (2 * r); x++) {
+        for (double y = 0; y < (2 * r); y++) {
+            for (double z = 0; z < 1; z++) {
+                Particle p = Particle({x * h + startPoint[0], y * h + startPoint[1], z * h + startPoint[2]}, v, m);
+                if (ArrayUtils::L2Norm(p.getX() - center) <= (r * h)) {
+                    p.setType(type);
                     container.insert(p);
                 }
 
@@ -116,7 +150,7 @@ void generateFromFile(SimulationContainer &particles, char *filename) {
     }
 }
 
-void parseSphere2D(std::string str, SimulationContainer &particleContainer){
+void parseSphere2D(std::string str, SimulationContainer &particleContainer) {
     std::vector<std::string> strings = splitToString(str, ';');
     //Read input to arrays/doubles
     std::array<double, 3> startPoint = convertToFixedArray(splitToDouble(strings[0], ','));
@@ -135,11 +169,12 @@ void parseCube(std::string str, SimulationContainer &particleContainer) {
     std::array<double, 3> startPoint = convertToFixedArray(splitToDouble(strings[0], ','));
     std::array<double, 3> v = convertToFixedArray(splitToDouble(strings[1], ','));
     std::array<double, 3> dimension = convertToFixedArray(splitToDouble(strings[2], ','));
+    std::array<int, 3> dim = {(int) dimension[0], (int) dimension[1], (int) dimension[2]};
     double h = std::stod(strings[3]);
     double meanV = std::stod(strings[4]);
     double mass = std::stod(strings[5]);
 
-    generateCube(dimension, startPoint, h, mass, v, meanV, particleContainer);
+    generateCube(dim, startPoint, h, mass, v, meanV, 0, 1, 1., particleContainer);
 }
 
 std::vector<std::string> splitToString(std::string str, char delimiter) {

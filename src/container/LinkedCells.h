@@ -6,6 +6,8 @@
 #include <vector>
 #include <list>
 #include <memory>
+#include "forceCalculation/MixedLennardJones.h"
+#include "forceCalculation/LennardJones.h"
 #include "Particle.h"
 #include "forceCalculation/ForceCalculation.h"
 #include "SimulationContainer.h"
@@ -41,7 +43,37 @@ private:
      * This vector stores cells. These cells store a vector of particles in this cell
      */
     std::vector<std::list<Particle>> particles;
-    double reflectionDistance;
+
+    /**
+     * Stores LennardJones objects for force calculations between particles of the same type
+     */
+    std::vector<LennardJones> forceCalcs;
+    /**
+     * Stores LennardJones objects for force calculations between particles of different types
+     */
+    std::vector<MixedLennardJones> mixedForceCalcs;
+
+    /**
+     * Used for periodic boundaries, stores ghosts of particles in boundary cells that are mirrored into the halo on the other side
+     */
+    std::vector<Particle> ghosts;
+
+    /**
+     * Distance at which ghost particles are created
+     */
+    std::vector<double> reflectionDistance;
+
+    /**
+     * Stores which boundary condition is used for which boundary pair
+     * First element for X-axis ("left and right")
+     * Second element for Y-axis ("top and bottom")
+     * Last element for Z-axis ("front and back")
+     *
+     * 0 = outflow
+     * 1 = reflection
+     * 2 = periodic
+     */
+    std::array<int, 3> boundaryCondition;
 
     /**
      * Width, Height, Depth
@@ -55,6 +87,10 @@ private:
     double meshSize;
     double cutOffRadius;
 
+    /**
+     * Constant for gravity
+     */
+    double grav;
 
     /**
      * Translates a single index to coordinates
@@ -90,9 +126,22 @@ public:
      * @param dimension Dimensions (x,y,z) of the inner cells. All numbers must be even! -x/2,-y/2,-z/2 are the minimum coordinates and x/2,y/2,z/2 are the maximum coordinates
      * @param mesh Mesh size of the grid
      * @param cutOff cut off radius
-     * @param sigma sigma parameter of Lennard Jones Potential
+     * @param gravConst Constant for gravitational force calculation (0 disables gravity)
+     * @param boundaryConds Array setting boundary conditions
      */
-    explicit LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff, double sigma);
+    explicit LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff, double gravConst,
+                         std::array<int, 3> &boundaryConds);
+
+    /**
+     * Note that a layer of halo and boundary cells are added on the side. E.g. if we have a 1x1x1 cube then the actual dimensions are (1+4)x(1+4)x(1+4). The coordinate of the inner cell is (0+2,0+2,0+2)
+     * General note: intern the smallest possible coordinate is (0,0,0) but we want to support also negative coordinates. Therefore to the position of the particle we add half the dimension in every dimension. The output will be retransferred to
+     * the original coordinates (minus half the dimension in every dimension). Using this constructor disables gravitation.
+     *
+     * @param dimension Dimensions (x,y,z) of the inner cells. All numbers must be even! -x/2,-y/2,-z/2 are the minimum coordinates and x/2,y/2,z/2 are the maximum coordinates
+     * @param mesh Mesh size of the grid
+     * @param cutOff cut off radius
+     */
+    explicit LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff);
 
     /**
      * Translates coordinates to a single index for the vector
@@ -198,9 +247,9 @@ public:
     void simulate(ForceCalculation *algorithm, double delta_a) override;
 
     /**
-     * Iterates over particle in boundary cells and creates ghost particles for reflection if they are near enough to the boundary
+     * Iterates over particle in boundary cells and applies boundary conditions according to boundaryCondition
      */
-    void createGhosts();
+    void handleBoundary();
 
     /**
      * Plots particles
@@ -229,8 +278,13 @@ public:
     std::array<int, 3> getDimensions();
 
     double calcKineticEnergy() override;
+
     void scaleVelocity(double scale) override;
 
+    /**
+     * Applies gravitational force to all particles
+     */
+    void applyGravity();
 };
 
 

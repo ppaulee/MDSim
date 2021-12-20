@@ -4,6 +4,7 @@
 #include "../src/utils/MaxwellBoltzmannDistribution.cpp"
 #include "../src/Particle.cpp"
 #include "forceCalculation/LennardJones.cpp"
+#include "forceCalculation/MixedLennardJones.cpp"
 #include "forceCalculation/Gravitation.cpp"
 #include "container/LinkedCells.cpp"
 #include "../src/outputWriter/vtk-unstructured.cpp"

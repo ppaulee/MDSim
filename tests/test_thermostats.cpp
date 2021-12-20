@@ -10,7 +10,7 @@
  * Warms up the simulation and compare the end temperature with the expected temperature
  */
 TEST(Thermostats, warm_up) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 5);
+    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
     auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
     auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
 
@@ -47,7 +47,7 @@ TEST(Thermostats, warm_up) {
  * we have a multiple of 2 as the end_time
  */
 TEST(Thermostats, warm_up_steps) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 5);
+    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
     auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
     auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
 
@@ -84,7 +84,7 @@ TEST(Thermostats, warm_up_steps) {
  * we do not have a multiple of 2 as the end_time
  */
 TEST(Thermostats, warm_up_steps_off) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 5);
+    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
     auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
     auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
 
@@ -120,7 +120,7 @@ TEST(Thermostats, warm_up_steps_off) {
  * Cools down the simulation and compare the end temperature with the expected temperature
  */
 TEST(Thermostats, cool_down) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 5);
+    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
     auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
     auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
 
@@ -157,7 +157,7 @@ TEST(Thermostats, cool_down) {
  * we have a multiple of 2 as the end_time
  */
 TEST(Thermostats, cool_down_steps) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 5);
+    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
     auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
     auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
 
@@ -193,7 +193,7 @@ TEST(Thermostats, cool_down_steps) {
  * Hold the temperature of the simulation and compares the end temperature with the initial temperature
  */
 TEST(Thermostats, hold) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 5);
+    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
     auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
     auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
 

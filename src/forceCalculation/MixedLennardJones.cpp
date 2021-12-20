@@ -1,11 +1,11 @@
 //
-// Created by Jonas on 13.11.21.
+// Created by Jonas on 18.12.21.
 //
 
+#include "MixedLennardJones.h"
 #include "utils/ArrayUtils.h"
-#include "LennardJones.h"
 
-std::array<double, 3> LennardJones::calculateF(Particle p1, Particle p2) {
+std::array<double, 3> MixedLennardJones::calculateF(Particle p1, Particle p2) {
     double normNoRoot = 0;
     std::array<double, 3> difference = p1.getX() - p2.getX();
     for (int i = 0; i < 3; i++) {
@@ -19,18 +19,25 @@ std::array<double, 3> LennardJones::calculateF(Particle p1, Particle p2) {
     return vec;
 }
 
-LennardJones::LennardJones(double epsilon, double sigma, int type) : epsilon(epsilon), sigma(sigma), type(type) {}
-
-double LennardJones::getEpsilon() const {
+double MixedLennardJones::getEpsilon() const {
     return epsilon;
 }
 
-double LennardJones::getSigma() const {
+double MixedLennardJones::getSigma() const {
     return sigma;
 }
 
-int LennardJones::getType() const {
-    return type;
+int MixedLennardJones::getType1() const {
+    return type1;
 }
 
-LennardJones::LennardJones(double epsilon, double sigma) : epsilon(epsilon), sigma(sigma) {}
+int MixedLennardJones::getType2() const {
+    return type2;
+}
+
+MixedLennardJones::MixedLennardJones(double epsilonArg, double sigmaArg, int type1Arg, int type2Arg){
+    epsilon = epsilonArg;
+    sigma = sigmaArg;
+    type1 = type1Arg;
+    type2 = type2Arg;
+}
