@@ -136,3 +136,11 @@ void ParticleContainer::scaleVelocity(double scale) {
         p.setV(scale * p.getV());
     }
 }
+
+void ParticleContainer::forceInsert(Particle &p) {
+    insert(p);
+}
+
+std::vector<Particle> ParticleContainer::getParticles() {
+    return particles;
+}

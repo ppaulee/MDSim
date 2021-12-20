@@ -65,6 +65,8 @@ public:
     void simulate(ForceCalculation *algorithm, double delta_t) override;
 
     void insert(Particle& p) override;
+    void forceInsert(Particle& p) override;
+    std::vector<Particle> getParticles() override;
     void addBrownianMotion(double averageV, int dimension) override;
 
     double calcKineticEnergy() override;

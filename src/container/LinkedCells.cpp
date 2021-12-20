@@ -111,7 +111,7 @@ void LinkedCells::forceInsert(Particle &p) {
                 if (calc.getType() != p.getType()) {
                     double tempEpsilon = sqrt(calc.getEpsilon() * p.getEpsilon());
                     double tempSigma = (calc.getSigma() + p.getSigma()) / 2;
-                    auto temp = MixedLennardJones(tempEpsilon, tempSigma, 0, p.getType());
+                    auto temp = MixedLennardJones(tempEpsilon, tempSigma, calc.getType(), p.getType());
                     mixedForceCalcs.push_back(temp);
                 }
             }
@@ -636,6 +636,16 @@ void LinkedCells::applyGravity() {
             p.setF(p.getF() + (p.getM() * grav) * temp);
         }
     }
+}
+
+std::vector<Particle> LinkedCells::getParticles() {
+    std::vector<Particle> res;
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
+            res.push_back(p);
+        }
+    }
+    return res;
 }
 
 

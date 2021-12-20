@@ -220,7 +220,9 @@ public:
      *
      * @param p Particle to insert
      */
-    void forceInsert(Particle &p);
+    void forceInsert(Particle &p) override;
+
+    std::vector<Particle> getParticles() override;
 
     /**
      * Checks if the cell with these coordinates is a halo cell

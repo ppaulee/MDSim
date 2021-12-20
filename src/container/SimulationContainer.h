@@ -33,6 +33,8 @@ public:
      */
     virtual void insert(Particle& p) = 0;
 
+    virtual void forceInsert(Particle &p) = 0;
+
     /**
      * Adds a brownian motion to all particles
      *
@@ -60,5 +62,11 @@ public:
      * @param scale Value to scale
      */
     virtual void scaleVelocity(double scale) = 0;
+
+    /**
+     * Get all particles in the data structure
+     * @return vector of particles
+     */
+    virtual std::vector<Particle> getParticles() = 0;
 };
 
