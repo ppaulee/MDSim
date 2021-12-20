@@ -50,6 +50,11 @@ private:
    */
   int type;
 
+  /**
+   * Parameters for Lennard-Jones force calculation
+   */
+  double sigma, epsilon;
+
 public:
   explicit Particle(int type = 0);
 
@@ -59,9 +64,13 @@ public:
       // for visualization, we need always 3 coordinates
       // -> in case of 2d, we use only the first and the second
       std::array<double, 3> x_arg, std::array<double, 3> v_arg, double m_arg,
-      int type = 0);
+      int type = 0, double sigma_arg = 1, double epsilon_arg = 5);
 
-  virtual ~Particle();
+    double getSigma() const;
+
+    double getEpsilon() const;
+
+    virtual ~Particle();
 
   const std::array<double, 3> &getX() const;
   void setX(std::array<double, 3> xNew);
@@ -77,6 +86,7 @@ public:
 
   double getM() const;
 
+  void setType(int typeNew);
   int getType() const;
 
   void mark();

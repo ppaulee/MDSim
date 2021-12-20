@@ -27,10 +27,11 @@ double sigma = 1;
 // Brownian Motion average velocity
 double averageV = 0.1;
 
-std::array<int, 3> dim = {180, 90, 0};
+std::array<int, 3> dim = {8, 8, 0};
 double mesh = 3;
 double cutOff = 3;
-SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, sigma);
+std::array<int, 3> bound = {2, 1, 1};
+SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, 0, bound);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
@@ -56,8 +57,7 @@ int main(int argc, char *argsv[]) {
             return 0;
         }
         if (c == 'x') {
-            try
-            {
+            try {
                 // Instantiate individual parsers.
                 //
                 ::molsim_pimpl molsim_p;
@@ -82,129 +82,128 @@ int main(int argc, char *argsv[]) {
 
                 // Connect the parsers together.
                 //
-                molsim_p.parsers (string_p,
-                                  time_p,
-                                  time_p,
-                                  int_p,
-                                  epsilon_p,
-                                  sigma_p,
-                                  double_p,
-                                  double_p,
-                                  algorithm_p,
-                                  simulationContainer_p,
-                                  particles_p,
-                                  thermostats_p,
-                                  benchmark_p);
-
-                simulationContainer_p.parsers (boundaryConditions_p,
-                                               dimension_p,
-                                               double_p,
-                                               double_p,
-                                               containerAlgorithm_p);
-
-                dimension_p.parsers (int_p,
-                                     int_p,
-                                     int_p);
-
-                particles_p.parsers (Cube_p,
-                                     Sphere_p);
-
-                Cube_p.parsers (dimension_p,
-                                point_p,
-                                double_p,
-                                double_p,
-                                velocity_p,
-                                epsilon_p,
-                                sigma_p);
-
-                point_p.parsers (double_p,
+                molsim_p.parsers(string_p,
+                                 time_p,
+                                 time_p,
+                                 int_p,
+                                 epsilon_p,
+                                 sigma_p,
                                  double_p,
-                                 double_p);
+                                 double_p,
+                                 algorithm_p,
+                                 simulationContainer_p,
+                                 particles_p,
+                                 thermostats_p,
+                                 benchmark_p);
 
-                velocity_p.parsers (double_p,
-                                    double_p,
-                                    double_p);
+                simulationContainer_p.parsers(boundaryConditions_p,
+                                              dimension_p,
+                                              double_p,
+                                              double_p,
+                                              containerAlgorithm_p);
 
-                Sphere_p.parsers (point_p,
-                                  double_p,
-                                  double_p,
-                                  double_p,
-                                  velocity_p,
-                                  epsilon_p,
-                                  sigma_p);
+                dimension_p.parsers(int_p,
+                                    int_p,
+                                    int_p);
 
-                thermostats_p.parsers (double_p,
-                                       double_p,
-                                       double_p,
-                                       int_p);
+                particles_p.parsers(Cube_p,
+                                    Sphere_p);
+
+                Cube_p.parsers(dimension_p,
+                               point_p,
+                               double_p,
+                               double_p,
+                               velocity_p,
+                               epsilon_p,
+                               sigma_p);
+
+                point_p.parsers(double_p,
+                                double_p,
+                                double_p);
+
+                velocity_p.parsers(double_p,
+                                   double_p,
+                                   double_p);
+
+                Sphere_p.parsers(point_p,
+                                 double_p,
+                                 double_p,
+                                 double_p,
+                                 velocity_p,
+                                 epsilon_p,
+                                 sigma_p);
+
+                thermostats_p.parsers(double_p,
+                                      double_p,
+                                      double_p,
+                                      int_p);
 
                 // Parse the XML document.
                 //
-                ::xml_schema::document doc_p (molsim_p, "molsim");
+                ::xml_schema::document doc_p(molsim_p, "molsim");
 
-                molsim_p.pre ();
-                doc_p.parse (optarg);
-                library::molsim m = molsim_p.post_molsim ();
+                molsim_p.pre();
+                doc_p.parse(optarg);
+                library::molsim m = molsim_p.post_molsim();
 
                 //all parameters can be accessed from m from here
                 //
                 //take a look at the xml schema how to access the parameters
                 //
 
-                file        = m.input();
-                delta_t     = m.delta_t();
-                end_time    = m.endtime();
-                outputStep  = m.outputStep();
-                epsilon     = m.epsilon();
-                sigma       = m.sigma();
-                averageV    = m.averageV();
+                file = m.input();
+                delta_t = m.delta_t();
+                end_time = m.endtime();
+                outputStep = m.outputStep();
+                epsilon = m.epsilon();
+                sigma = m.sigma();
+                averageV = m.averageV();
                 //simulationContainer
-                if(m.simu().containerAlgorithm()==std::string("linkedCells"))
-                {
-                    dim         = {m.simu().dimension().x(), m.simu().dimension().y(), m.simu().dimension().z()};
-                    particles   = new LinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), sigma);
-                }
-                else if(m.simu().containerAlgorithm()==std::string("naiv"))
-                {
-                    // make naive container here
-                }
-                else
-                {
+                std::cout << "container: " << m.simu().containerAlgorithm() << "\n";
+                if (m.simu().containerAlgorithm() == std::string("linkedCells")) {
+                    dim = {m.simu().dimension().x(), m.simu().dimension().y(), m.simu().dimension().z()};
+                    std::array<int, 3> bounds = {1, 1, 1};
+                    particles = new LinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bounds);
+                } else if (m.simu().containerAlgorithm() == std::string("naiv")) {
+                    //TODO make naive container here
+                } else {
                     LOGC_ERROR("Error: container algorithm doesnt fit, -naiv or -linkedCells");
                 }
                 //algorithm
-                if(m.algorithm()==std::string("sv"))
-                {
+                if (m.algorithm() == std::string("sv")) {
                     algorithm = new Gravitation();
-                }
-                else if(m.algorithm()==std::string("lj"))
-                {
-                    algorithm = new LennardJones(epsilon, sigma);
-                }
-                else
-                {
+                } else if (m.algorithm() == std::string("lj")) {
+                    algorithm = new LennardJones(epsilon, sigma, 0);
+                } else {
                     LOGC_ERROR("Error:algorithm doesnt fit, -sv or -lj");
                 }
                 //benchmark
-                if(m.benchmark()==std::string("yes")){
+                if (m.benchmark() == std::string("yes")) {
                     benchmark_active = true;
                 }
 
-                /*  generate particle from xml
-                 *
-                for(int i = 0 ; i<m.particles().cube().size(); i++){
+                //  generate particle from xml
+                int currentType = 0;
+                std::cout << "nr cubes " << m.particles().cube().size() << "\n";
+                for (int i = 0; i < m.particles().cube().size(); i++) {
                     library::Cube cube = m.particles().cube()[i];
-                    std::array<double, 3> dim           = {cube.dimension().x(), cube.dimension().y(), cube.dimension().z()};
-                    std::array<double, 3> startPoint    = {cube.startPoint().x(), cube.startPoint().y(), cube.startPoint().z()};
-                    std::array<double, 3> velocity      = {cube.velocity().x(), cube.velocity().y(), cube.velocity().z()};
-                    generateCube(dim, startPoint, cube.h(), cube.m(), velocity, averageV, particles);
+                    std::array<int, 3> dim = {cube.dimension().x(), cube.dimension().y(), cube.dimension().z()};
+                    std::array<double, 3> startPoint = {cube.startPoint().x(), cube.startPoint().y(),
+                                                        cube.startPoint().z()};
+                    std::array<double, 3> velocity = {cube.velocity().x(), cube.velocity().y(), cube.velocity().z()};
+                    generateCube(dim, startPoint, cube.h(), cube.m(), velocity, averageV, currentType, cube.sigma(),
+                                 cube.epsilon(), *particles);
+                    currentType++;
                 }
-                for(int i = 0 ; i<m.particles().sphere().size(); i++){
+                for (int i = 0; i < m.particles().sphere().size(); i++) {
                     library::Sphere sphere = m.particles().sphere()[i];
-                    std::array<double, 3> center        = {sphere.center().x(), sphere.center().y(), sphere.center().z()};
-                    std::array<double, 3> velocity      = {sphere.velocity().x(), sphere.velocity().y(), sphere.velocity().z()};
-                    generateSphere3D(center, velocity, sphere.radius(), sphere.h(), sphere.m(), averageV, particles);
-                }**/
+                    std::array<double, 3> center = {sphere.center().x(), sphere.center().y(), sphere.center().z()};
+                    std::array<double, 3> velocity = {sphere.velocity().x(), sphere.velocity().y(),
+                                                      sphere.velocity().z()};
+                    generateSphere2D(center, velocity, sphere.radius(), sphere.h(), sphere.m(), averageV, currentType,
+                                     *particles);
+                    currentType++;
+                }
 
                 /*
                  *  Thermostats
@@ -228,13 +227,11 @@ int main(int argc, char *argsv[]) {
                  *
                  * */
             }
-            catch (const ::xml_schema::exception& e)
-            {
+            catch (const ::xml_schema::exception &e) {
                 std::cerr << e << std::endl;
                 return 1;
             }
-            catch (const std::ios_base::failure&)
-            {
+            catch (const std::ios_base::failure &) {
                 std::cerr << optarg << ": error: io failure" << std::endl;
                 return 1;
             }
@@ -256,7 +253,7 @@ int main(int argc, char *argsv[]) {
             if (std::string("sv") == optarg) {
                 algorithm = new Gravitation();
             } else if (std::string("lj") == optarg) {
-                algorithm = new LennardJones(epsilon, sigma);
+                algorithm = new LennardJones(epsilon, sigma, 0);
                 cuboids = true;
             }
         }
@@ -281,10 +278,10 @@ int main(int argc, char *argsv[]) {
             fileReader.readFile(particles, file);
          */
     } else {
-        char* file_char = &file[0];
+        char *file_char = &file[0];
         generateFromFile(*particles, file_char);
         //generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
-        //generateCube({8, 8, 1}, {15, 15, 0}, 1.1225, 1, {0, -10, 0}, averageV, particles);
+        //generateCube({2, 2, 1}, {15, 15, 0}, 1.1225, 1, {-10, 0, 0}, averageV, 0, 1, 5, *particles);
 
         particles->addBrownianMotion(averageV, 2);
     }
@@ -326,13 +323,15 @@ int main(int argc, char *argsv[]) {
     // TODO Dieser Parameter ist optional, wenn nicht angegeben wird -1 übergeben
     double max_delta_temp = -1;
 
-    auto thermostat = new Thermostats( *particles , delta_t, end_time, initial_temp, stepSize, dimensions, target_temp, max_delta_temp);
+    auto thermostat = new Thermostats(*particles, delta_t, end_time, initial_temp, stepSize, dimensions, target_temp,
+                                      max_delta_temp);
 
     thermostat->calcCurrentTemperature(*particles);
     thermostat->adjustTemperature(*particles, current_time);
-    while (current_time < end_time) {
-        particles->simulate(algorithm, delta_t);
 
+    while (current_time < end_time) {
+        std::cout << "Number particles: " << particles->numberParticles() << "\n";
+        particles->simulate(algorithm, delta_t);
         // Control temperature
         thermostat->calcCurrentTemperature(*particles);
         thermostat->adjustTemperature(*particles, current_time);
@@ -352,7 +351,7 @@ int main(int argc, char *argsv[]) {
         current_time += delta_t;
     }
 
-    std::cout << "TEMP: " << thermostat->getCurrentTemperature() << std::endl;
+    //std::cout << "TEMP: " << thermostat->getCurrentTemperature() << std::endl;
     if (benchmark_active) {
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
         std::cout << "Time (including reading the input file and setting everything up) = "
@@ -366,7 +365,8 @@ int main(int argc, char *argsv[]) {
 }
 
 void printHelp() {
-    LOGC_INFO("Usage: -x xml file -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark");
+    LOGC_INFO(
+            "Usage: -x xml file -f filename -a algorithm -s step size -e end time -w Output step size -b activate benchmark");
     LOGC_WARN("xmlfile: if you choose to use xml input, you are not required to fill others");
     LOGC_WARN("Filename: path to the input file (required)");
     LOGC_WARN("Step size: size of a timestep in the simulation (optional)");

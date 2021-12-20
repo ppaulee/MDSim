@@ -2,7 +2,7 @@
 
 // Testing Lennard Jones Potential against hand-calculated values
 TEST(ForceCalculation, LennardJonesPotential) {
-    ForceCalculation *algorithm = new LennardJones(5, 1);
+    ForceCalculation *algorithm = new LennardJones(5, 1, 0);
     auto *p1 = new Particle({0,0,0},{1,0,0},1,0);
     auto *p2 = new Particle({0,2,0},{1,1,0},1,0);
     std::array<double, 3> vec = algorithm->calculateF(*p1, *p2);

@@ -2,7 +2,7 @@
 
 // Tests correct construction of cell grid
 TEST(LinkedCells, gridConstruction) {
-    auto cells = new LinkedCells({2, 2, 2}, 1, 1, 5);
+    auto cells = new LinkedCells({2, 2, 2}, 1, 5);
     EXPECT_EQ(1, 1);
     for (int x = 0; x < 6; ++x) {
         for (int y = 0; y < 6; ++y) {
@@ -19,7 +19,7 @@ TEST(LinkedCells, gridConstruction) {
 
 // Create 2 particles, then the function numberParticles() must return 2
 TEST(LinkedCells, numberParticles) {
-    auto cells = new LinkedCells({2, 2, 2}, 1, 1, 5);
+    auto cells = new LinkedCells({2, 2, 2}, 1, 5);
     auto p1 = new Particle({0, 0, 0}, {0, 0, 0}, 1, 1);
     auto p2 = new Particle({1, 1, 1}, {0, 0, 0}, 1, 1);
     cells->insert(*p1);
@@ -30,7 +30,7 @@ TEST(LinkedCells, numberParticles) {
 
 // Create particle then change the position and then let the datastrucutre move the particle into the right cell
 TEST(LinkedCells, move) {
-    auto cells = new LinkedCells({10, 10, 10}, 1, 1, 5);
+    auto cells = new LinkedCells({10, 10, 10}, 1, 5);
     auto p1 = new Particle({0, 0, 0}, {0, 0, 0}, 1, 1);
     cells->insert(*p1);
     p1->setX({0, 0, 0});
@@ -38,26 +38,43 @@ TEST(LinkedCells, move) {
     cells->move();
 
     EXPECT_TRUE(cells->allInRightCell());
+    EXPECT_TRUE(cells->numberParticles() == 1);
 }
 
 TEST(LinkedCells, createGhost) {
-    auto cells = new LinkedCells({4, 4, 0}, 3, 3, 1);
-    auto p1 = new Particle({4, 8, 0}, {0, 0, 0}, 1, 1);
-    auto p2 = new Particle({2, 8, 0}, {0, 0, 0}, 1, 1);
+    std::array<int, 3> bounds = {1, 1, 1};
+    auto cells = new LinkedCells({4, 4, 0}, 3, 3, 0, bounds);
+    auto p1 = new Particle({3.5, 8, 0}, {0, 0, 0}, 1, 0,1,1);
+    auto p2 = new Particle({2.5, 8, 0}, {0, 0, 0}, 1, 0,1,1);
+    auto calc = LennardJones(1, 1, 0);
     cells->forceInsert(*p1);
-    cells->createGhosts();
+    cells->handleBoundary();
     std::list<Particle> cell1 = cells->indexGet(cells->coordToIndex({1, 2, 0}));
     //cells->move();
     EXPECT_TRUE(cell1.size() == 1);
-    EXPECT_TRUE(cell1.front() == p1);
-    int index = cells->coordToIndex({0, 2, 0});
-    std::list<Particle> cell2 = cells->indexGet(index);
-    EXPECT_TRUE(cell2.size() == 1);
-    EXPECT_TRUE(cells->isHaloCell({0, 2, 0}));
-    EXPECT_TRUE(cell2.front() == p2);
-    cells->deleteParticlesInHalo();
-    std::list<Particle> cell3 = cells->indexGet(index);
-    EXPECT_TRUE(cell3.empty());
+    EXPECT_TRUE(cell1.front().getF() == calc.calculateF(*p1, *p2));
 
+}
 
+TEST(LinkedCells, clear) {
+    std::vector<std::list<int>> test;
+    test.push_back(std::list<int>({1}));
+    EXPECT_TRUE(test[0].size() == 1);
+    EXPECT_TRUE(test.size() == 1);
+    test.at(0).clear();
+    EXPECT_TRUE(test[0].size() == 0);
+    EXPECT_TRUE(test.size() == 1);
+
+}
+
+TEST(LinkedCells, applyGravity) {
+    std::array<int, 3> bounds = {0, 0, 0};
+    auto cells = new LinkedCells({4, 4, 0}, 3, 3, -10, bounds);
+    auto p1 = new Particle({4, 8, 0}, {0, 0, 0}, 1, 1);
+    cells->forceInsert(*p1);
+    cells->applyGravity();
+    std::list<Particle> cell1 = cells->indexGet(cells->coordToIndex({1, 2, 0}));
+    std::array<double, 3> comp = {0, -10, 0};
+    EXPECT_TRUE(cell1.size() == 1);
+    EXPECT_TRUE(cell1.front().getF() == comp);
 }

@@ -8,12 +8,38 @@
 #include <iostream>
 
 
-LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff, double sigma) {
+LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff, double gravConst,
+                         std::array<int, 3> &boundaryConds) {
     if (dimension[0] % 2 != 0 || dimension[1] % 2 != 0 || dimension[2] % 2 != 0) {
         throw std::invalid_argument("Dimensions must be even");
     }
+    grav = gravConst;
+    boundaryCondition = boundaryConds;
+    cutOffRadius = cutOff;
+    // Add boundary and halo cells
+    if (dimension[2] == 0) {
+        // 2D case
+        dimensions = {dimension[0] + 4, dimension[1] + 4, 0};
+        size = coordToIndex({dimension[0] + 4, dimension[1] + 4, 0});
+    } else {
+        // 3D Case
+        dimensions = {dimension[0] + 4, dimension[1] + 4, dimension[2] + 4};
+        size = coordToIndex({dimension[0] + 4, dimension[1] + 4, dimension[2] + 4});
+    }
 
-    reflectionDistance = cbrt(sqrt(2)) * sigma;
+    meshSize = mesh;
+    // Initialise all vectors
+    for (int i = 0; i < coordToIndex({dimensions[0], dimensions[1], dimensions[2]}) + 1; i++) {
+        particles.push_back(std::list<Particle>({}));
+    }
+}
+
+LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOff) {
+    if (dimension[0] % 2 != 0 || dimension[1] % 2 != 0 || dimension[2] % 2 != 0) {
+        throw std::invalid_argument("Dimensions must be even");
+    }
+    grav = 0;
+    boundaryCondition = {0, 0, 0};
     cutOffRadius = cutOff;
     // Add boundary and halo cells
     if (dimension[2] == 0) {
@@ -59,10 +85,38 @@ void LinkedCells::insert(Particle &p) {
                                      (double) dimensions[2] / 2};
         p.setX(tmp + p.getX());
     }
+    if (forceCalcs.size() == p.getType()) {
+        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        reflectionDistance.push_back((cbrt(sqrt(2)) * p.getSigma()) / 2);
+        if (forceCalcs.size() >= 1) {
+            for (auto &calc: forceCalcs) {
+                if (calc.getType() != p.getType()) {
+                    double tempEpsilon = sqrt(calc.getEpsilon() * p.getEpsilon());
+                    double tempSigma = (calc.getSigma() + p.getSigma()) / 2;
+                    auto temp = MixedLennardJones(tempEpsilon, tempSigma, 0, p.getType());
+                    mixedForceCalcs.push_back(temp);
+                }
+            }
+        }
+    }
     particles[coordToIndex(getCellCoords(p))].push_back(p);
 }
 
 void LinkedCells::forceInsert(Particle &p) {
+    if (forceCalcs.size() == p.getType()) {
+        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        reflectionDistance.push_back((cbrt(sqrt(2)) * p.getSigma()) / 2);
+        if (forceCalcs.size() >= 1) {
+            for (auto &calc: forceCalcs) {
+                if (calc.getType() != p.getType()) {
+                    double tempEpsilon = sqrt(calc.getEpsilon() * p.getEpsilon());
+                    double tempSigma = (calc.getSigma() + p.getSigma()) / 2;
+                    auto temp = MixedLennardJones(tempEpsilon, tempSigma, 0, p.getType());
+                    mixedForceCalcs.push_back(temp);
+                }
+            }
+        }
+    }
     particles[coordToIndex(getCellCoords(p))].push_back(p);
 }
 
@@ -142,7 +196,6 @@ void LinkedCells::TwoDcalculateF(int x, int y, ForceCalculation *algorithm) {
                 if (coordToIndex(c) < 0) {
                     continue;
                 }
-
                 calculateNeighbouredF(c, algorithm, current_particle);
             }
         }
@@ -184,6 +237,7 @@ void LinkedCells::calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *
             p.setF(p.getF() - force);
         }
     }
+    ghosts.clear();
 }
 
 void LinkedCells::calculateV(double delta_t) {
@@ -263,86 +317,196 @@ void LinkedCells::simulate(ForceCalculation *algorithm, double delta_t) {
     //deleteParticlesInHalo();
     // moves particles to correct cell
     move();
+
+
     // TODO here boundary conditions
     //reflection with ghost particle
-    createGhosts();
+    handleBoundary();
+
 
     // calculate new f
     calculateF(algorithm);
     deleteParticlesInHalo();
+    if (grav != 0) {
+        applyGravity();
+    }
     // calculate new v
     calculateV(delta_t);
 }
 
-void LinkedCells::createGhosts() {
-    std::list<Particle> ghosts;
+void LinkedCells::handleBoundary() {
+    std::list<Particle> ins;
+    std::list<Particle> del;
+    //int c = 0;
     for (auto &vec: particles) {
         if (!vec.empty()) {
-            if (isBoundaryCell(getCellCoords(vec.front()))) {
+            if (isBoundaryCell(getCellCoords(vec.front())) || isHaloCell(getCellCoords(vec.front()))) {
                 for (auto &p: vec) {
-                    // check distance of the particle to every boundary, create ghost particle if it's smaller than reflectionDistance
-                    // add all ghost particles to be added to a list and create them after iterating over the particles
-                    double leftDistance = p.getX()[0] - meshSize;
-                    if (leftDistance <= reflectionDistance) {
-                        ghosts.emplace_front(
-                                Particle({(meshSize - leftDistance), p.getX()[1], p.getX()[2]}, {0, 0, 0}, p.getM(),
-                                         p.getType()));
-                        //std::cout << "left ghost created:\n";
-                    }
-                    double bottomDistance = p.getX()[1] - meshSize;
-                    if (bottomDistance <= reflectionDistance) {
-                        ghosts.emplace_front(
-                                Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]}, {0, 0, 0}, p.getM(),
-                                         p.getType()));
-                        //std::cout << "bottom ghost created:\n";
-                        //std::cout << p.getX()[0] << "," << (meshSize - bottomDistance) << "," << p.getX()[2] << "\n";
-                        //std::cout << "Original:\n";
-                        //std::cout << p.getX()[0] << "," << p.getX()[1] << "," << p.getX()[2] << "\n";
-                        //exit(1);
-                    }
-                    double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
-                    if (rightDistance <= reflectionDistance) {
-                        ghosts.emplace_front(
-                                Particle({((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1], p.getX()[2]},
-                                         {0, 0, 0},
-                                         p.getM(),
-                                         p.getType()));
-                        //std::cout << "right ghost created:\n";
-                    }
-                    double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
-                    if (topDistance <= reflectionDistance) {
-                        ghosts.emplace_front(
-                                Particle({(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
-                                         {0, 0, 0}, p.getM(),
-                                         p.getType()));
-                        //std::cout << "top ghost created:\n";
-                    }
-                    if(dimensions[2] != 0){
-                        double frontDistance = p.getX()[2] - meshSize;
-                        if(frontDistance <= reflectionDistance){
-                            ghosts.emplace_front(
-                                    Particle({p.getX()[0], p.getX()[1], (meshSize - frontDistance)},
-                                             {0, 0, 0},
-                                             p.getM(),
-                                             p.getType()));
+                    //std::cout << "par nr " << c << "\n";
+                    //c++;
+                    if (boundaryCondition[0] == 1) {
+                        if (isBoundaryCell(getCellCoords(p))) {
+                            double leftDistance = p.getX()[0] - meshSize;
+                            if (leftDistance <= reflectionDistance[p.getType()]) {
+                                Particle temp = Particle({(meshSize - leftDistance), p.getX()[1], p.getX()[2]},
+                                                         {0, 0, 0},
+                                                         p.getM(),
+                                                         p.getType(), p.getSigma(), p.getEpsilon());
+                                p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+
+                            }
+                            double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
+                            if (rightDistance <= reflectionDistance[p.getType()]) {
+                                Particle temp = Particle(
+                                        {((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1], p.getX()[2]},
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                            }
                         }
-                        double backDistance = (dimensions[2] - 1) * meshSize - p.getX()[2];
-                        if(backDistance <= reflectionDistance){
-                            ghosts.emplace_front(
-                                    Particle({p.getX()[0], p.getX()[1], (dimensions[2] - 1) * meshSize + backDistance},
-                                             {0, 0, 0},
-                                             p.getM(),
-                                             p.getType()));
+                    } else if (boundaryCondition[0] == 2) {
+                        // It's in the boundary -> create ghost in halo cell on the other side
+                        if (isBoundaryCell(getCellCoords(p))) {
+                            std::cout << "got here1\n";
+                            if (getCellCoords(p)[0] == 1) {
+                                double leftDistance = p.getX()[0] - meshSize;
+                                // if (leftDistance <= reflectionDistance[p.getType()]) {
+                                Particle par = Particle(
+                                        {((dimensions[0] - 1) * meshSize + leftDistance), p.getX()[1], p.getX()[2]},
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                ghosts.push_back(par);
+                                //}
+                            } else {
+                                double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
+                                //if (rightDistance <= reflectionDistance[p.getType()]) {
+                                Particle par = Particle({(meshSize - rightDistance), p.getX()[1], p.getX()[2]},
+                                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
+                                                        p.getEpsilon());
+                                ghosts.push_back(par);
+                                //}
+                            }
+                            //std::cout << "got here3\n";
+                        }
+                        // It's in the halo -> move it to the boundary on the other side
+                        if (isHaloCell(getCellCoords(p))) {
+                            bool rem = false;
+                            std::cout << "got here2\n";
+                            if (getCellCoords(p)[0] == 0) {
+                                double leftDistance = abs(meshSize - p.getX()[0]);
+                                //if (leftDistance <= reflectionDistance[p.getType()]) {
+                                Particle part1 = Particle(
+                                        {((dimensions[0] - 1) * meshSize - leftDistance), p.getX()[1], p.getX()[2]},
+                                        p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                part1.setOldF(p.getOldF());
+                                part1.setF(p.getF());
+                                ins.push_back(part1);
+                                rem = true;
+                                //}
+                            } else {
+                                double rightDistance = abs(p.getX()[0] - (dimensions[0] - 1) * meshSize);
+                                //if (rightDistance <= reflectionDistance[p.getType()]) {
+                                Particle part2 = Particle({meshSize + rightDistance, p.getX()[1], p.getX()[2]},
+                                                          p.getV(),
+                                                          p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                part2.setOldF(p.getOldF());
+                                part2.setF(p.getF());
+                                ins.push_back(part2);
+                                rem = true;
+                                //}
+                            }
+                            if (rem)
+                                del.push_back(p);
+                        }
+                    }
+                    if (boundaryCondition[1] == 1) {
+                        if (isBoundaryCell(getCellCoords(p))) {
+                            double bottomDistance = p.getX()[1] - meshSize;
+                            if (bottomDistance <= reflectionDistance[p.getType()]) {
+                                Particle temp = Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]},
+                                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
+                                                         p.getEpsilon());
+                                p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                            }
+                            double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
+                            if (topDistance <= reflectionDistance[p.getType()]) {
+                                Particle temp = Particle(
+                                        {(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                            }
+                        }
+                    } else if (boundaryCondition[1] == 2) {
+                        // It's in the boundary -> create ghost in halo cell on the other side
+                        if (isBoundaryCell(getCellCoords(p))) {
+                            if (getCellCoords(p)[1] == 1) {
+                                double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
+                                Particle par = Particle({p.getX()[0], meshSize - topDistance, p.getX()[2]}, {0, 0, 0},
+                                                        p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                ghosts.push_back(par);
+                            } else {
+                                double bottomDistance = p.getX()[1] - meshSize;
+                                Particle par = Particle(
+                                        {p.getX()[0], ((dimensions[1] - 1) * meshSize + bottomDistance), p.getX()[2]},
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                            }
+                        } else {
+                            bool rem = false;
+                            if (getCellCoords(p)[1] == 1) {
+                                double topDistance = abs(p.getX()[1] - (dimensions[1] - 1) * meshSize);
+                                Particle part1 = Particle({p.getX()[0], meshSize + topDistance, p.getX()[2]}, p.getV(),
+                                                          p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                part1.setF(p.getF());
+                                part1.setOldF(p.getF());
+                                ins.push_back(part1);
+                                rem = true;
+                            } else {
+                                double bottomDistance = meshSize - p.getX()[1];
+                                Particle part2 = Particle(
+                                        {p.getX()[0], ((dimensions[1] - 1) * meshSize - bottomDistance), p.getX()[2]},
+                                        p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                part2.setF(p.getF());
+                                part2.setOldF(p.getOldF());
+                                ins.push_back(part2);
+                                rem = true;
+                            }
+                            if (rem)
+                                del.push_back(p);
+                        }
+                    }
+                    if (dimensions[2] != 0) {
+                        if (boundaryCondition[2] == 1) {
+                            if (isBoundaryCell(getCellCoords(p))) {
+                                double frontDistance = p.getX()[2] - meshSize;
+                                if (frontDistance <= reflectionDistance[p.getType()]) {
+                                    Particle temp = Particle({p.getX()[0], p.getX()[1], (meshSize - frontDistance)},
+                                                             {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
+                                                             p.getEpsilon());
+                                    p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                }
+                                double backDistance = (dimensions[2] - 1) * meshSize - p.getX()[2];
+                                if (backDistance <= reflectionDistance[p.getType()]) {
+                                    Particle temp = Particle(
+                                            {p.getX()[0], p.getX()[1], (dimensions[2] - 1) * meshSize + backDistance},
+                                            {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                    p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                }
+                            }
                         }
                     }
                 }
             }
-
         }
     }
-    for (auto par: ghosts) {
+    deleteParticlesInHalo();
+    std::cout << "got here4\n";
+    for (auto par: ins) {
         forceInsert(par);
     }
+    std::cout << "got here5\n";
+    for (auto par: del) {
+        remove(par);
+    }
+    std::cout << "got here6\n";
+    //std::cout << "nr particles: " << numberParticles() << "\n";
     ghosts.clear();
 }
 
@@ -392,8 +556,9 @@ void LinkedCells::deleteParticlesInHalo() {
     for (int x = 0; x < dimensions[0] - 1; x++) {
         for (int y = 0; y < dimensions[1] - 1; y++) {
             if (dimensions[2] == 0) {
-                if (isHaloCell({x, y, 0}) && !particles.at(coordToIndex({x, y, 0})).empty()) {
+                if (isHaloCell({x, y, 0})) {
                     std::list<Particle> newList;
+                    particles[(coordToIndex({x, y, 0}))].clear();
                     particles.at(coordToIndex({x, y, 0})) = newList;
                     //std::cout << "Particle in halo detected \n";
                     //exit(1);
@@ -415,8 +580,8 @@ std::array<int, 3> LinkedCells::getDimensions() {
 
 double LinkedCells::calcKineticEnergy() {
     double energy = 0;
-    for (auto &vec : particles) {
-        for (auto &p : vec) {
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
             double scalar_product = p.getV()[0] * p.getV()[0] + p.getV()[1] * p.getV()[1] + p.getV()[2] * p.getV()[2];
             energy += p.getM() * scalar_product / 2;
         }
@@ -425,9 +590,18 @@ double LinkedCells::calcKineticEnergy() {
 }
 
 void LinkedCells::scaleVelocity(double scale) {
-    for (auto &vec : particles) {
-        for (auto &p : vec) {
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
             p.setV(scale * p.getV());
+        }
+    }
+}
+
+void LinkedCells::applyGravity() {
+    std::array<double, 3> temp = {0, 1, 0};
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
+            p.setF(p.getF() + (p.getM() * grav) * temp);
         }
     }
 }
