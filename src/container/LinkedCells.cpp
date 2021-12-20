@@ -197,8 +197,31 @@ void LinkedCells::TwoDcalculateF(int x, int y, ForceCalculation *algorithm) {
                     continue;
                 }
                 calculateNeighbouredF(c, algorithm, current_particle);
+
+                for (auto &p: ghosts) {
+                    if (getCellCoords(p) == c) {
+                        if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
+                            !(p == current_particle)) {
+                            std::array<double, 3> force;
+                            if (p.getType() == current_particle.getType())
+                                force = forceCalcs[p.getType()].calculateF(
+                                        current_particle, p);
+                            else {
+                                for (auto &calc: mixedForceCalcs) {
+                                    if ((calc.getType1() == p.getType() &&
+                                         calc.getType2() == current_particle.getType()) ||
+                                        (calc.getType1() == current_particle.getType() &&
+                                         calc.getType2() == p.getType()))
+                                        force = calc.calculateF(current_particle, p);
+                                }
+                            }
+                            current_particle.setF(current_particle.getF() + force);
+                        }
+                    }
+                }
             }
         }
+
     }
 }
 
@@ -218,19 +241,33 @@ void LinkedCells::ThreeDcalculateF(int x, int y, int z, ForceCalculation *algori
                         continue;
                     }
                     calculateNeighbouredF(c, algorithm, current_particle);
+                    // TODO 3D periodic boundary
                 }
             }
         }
     }
 }
 
-void LinkedCells::calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *algorithm, Particle& current_particle) {
+void LinkedCells::calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *algorithm, Particle &current_particle) {
     // Particles in neighboured cells
     for (auto &p: particles[coordToIndex(c)]) {
         // Check if particle is inside the cut-off radius
-        if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius && !(p == current_particle) && !p.isMarked()) {
+        if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius && !(p == current_particle) &&
+            !p.isMarked()) {
             // Actual force calculation according to the used algorithm
-            std::array<double, 3> force = algorithm->calculateF(current_particle, p);
+            std::array<double, 3> force;
+            if (p.getType() == current_particle.getType())
+                force = forceCalcs[p.getType()].calculateF(
+                        current_particle, p);
+            else {
+                for (auto &calc: mixedForceCalcs) {
+                    if ((calc.getType1() == p.getType() &&
+                         calc.getType2() == current_particle.getType()) ||
+                        (calc.getType1() == current_particle.getType() &&
+                         calc.getType2() == p.getType()))
+                        force = calc.calculateF(current_particle, p);
+                }
+            }
 
             // Make use of Newtons third law
             current_particle.setF(current_particle.getF() + force);
@@ -366,7 +403,6 @@ void LinkedCells::handleBoundary() {
                     } else if (boundaryCondition[0] == 2) {
                         // It's in the boundary -> create ghost in halo cell on the other side
                         if (isBoundaryCell(getCellCoords(p))) {
-                            std::cout << "got here1\n";
                             if (getCellCoords(p)[0] == 1) {
                                 double leftDistance = p.getX()[0] - meshSize;
                                 // if (leftDistance <= reflectionDistance[p.getType()]) {
@@ -389,7 +425,6 @@ void LinkedCells::handleBoundary() {
                         // It's in the halo -> move it to the boundary on the other side
                         if (isHaloCell(getCellCoords(p))) {
                             bool rem = false;
-                            std::cout << "got here2\n";
                             if (getCellCoords(p)[0] == 0) {
                                 double leftDistance = abs(meshSize - p.getX()[0]);
                                 //if (leftDistance <= reflectionDistance[p.getType()]) {
@@ -472,6 +507,7 @@ void LinkedCells::handleBoundary() {
                                 del.push_back(p);
                         }
                     }
+                    //TODO 3D periodic boundary
                     if (dimensions[2] != 0) {
                         if (boundaryCondition[2] == 1) {
                             if (isBoundaryCell(getCellCoords(p))) {
@@ -497,17 +533,13 @@ void LinkedCells::handleBoundary() {
         }
     }
     deleteParticlesInHalo();
-    std::cout << "got here4\n";
     for (auto par: ins) {
         forceInsert(par);
     }
-    std::cout << "got here5\n";
     for (auto par: del) {
         remove(par);
     }
-    std::cout << "got here6\n";
     //std::cout << "nr particles: " << numberParticles() << "\n";
-    ghosts.clear();
 }
 
 void LinkedCells::plotParticles(int iteration) {
