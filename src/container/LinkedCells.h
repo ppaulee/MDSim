@@ -72,9 +72,43 @@ private:
      */
     void remove(Particle &p, int index);
 
+    /**
+     * Sets all forces of particles to zero and sets oldF
+     * Is called in calculateF()
+     */
+    void initCalculateF();
+
+    /**
+     * Handles the 2D case in calculateF()
+     *
+     * @param x X coord
+     * @param y Y coord
+     * @param algorithm Algorithm to calculate force between particles
+     */
+    void TwoDcalculateF(int x, int y, ForceCalculation *algorithm);
+
+    /**
+     * Handles the 3D case in calculateF()
+     *
+     * @param x X coord
+     * @param y Y coord
+     * @param z Z coord
+     * @param algorithm Algorithm to calculate force between particles
+     */
+    void ThreeDcalculateF(int x, int y, int z, ForceCalculation *algorithm);
+
+    /**
+     * Calculates the actual force between the neighboured particles and the current particle
+     *
+     * @param c Neighboured cell coordinates
+     * @param algorithm Algorithm to calculate force between particles
+     * @param current_particle current particle to calculate F
+     */
+    void calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *algorithm, Particle& current_particle);
+
 
 public:
-/**
+    /**
      * Finds the right cell for the particle
      *
      * @param p Particle
@@ -230,7 +264,6 @@ public:
 
     double calcKineticEnergy() override;
     void scaleVelocity(double scale) override;
-
 };
 
 

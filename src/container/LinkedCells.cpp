@@ -63,7 +63,6 @@ void LinkedCells::insert(Particle &p) {
 }
 
 void LinkedCells::forceInsert(Particle &p) {
-
     particles[coordToIndex(getCellCoords(p))].push_back(p);
 }
 
@@ -104,6 +103,22 @@ std::list<Particle> &LinkedCells::indexGet(int i) {
 }
 
 void LinkedCells::calculateF(ForceCalculation *algorithm) {
+    initCalculateF();
+    for (int x = 0; x < dimensions[0] - 1; ++x) {
+        for (int y = 0; y < dimensions[1] - 1; ++y) {
+            if (dimensions[2] == 0) {
+                TwoDcalculateF(x, y, algorithm);
+            } else {
+                for (int z = 0; z < dimensions[2] - 1; ++z) {
+                    ThreeDcalculateF(x, y, z, algorithm);
+                }
+            }
+
+        }
+    }
+}
+
+void LinkedCells::initCalculateF() {
     for (auto &vec: particles) {
         for (auto &p: vec) {
             p.setOldF(p.getF());
@@ -111,79 +126,62 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
             p.unmark();
         }
     }
+}
 
-    for (int x = 0; x < dimensions[0] - 1; ++x) {
-        for (int y = 0; y < dimensions[1] - 1; ++y) {
-            if (dimensions[2] == 0) {
-                //2D case
-                // Loop over all particles in cell
-                for (auto &current_particle: particles[coordToIndex({x, y, 0})]) {
-                    current_particle.mark();
-                    // Get neighbours
-                    for (int x_diff = -1; x_diff <= 1; ++x_diff) {
-                        for (int y_diff = -1; y_diff <= 1; ++y_diff) {
-                            // Coordinates including offset for neighboured cells
-                            std::array<int, 3> c = {x + x_diff, y + y_diff, 0};
+void LinkedCells::TwoDcalculateF(int x, int y, ForceCalculation *algorithm) {
+    //2D case
+    // Loop over all particles in cell
+    for (auto &current_particle: particles[coordToIndex({x, y, 0})]) {
+        current_particle.mark();
+        // Get neighbours
+        for (int x_diff = -1; x_diff <= 1; ++x_diff) {
+            for (int y_diff = -1; y_diff <= 1; ++y_diff) {
+                // Coordinates including offset for neighboured cells
+                std::array<int, 3> c = {x + x_diff, y + y_diff, 0};
 
-                            if (coordToIndex(c) < 0) {
-                                continue;
-                            }
-
-                            // Particles in neighboured cells
-                            for (auto &p: particles[coordToIndex(c)]) {
-                                // Check if particle is inside the cut-off radius
-                                if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
-                                    !(p == current_particle) && !p.isMarked()) {
-                                    // Actual force calculation according to the used algorithm
-                                    std::array<double, 3> force = algorithm->calculateF(current_particle, p);
-
-                                    // Make use of Newtons third law
-                                    current_particle.setF(current_particle.getF() + force);
-                                    p.setF(p.getF() - force);
-                                }
-                            }
-                        }
-                    }
+                if (coordToIndex(c) < 0) {
+                    continue;
                 }
-            } else {
-                for (int z = 0; z < dimensions[2] - 1; ++z) {
-                    // Loop over all particles in cell
-                    for (auto &current_particle: particles[coordToIndex({x, y, z})]) {
-                        current_particle.mark();
-                        // Get neighbours
-                        for (int x_diff = -1; x_diff <= 1; ++x_diff) {
-                            for (int y_diff = -1; y_diff <= 1; ++y_diff) {
-                                for (int z_diff = -1; z_diff <= 1; ++z_diff) {
 
-                                    // Coordinates including offset for neighboured cells
-                                    std::array<int, 3> c = {x + x_diff, y + y_diff, z + z_diff};
+                calculateNeighbouredF(c, algorithm, current_particle);
+            }
+        }
+    }
+}
 
-                                    if (coordToIndex(c) < 0) {
-                                        continue;
-                                    }
-                                    
-                                    // Particles in neighboured cells
-                                    for (auto &p: particles[coordToIndex(c)]) {
-                                        // Check if particle is inside of the cut off radius
-                                        if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
-                                            !(p == current_particle) && !p.isMarked()) {
-                                            // Actual force calculation according to the used algorithm
-                                            std::array<double, 3> force = algorithm->calculateF(current_particle, p);
-                                            // Make use of Newtons third law
-                                            current_particle.setF(current_particle.getF() + force);
-                                            p.setF(p.getF() - force);
-                                        }
+void LinkedCells::ThreeDcalculateF(int x, int y, int z, ForceCalculation *algorithm) {
+    // Loop over all particles in cell
+    for (auto &current_particle: particles[coordToIndex({x, y, z})]) {
+        current_particle.mark();
+        // Get neighbours
+        for (int x_diff = -1; x_diff <= 1; ++x_diff) {
+            for (int y_diff = -1; y_diff <= 1; ++y_diff) {
+                for (int z_diff = -1; z_diff <= 1; ++z_diff) {
 
-                                    }
-                                }
-                            }
-                        }
+                    // Coordinates including offset for neighboured cells
+                    std::array<int, 3> c = {x + x_diff, y + y_diff, z + z_diff};
 
+                    if (coordToIndex(c) < 0) {
+                        continue;
                     }
-
+                    calculateNeighbouredF(c, algorithm, current_particle);
                 }
             }
+        }
+    }
+}
 
+void LinkedCells::calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *algorithm, Particle& current_particle) {
+    // Particles in neighboured cells
+    for (auto &p: particles[coordToIndex(c)]) {
+        // Check if particle is inside the cut-off radius
+        if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius && !(p == current_particle) && !p.isMarked()) {
+            // Actual force calculation according to the used algorithm
+            std::array<double, 3> force = algorithm->calculateF(current_particle, p);
+
+            // Make use of Newtons third law
+            current_particle.setF(current_particle.getF() + force);
+            p.setF(p.getF() - force);
         }
     }
 }
