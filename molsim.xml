@@ -21,7 +21,7 @@
 
     <algorithm>lj</algorithm>
 
-    <simulationContainer containerAlgorithm="linkedCells">
+    <simulationContainer>
         <boundaryConditions>reflection</boundaryConditions>
         <dimension>
             <x>300</x>
@@ -30,6 +30,7 @@
         </dimension>
         <mesh>3</mesh>
         <cutOff>3</cutOff>
+        <containerAlgorithm>linkedCells</containerAlgorithm>
     </simulationContainer>
 
     <particles>
