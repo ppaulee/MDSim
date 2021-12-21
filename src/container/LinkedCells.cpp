@@ -170,6 +170,7 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
 
         }
     }
+    ghosts.clear();
 }
 
 void LinkedCells::initCalculateF() {
@@ -274,7 +275,6 @@ void LinkedCells::calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *
             p.setF(p.getF() - force);
         }
     }
-    ghosts.clear();
 }
 
 void LinkedCells::calculateV(double delta_t) {

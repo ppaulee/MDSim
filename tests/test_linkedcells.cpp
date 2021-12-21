@@ -44,8 +44,8 @@ TEST(LinkedCells, move) {
 TEST(LinkedCells, createGhost) {
     std::array<int, 3> bounds = {1, 1, 1};
     auto cells = new LinkedCells({4, 4, 0}, 3, 3, 0, bounds);
-    auto p1 = new Particle({3.5, 8, 0}, {0, 0, 0}, 1, 0,1,1);
-    auto p2 = new Particle({2.5, 8, 0}, {0, 0, 0}, 1, 0,1,1);
+    auto p1 = new Particle({3.5, 8, 0}, {0, 0, 0}, 1, 0, 1, 1);
+    auto p2 = new Particle({2.5, 8, 0}, {0, 0, 0}, 1, 0, 1, 1);
     auto calc = LennardJones(1, 1, 0);
     cells->forceInsert(*p1);
     cells->handleBoundary();
@@ -77,4 +77,24 @@ TEST(LinkedCells, applyGravity) {
     std::array<double, 3> comp = {0, -10, 0};
     EXPECT_TRUE(cell1.size() == 1);
     EXPECT_TRUE(cell1.front().getF() == comp);
+}
+
+TEST(LinkedCells, periodicBoundaryGhost) {
+    std::array<int, 3> bounds = {2, 0, 0};
+    auto cells = LinkedCells({4, 4, 0}, 3, 3, 0, bounds);
+    auto p1 = Particle({3.5, 8, 0}, {0, 0, 0}, 1, 0, 1, 5);
+    auto p1Ghost = Particle({21.5, 8, 0}, {0, 0, 0}, 1, 0, 1, 5);
+    auto p2 = Particle({20.5, 8, 0}, {0, 0, 0}, 1, 0, 1, 5);
+    cells.forceInsert(p1);
+    cells.forceInsert(p2);
+    cells.handleBoundary();
+    ForceCalculation *calc = new LennardJones(5, 1);
+    cells.calculateF(calc);
+    std::vector<Particle> pars = cells.getParticles();
+    for (auto &p: pars) {
+        if (p.getX()[0] > 10) {
+            std::array<double, 3> comp = calc->calculateF(p2,p1Ghost);
+            EXPECT_TRUE(p.getF() == comp);
+        }
+    }
 }
