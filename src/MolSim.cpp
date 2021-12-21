@@ -185,7 +185,7 @@ int main(int argc, char *argsv[]) {
                 //  generate particle from xml
                 int currentType = 0;
                 std::cout << "nr cubes " << m.particles().cube().size() << "\n";
-                for (int i = 0; i < m.particles().cube().size(); i++) {
+                for (long unsigned int i = 0; i < m.particles().cube().size(); i++) {
                     library::Cube cube = m.particles().cube()[i];
                     std::array<int, 3> dim = {cube.dimension().x(), cube.dimension().y(), cube.dimension().z()};
                     std::array<double, 3> startPoint = {cube.startPoint().x(), cube.startPoint().y(),
@@ -195,7 +195,7 @@ int main(int argc, char *argsv[]) {
                                  cube.epsilon(), *particles);
                     currentType++;
                 }
-                for (int i = 0; i < m.particles().sphere().size(); i++) {
+                for (long unsigned int i = 0; i < m.particles().sphere().size(); i++) {
                     library::Sphere sphere = m.particles().sphere()[i];
                     std::array<double, 3> center = {sphere.center().x(), sphere.center().y(), sphere.center().z()};
                     std::array<double, 3> velocity = {sphere.velocity().x(), sphere.velocity().y(),
@@ -330,7 +330,7 @@ int main(int argc, char *argsv[]) {
     thermostat->adjustTemperature(*particles, current_time);
 
     while (current_time < end_time) {
-        std::cout << "Number particles: " << particles->numberParticles() << "\n";
+        //std::cout << "Number particles: " << particles->numberParticles() << "\n";
         particles->simulate(algorithm, delta_t);
         // Control temperature
         thermostat->calcCurrentTemperature(*particles);
