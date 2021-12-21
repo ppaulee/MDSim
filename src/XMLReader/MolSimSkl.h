@@ -513,7 +513,7 @@ class containerAlgorithm_pskel: public virtual ::xml_schema::string_pskel
   // virtual void
   // pre ();
 
-  virtual const std::string&
+  virtual library::containerAlgorithm
   post_containerAlgorithm ()=0;
 };
 
@@ -538,7 +538,7 @@ class simulationContainer_pskel: public ::xml_schema::complex_content
   cutOff (double);
 
   virtual void
-  containerAlgorithm (const ::library::containerAlgorithm);
+  containerAlgorithm (::library::containerAlgorithm);
 
   virtual library::simulationContainer
   post_simulationContainer ()=0;
@@ -583,10 +583,6 @@ class simulationContainer_pskel: public ::xml_schema::complex_content
   _end_element_impl (const ::xml_schema::ro_string&,
                      const ::xml_schema::ro_string&);
 
-  virtual bool
-  _attribute_impl (const ::xml_schema::ro_string&,
-                   const ::xml_schema::ro_string&,
-                   const ::xml_schema::ro_string&);
 
   protected:
   ::boundaryConditions_pskel* boundaryConditions_parser_;

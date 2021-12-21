@@ -949,6 +949,15 @@ _start_element_impl (const ::xml_schema::ro_string& ns,
 
     return true;
   }
+    if (n == "containerAlgorithm" && ns.empty ())
+    {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->containerAlgorithm_parser_;
+        if (this->containerAlgorithm_parser_)
+
+            this->containerAlgorithm_parser_->pre ();
+
+        return true;
+    }
 
   return false;
 }
@@ -995,34 +1004,18 @@ _end_element_impl (const ::xml_schema::ro_string& ns,
 
     return true;
   }
-
-  return false;
-}
-
-bool simulationContainer_pskel::
-_attribute_impl (const ::xml_schema::ro_string& ns,
-                 const ::xml_schema::ro_string& n,
-                 const ::xml_schema::ro_string& v)
-{
-  if (this->::xml_schema::complex_content::_attribute_impl (ns, n, v))
-    return true;
-
   if (n == "containerAlgorithm" && ns.empty ())
   {
     if (this->containerAlgorithm_parser_)
     {
-      this->containerAlgorithm_parser_->pre ();
-      this->containerAlgorithm_parser_->_pre_impl ();
-      this->containerAlgorithm_parser_->_characters (v);
-      this->containerAlgorithm_parser_->_post_impl ();
-      this->containerAlgorithm (this->containerAlgorithm_parser_->post_containerAlgorithm ());
+        this->containerAlgorithm(this->containerAlgorithm_parser_->post_containerAlgorithm());
     }
-
     return true;
   }
 
   return false;
 }
+
 
 // boundaryConditions_pskel
 //

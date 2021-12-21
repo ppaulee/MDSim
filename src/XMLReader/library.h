@@ -32,6 +32,10 @@ namespace library
 
     //
     //
+    typedef std::string benchmark;
+
+    //
+    //
     struct dimension
     {
     public:
@@ -181,13 +185,13 @@ namespace library
             dimension_=dimension;
         }
 
-        const std::string&
+        library::containerAlgorithm
         containerAlgorithm()const
         {
             return cAlgorithm_;
         }
         void
-        containerAlgorithm(const std::string& c)
+        containerAlgorithm(const library::containerAlgorithm& c)
         {
             cAlgorithm_=c;
         }
@@ -217,7 +221,7 @@ namespace library
     private:
         library::boundaryConditions boundaryConditions_;
         library::dimension dimension_;
-        std::string cAlgorithm_;
+        library::containerAlgorithm cAlgorithm_;
         double mesh_;
         double cutOff_;
     };
@@ -499,9 +503,7 @@ namespace library
         int stepSize_;
     };
 
-    //
-    //
-    typedef std::string benchmark;
+
 
     struct molsim
     {

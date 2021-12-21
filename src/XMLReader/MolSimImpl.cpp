@@ -7,6 +7,25 @@
 
 #include "MolSimImpl.h"
 #include <iostream>
+
+// benchmark_pimpl
+//
+
+void benchmark_pimpl::
+pre ()
+{
+}
+
+library::benchmark benchmark_pimpl::
+post_benchmark ()
+{
+    const ::std::string& v (post_string ());
+
+    // TODO
+    return v;
+    //
+}
+
 // time_pimpl
 //
 
@@ -195,13 +214,11 @@ pre ()
 {
 }
 
-const std::string& containerAlgorithm_pimpl::
+library::containerAlgorithm containerAlgorithm_pimpl::
 post_containerAlgorithm ()
 {
-    const ::std::string& v (post_string ());
-  // TODO
-  containerAlgorithm.assign(v);
-  return containerAlgorithm;
+
+  return post_string();
   //
 }
 
@@ -214,13 +231,13 @@ pre ()
 }
 
 void simulationContainer_pimpl::
-boundaryConditions (const library::boundaryConditions& b)
+boundaryConditions (library::boundaryConditions b)
 {
     simulationContainer_.boundaryConditions(b);
 }
 
 void simulationContainer_pimpl::
-dimension (const library::dimension& dimension)
+dimension (library::dimension dimension)
 {
     simulationContainer_.dimension(dimension);
 }
@@ -242,7 +259,7 @@ cutOff (double cutOff)
 }
 
 void simulationContainer_pimpl::
-containerAlgorithm (const std::string& c)
+containerAlgorithm (library::containerAlgorithm c)
 {
     simulationContainer_.containerAlgorithm(c);
 }
@@ -269,23 +286,7 @@ post_boundaryConditions ()
   //
 }
 
-// benchmark_pimpl
-//
 
-void benchmark_pimpl::
-pre ()
-{
-}
-
-library::benchmark benchmark_pimpl::
-post_benchmark ()
-{
-  const ::std::string& v (post_string ());
-
-  // TODO
-  return v;
-  //
-}
 
 // Cube_pimpl
 //
@@ -296,13 +297,13 @@ pre ()
 }
 
 void Cube_pimpl::
-dimension (const library::dimension& d)
+dimension (library::dimension d)
 {
     cube_.dimension(d);
 }
 
 void Cube_pimpl::
-startPoint (const library::point& p)
+startPoint (library::point p)
 {
     cube_.startPoint(p);
 }
@@ -324,19 +325,19 @@ mass (double mass)
 }
 
 void Cube_pimpl::
-velocity (const library::velocity& v)
+velocity (library::velocity v)
 {
     cube_.velocity(v);
 }
 
 void Cube_pimpl::
-epsilon (const library::epsilon& e)
+epsilon (library::epsilon e)
 {
     cube_.epsilon(e);
 }
 
 void Cube_pimpl::
-sigma (const library::sigma& s)
+sigma (library::sigma s)
 {
     cube_.sigma(s);
 }
@@ -356,7 +357,7 @@ pre ()
 }
 
 void Sphere_pimpl::
-center (const library::point& p)
+center (library::point p)
 {
     sphere_.center(p);
 }
@@ -386,19 +387,19 @@ mass (double mass)
 }
 
 void Sphere_pimpl::
-velocity (const library::velocity& v)
+velocity (library::velocity v)
 {
     sphere_.velocity(v);
 }
 
 void Sphere_pimpl::
-epsilon (const library::epsilon& e)
+epsilon (library::epsilon e)
 {
     sphere_.epsilon(e);
 }
 
 void Sphere_pimpl::
-sigma (const library::sigma& s)
+sigma (library::sigma s)
 {
     sphere_.sigma(s);
 }
@@ -418,13 +419,13 @@ pre ()
 }
 
 void particles_pimpl::
-Cube (const library::Cube& c)
+Cube (library::Cube c)
 {
     particles_.cube().push_back(c);
 }
 
 void particles_pimpl::
-Sphere (const library::Sphere& s)
+Sphere (library::Sphere s)
 {
     particles_.sphere().push_back(s);
 }
@@ -519,13 +520,13 @@ output_step (int output_step)
 }
 
 void molsim_pimpl::
-epsilon (const library::epsilon& e)
+epsilon (library::epsilon e)
 {
     molsim_.epsilon(e);
 }
 
 void molsim_pimpl::
-sigma (const library::sigma& s)
+sigma (library::sigma s)
 {
     molsim_.sigma(s);
 }
@@ -553,25 +554,25 @@ algorithm (const std::string& a)
 }
 
 void molsim_pimpl::
-simulationContainer (const library::simulationContainer& s)
+simulationContainer (library::simulationContainer s)
 {
     molsim_.simu(s);
 }
 
 void molsim_pimpl::
-particles (const library::particles& p)
+particles (library::particles p)
 {
     molsim_.particles(p);
 }
 
 void molsim_pimpl::
-thermostats (const library::thermostats& t)
+thermostats (library::thermostats t)
 {
     molsim_.thermostats(t);
 }
 
 void molsim_pimpl::
-benchmark (const library::benchmark& b)
+benchmark (library::benchmark b)
 {
     molsim_.benchmark(b);
 }

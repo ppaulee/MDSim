@@ -131,11 +131,9 @@ class containerAlgorithm_pimpl: public virtual containerAlgorithm_pskel,
   virtual void
   pre ();
 
-  virtual const std::string&
+  virtual library::containerAlgorithm
   post_containerAlgorithm ();
 
-private:
-    std::string containerAlgorithm;
 };
 
 class simulationContainer_pimpl: public virtual simulationContainer_pskel
@@ -145,10 +143,10 @@ class simulationContainer_pimpl: public virtual simulationContainer_pskel
   pre ();
 
   virtual void
-  boundaryConditions (const library::boundaryConditions&);
+  boundaryConditions (library::boundaryConditions);
 
   virtual void
-  dimension (const library::dimension&);
+  dimension (library::dimension);
 
   virtual void
   mesh (double);
@@ -157,7 +155,7 @@ class simulationContainer_pimpl: public virtual simulationContainer_pskel
   cutOff (double);
 
   virtual void
-  containerAlgorithm (const std::string&);
+  containerAlgorithm (library::containerAlgorithm);
 
   virtual library::simulationContainer
   post_simulationContainer ();
@@ -195,10 +193,10 @@ class Cube_pimpl: public virtual Cube_pskel
   pre ();
 
   virtual void
-  dimension (const library::dimension&);
+  dimension (library::dimension);
 
   virtual void
-  startPoint (const library::point&);
+  startPoint (library::point);
 
   virtual void
   h (double);
@@ -207,13 +205,13 @@ class Cube_pimpl: public virtual Cube_pskel
   mass (double);
 
   virtual void
-  velocity (const library::velocity&);
+  velocity (library::velocity);
 
   virtual void
-  epsilon (const library::epsilon&);
+  epsilon (library::epsilon);
 
   virtual void
-  sigma (const library::sigma&);
+  sigma (library::sigma);
 
   virtual library::Cube
   post_Cube ();
@@ -229,7 +227,7 @@ class Sphere_pimpl: public virtual Sphere_pskel
   pre ();
 
   virtual void
-  center (const library::point&);
+  center (library::point);
 
   virtual void
   radius (double);
@@ -241,13 +239,13 @@ class Sphere_pimpl: public virtual Sphere_pskel
   mass (double);
 
   virtual void
-  velocity (const library::velocity&);
+  velocity (library::velocity);
 
   virtual void
-  epsilon (const library::epsilon&);
+  epsilon (library::epsilon);
 
   virtual void
-  sigma (const library::sigma&);
+  sigma (library::sigma);
 
   virtual library::Sphere
   post_Sphere ();
@@ -263,10 +261,10 @@ class particles_pimpl: public virtual particles_pskel
   pre ();
 
   virtual void
-  Cube (const library::Cube&);
+  Cube (library::Cube);
 
   virtual void
-  Sphere (const library::Sphere&);
+  Sphere (library::Sphere);
 
   virtual library::particles
   post_particles ();
@@ -319,10 +317,10 @@ class molsim_pimpl: public virtual molsim_pskel
   output_step (int);
 
   virtual void
-  epsilon (const library::epsilon&);
+  epsilon (library::epsilon);
 
   virtual void
-  sigma (const library::sigma&);
+  sigma (library::sigma);
 
   virtual void
   gravity (double);
@@ -334,16 +332,16 @@ class molsim_pimpl: public virtual molsim_pskel
   algorithm (const std::string&);
 
   virtual void
-  simulationContainer (const library::simulationContainer&);
+  simulationContainer (library::simulationContainer);
 
   virtual void
-  particles (const library::particles&);
+  particles (library::particles);
 
   virtual void
-  thermostats (const library::thermostats&);
+  thermostats (library::thermostats);
 
   virtual void
-  benchmark (const library::benchmark&);
+  benchmark (library::benchmark);
 
   virtual library::molsim
   post_molsim ();

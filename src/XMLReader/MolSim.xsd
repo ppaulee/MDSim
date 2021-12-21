@@ -58,8 +58,8 @@
             <xsd:element name="dimension" type="dimension"/>
             <xsd:element name="mesh" type="xsd:double"/>
             <xsd:element name="cutOff" type="xsd:double"/>
+            <xsd:element name="containerAlgorithm" type="containerAlgorithm"/>
         </xsd:sequence>
-        <xsd:attribute name="containerAlgorithm" type="containerAlgorithm"/>
     </xsd:complexType>
 
     <xsd:simpleType name="boundaryConditions">
