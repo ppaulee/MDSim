@@ -457,7 +457,6 @@ targetTemperature (double targetTemperature)
 {
   // TODO
   thermostats_.targetTemperature(targetTemperature);
-    std::cout << "ini di impl thermo, tt = " << thermostats_.targetTemperature() << std::endl;
   //
 }
 
