@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+
+<molsim xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../src/XMLReader/MolSim.xsd">
+
+    <input_file>../input.txt</input_file>
+
+    <delta_t>1</delta_t>
+
+    <end_time>2</end_time>
+
+    <output_step>3</output_step>
+
+    <epsilon>4</epsilon>
+
+    <sigma>5</sigma>
+
+    <gravity>6</gravity>
+
+    <averageV>7</averageV>
+
+    <algorithm>lj</algorithm>
+
+    <simulationContainer>
+        <boundaryConditions>reflection</boundaryConditions>
+        <dimension>
+            <x>300</x>
+            <y>54</y>
+            <z>0</z>
+        </dimension>
+        <mesh>3</mesh>
+        <cutOff>3</cutOff>
+        <containerAlgorithm>linkedCells</containerAlgorithm>
+    </simulationContainer>
+
+    <particles>
+        <Cube>
+            <dimension>
+                <x>250</x>
+                <y>20</y>
+                <z>1</z>
+            </dimension>
+            <startPoint>
+                <x>0.6</x>
+                <y>2</y>
+                <z>0</z>
+            </startPoint>
+            <h>1.2</h>
+            <mass>1</mass>
+            <velocity>
+                <x>0</x>
+                <y>0</y>
+                <z>0</z>
+            </velocity>
+            <epsilon>1.2</epsilon>
+            <sigma>1</sigma>
+        </Cube>
+        <Cube>
+            <dimension>
+                <x>250</x>
+                <y>20</y>
+                <z>1</z>
+            </dimension>
+            <startPoint>
+                <x>0.6</x>
+                <y>27</y>
+                <z>0</z>
+            </startPoint>
+            <h>1.2</h>
+            <mass>2</mass>
+            <velocity>
+                <x>0</x>
+                <y>0</y>
+                <z>0</z>
+            </velocity>
+            <epsilon>1</epsilon>
+            <sigma>1.1</sigma>
+        </Cube>
+    </particles>
+    <thermostats>
+        <initialTemperature>40</initialTemperature>
+        <targetTemperature>1000</targetTemperature>
+        <maxDelta>-1</maxDelta>
+        <stepSize>2</stepSize>
+    </thermostats>
+    <benchmark>yes</benchmark>
+</molsim>
