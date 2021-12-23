@@ -49,6 +49,7 @@ TEST(LinkedCells, createGhost) {
     auto calc = LennardJones(1, 1, 0);
     cells->forceInsert(*p1);
     cells->handleBoundary();
+    cells->applyForceBuffer();
     std::list<Particle> cell1 = cells->indexGet(cells->coordToIndex({1, 2, 0}));
     //cells->move();
     EXPECT_TRUE(cell1.size() == 1);
