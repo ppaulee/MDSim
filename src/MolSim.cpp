@@ -4,7 +4,7 @@
 #include "container/LinkedCells.h"
 #include "forceCalculation/Gravitation.h"
 #include "forceCalculation/LennardJones.h"
-#include "XMLReader/MolSimImpl.h"
+#include "XMLReader/driver.h"
 #include "XMLReader/library.h"
 #include "Log.h"
 #include <iostream>
@@ -35,6 +35,12 @@ SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, 0, bound);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
+//thermostats variables
+double initial_temp = 20;
+int stepSize = 1;
+double target_temp = 1000;
+double max_delta_temp = -1;
+
 // Variables for the benchmark
 bool benchmark_active = false;
 std::chrono::steady_clock::time_point begin;
@@ -57,183 +63,71 @@ int main(int argc, char *argsv[]) {
             return 0;
         }
         if (c == 'x') {
-            try {
-                // Instantiate individual parsers.
-                //
-                ::molsim_pimpl molsim_p;
-                ::xml_schema::string_pimpl string_p;
-                ::time_pimpl time_p;
-                ::xml_schema::int_pimpl int_p;
-                ::epsilon_pimpl epsilon_p;
-                ::sigma_pimpl sigma_p;
-                ::xml_schema::double_pimpl double_p;
-                ::algorithm_pimpl algorithm_p;
-                ::simulationContainer_pimpl simulationContainer_p;
-                ::boundaryConditions_pimpl boundaryConditions_p;
-                ::dimension_pimpl dimension_p;
-                ::containerAlgorithm_pimpl containerAlgorithm_p;
-                ::particles_pimpl particles_p;
-                ::Cube_pimpl Cube_p;
-                ::point_pimpl point_p;
-                ::velocity_pimpl velocity_p;
-                ::Sphere_pimpl Sphere_p;
-                ::thermostats_pimpl thermostats_p;
-                ::benchmark_pimpl benchmark_p;
+            library::molsim m = generateFromXML(argsv[1]);
 
-                // Connect the parsers together.
-                //
-                molsim_p.parsers(string_p,
-                                 time_p,
-                                 time_p,
-                                 int_p,
-                                 epsilon_p,
-                                 sigma_p,
-                                 double_p,
-                                 double_p,
-                                 algorithm_p,
-                                 simulationContainer_p,
-                                 particles_p,
-                                 thermostats_p,
-                                 benchmark_p);
-
-                simulationContainer_p.parsers(boundaryConditions_p,
-                                              dimension_p,
-                                              double_p,
-                                              double_p,
-                                              containerAlgorithm_p);
-
-                dimension_p.parsers(int_p,
-                                    int_p,
-                                    int_p);
-
-                particles_p.parsers(Cube_p,
-                                    Sphere_p);
-
-                Cube_p.parsers(dimension_p,
-                               point_p,
-                               double_p,
-                               double_p,
-                               velocity_p,
-                               epsilon_p,
-                               sigma_p);
-
-                point_p.parsers(double_p,
-                                double_p,
-                                double_p);
-
-                velocity_p.parsers(double_p,
-                                   double_p,
-                                   double_p);
-
-                Sphere_p.parsers(point_p,
-                                 double_p,
-                                 double_p,
-                                 double_p,
-                                 velocity_p,
-                                 epsilon_p,
-                                 sigma_p);
-
-                thermostats_p.parsers(double_p,
-                                      double_p,
-                                      double_p,
-                                      int_p);
-
-                // Parse the XML document.
-                //
-                ::xml_schema::document doc_p(molsim_p, "molsim");
-
-                molsim_p.pre();
-                doc_p.parse(optarg);
-                library::molsim m = molsim_p.post_molsim();
-
-                //all parameters can be accessed from m from here
-                //
-                //take a look at the xml schema how to access the parameters
-                //
-
-                file = m.input();
-                delta_t = m.delta_t();
-                end_time = m.endtime();
-                outputStep = m.outputStep();
-                epsilon = m.epsilon();
-                sigma = m.sigma();
-                averageV = m.averageV();
-                //simulationContainer
-                std::cout << "container: " << m.simu().containerAlgorithm() << "\n";
-                if (m.simu().containerAlgorithm() == std::string("linkedCells")) {
-                    dim = {m.simu().dimension().x(), m.simu().dimension().y(), m.simu().dimension().z()};
-                    std::array<int, 3> bounds = {1, 1, 1};
-                    particles = new LinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bounds);
-                } else if (m.simu().containerAlgorithm() == std::string("naiv")) {
-                    //TODO make naive container here
-                } else {
-                    LOGC_ERROR("Error: container algorithm doesnt fit, -naiv or -linkedCells");
-                }
-                //algorithm
-                if (m.algorithm() == std::string("sv")) {
-                    algorithm = new Gravitation();
-                } else if (m.algorithm() == std::string("lj")) {
-                    algorithm = new LennardJones(epsilon, sigma, 0);
-                } else {
-                    LOGC_ERROR("Error:algorithm doesnt fit, -sv or -lj");
-                }
-                //benchmark
-                if (m.benchmark() == std::string("yes")) {
-                    benchmark_active = true;
-                }
-
-                //  generate particle from xml
-                int currentType = 0;
-                std::cout << "nr cubes " << m.particles().cube().size() << "\n";
-                for (long unsigned int i = 0; i < m.particles().cube().size(); i++) {
-                    library::Cube cube = m.particles().cube()[i];
-                    std::array<int, 3> dim = {cube.dimension().x(), cube.dimension().y(), cube.dimension().z()};
-                    std::array<double, 3> startPoint = {cube.startPoint().x(), cube.startPoint().y(),
-                                                        cube.startPoint().z()};
-                    std::array<double, 3> velocity = {cube.velocity().x(), cube.velocity().y(), cube.velocity().z()};
-                    generateCube(dim, startPoint, cube.h(), cube.m(), velocity, averageV, currentType, cube.sigma(),
-                                 cube.epsilon(), *particles);
-                    currentType++;
-                }
-                for (long unsigned int i = 0; i < m.particles().sphere().size(); i++) {
-                    library::Sphere sphere = m.particles().sphere()[i];
-                    std::array<double, 3> center = {sphere.center().x(), sphere.center().y(), sphere.center().z()};
-                    std::array<double, 3> velocity = {sphere.velocity().x(), sphere.velocity().y(),
-                                                      sphere.velocity().z()};
-                    generateSphere2D(center, velocity, sphere.radius(), sphere.h(), sphere.m(), averageV, currentType,
-                                     *particles);
-                    currentType++;
-                }
-
-                /*
-                 *  Thermostats
-                 *
-                int dimensions = 3;
-                if (dim[0] == 0) {
-                    dimensions = 2;
-                auto thermostat = new Thermostats(*particles, delta_t, end_time, m.thermostats().initialTemperature(), m.thermostats().stepSize(), dimensions, m.thermostats().targetTemperature(), m.thermostats().maxDelta());
-                **/
-
-                /* sigma and particles can be accessed pro particle
-
-                    m.particles().cube()[0].sigma()
-                    m.particles().cube()[0].epsilon()
-
-                 **/
-
-                /*  added gravity parameter
-                 *
-                 * m.gravity()
-                 *
-                 * */
+            /**
+             * Preparing values from xml for simulation
+             */
+            file = m.input();
+            delta_t = m.delta_t();
+            end_time = m.endtime();
+            outputStep = m.outputStep();
+            epsilon = m.epsilon();
+            sigma = m.sigma();
+            averageV = m.averageV();
+            //thermostats
+            initial_temp = m.thermostats().initialTemperature();
+            stepSize = m.thermostats().stepSize();
+            target_temp = m.thermostats().targetTemperature();
+            max_delta_temp = m.thermostats().maxDelta();
+            //simulationContainer
+            std::cout << "container: " << m.simu().containerAlgorithm() << "\n";
+            if (m.simu().containerAlgorithm() == std::string("linkedCells")) {
+                dim = {m.simu().dimension().x(), m.simu().dimension().y(), m.simu().dimension().z()};
+                std::array<int, 3> bounds = {1, 1, 1};
+                particles = new LinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bounds);
+            } else if (m.simu().containerAlgorithm() == std::string("naiv")) {
+                //TODO make naive container here
+            } else {
+                LOGC_ERROR("Error: container algorithm doesnt fit, -naiv or -linkedCells");
             }
-            catch (const ::xml_schema::exception &e) {
-                std::cerr << e << std::endl;
-                return 1;
+            //algorithm
+            if (m.algorithm() == std::string("sv")) {
+                algorithm = new Gravitation();
+            } else if (m.algorithm() == std::string("lj")) {
+                algorithm = new LennardJones(epsilon, sigma, 0);
+            } else {
+                LOGC_ERROR("Error:algorithm doesnt fit, -sv or -lj");
             }
-            catch (const std::ios_base::failure &) {
-                std::cerr << optarg << ": error: io failure" << std::endl;
-                return 1;
+            //benchmark
+            if (m.benchmark() == std::string("yes")) {
+                benchmark_active = true;
+            }
+
+            //  generate particle from xml
+            int currentType = 0;
+            std::cout << "nr cubes " << m.particles().cube().size() << "\n";
+            for (long unsigned int i = 0; i < m.particles().cube().size(); i++) {
+                library::Cube cube = m.particles().cube()[i];
+                std::array<int, 3> dim = {cube.dimension().x(), cube.dimension().y(), cube.dimension().z()};
+                std::array<double, 3> startPoint = {cube.startPoint().x(), cube.startPoint().y(),
+                                                    cube.startPoint().z()};
+                std::array<double, 3> velocity = {cube.velocity().x(), cube.velocity().y(), cube.velocity().z()};
+                generateCube(dim, startPoint, cube.h(), cube.m(), velocity, averageV, currentType, cube.sigma(),
+                             cube.epsilon(), *particles);
+                currentType++;
+            }
+            for (long unsigned int i = 0; i < m.particles().sphere().size(); i++) {
+                library::Sphere sphere = m.particles().sphere()[i];
+                std::array<double, 3> center = {sphere.center().x(), sphere.center().y(), sphere.center().z()};
+                std::array<double, 3> velocity = {sphere.velocity().x(), sphere.velocity().y(),
+                                                  sphere.velocity().z()};
+                generateSphere2D(center, velocity, sphere.radius(), sphere.h(), sphere.m(), averageV, currentType,
+                                 *particles);
+                currentType++;
+                /**
+                * end setting values from xml for simulation
+                */
             }
             break;
         }
@@ -305,23 +199,6 @@ int main(int argc, char *argsv[]) {
     if (dim[0] == 0) {
         dimensions = 2;
     }
-
-    // TODO set to XML values
-    /*
-    <xsd:complexType name="thermostats">
-        <xsd:sequence>
-            <xsd:element name="initialTemperature" type="xsd:double"/>
-            <xsd:element name="targetTemperature" type="xsd:double"/>
-            <xsd:element name="maxDelta" type="xsd:double"/>
-            <xsd:element name="stepSize" type="xsd:int"/>
-        </xsd:sequence>
-    </xsd:complexType>
-     **/
-    double initial_temp = 20;
-    int stepSize = 1;
-    double target_temp = 1000;
-    // TODO Dieser Parameter ist optional, wenn nicht angegeben wird -1 übergeben
-    double max_delta_temp = -1;
 
     auto thermostat = new Thermostats(*particles, delta_t, end_time, initial_temp, stepSize, dimensions, target_temp,
                                       max_delta_temp);

@@ -94,19 +94,19 @@ namespace xml_schema
 {
   // Built-in XML Schema types mapping.
   //
-  typedef ::xsd::cxx::parser::string_sequence< char > string_sequence;
-  typedef ::xsd::cxx::parser::qname< char > qname;
-  typedef ::xsd::cxx::parser::buffer buffer;
-  typedef ::xsd::cxx::parser::time_zone time_zone;
-  typedef ::xsd::cxx::parser::gday gday;
-  typedef ::xsd::cxx::parser::gmonth gmonth;
-  typedef ::xsd::cxx::parser::gyear gyear;
-  typedef ::xsd::cxx::parser::gmonth_day gmonth_day;
-  typedef ::xsd::cxx::parser::gyear_month gyear_month;
-  typedef ::xsd::cxx::parser::date date;
-  typedef ::xsd::cxx::parser::time time;
-  typedef ::xsd::cxx::parser::date_time date_time;
-  typedef ::xsd::cxx::parser::duration duration;
+  typedef ::xsd::cxx::parser::string_sequence< char > string_sequence_;
+  typedef ::xsd::cxx::parser::qname< char > qname_;
+  typedef ::xsd::cxx::parser::buffer buffer_;
+  typedef ::xsd::cxx::parser::time_zone time_zone_;
+  typedef ::xsd::cxx::parser::gday gday_;
+  typedef ::xsd::cxx::parser::gmonth gmonth_;
+  typedef ::xsd::cxx::parser::gyear gyear_;
+  typedef ::xsd::cxx::parser::gmonth_day gmonth_day_;
+  typedef ::xsd::cxx::parser::gyear_month gyear_month_;
+  typedef ::xsd::cxx::parser::date date_;
+  typedef ::xsd::cxx::parser::time time_;
+  typedef ::xsd::cxx::parser::date_time date_time_;
+  typedef ::xsd::cxx::parser::duration duration_;
 
   // Base parser skeletons.
   //
@@ -250,14 +250,14 @@ namespace xml_schema
 
   // Exceptions. See libxsd/xsd/cxx/parser/exceptions.hxx for details.
   //
-  typedef ::xsd::cxx::parser::exception< char > exception;
+  typedef ::xsd::cxx::parser::exception< char > exception_;
 
   // Parsing diagnostics.
   //
-  typedef ::xsd::cxx::parser::severity severity;
-  typedef ::xsd::cxx::parser::error< char > error;
-  typedef ::xsd::cxx::parser::diagnostics< char > diagnostics;
-  typedef ::xsd::cxx::parser::parsing< char > parsing;
+  typedef ::xsd::cxx::parser::severity severity_;
+  typedef ::xsd::cxx::parser::error< char > error_;
+  typedef ::xsd::cxx::parser::diagnostics< char > diagnostics_;
+  typedef ::xsd::cxx::parser::parsing< char > parsing_;
 
   // Error handler. See libxsd/xsd/cxx/xml/error-handler.hxx for details.
   //
@@ -270,12 +270,12 @@ namespace xml_schema
   // Parsing flags. See libxsd/xsd/cxx/parser/xerces/elements.hxx
   // for details.
   //
-  typedef ::xsd::cxx::parser::xerces::flags flags;
+  typedef ::xsd::cxx::parser::xerces::flags flags_;
 
   // Parsing properties. See libxsd/xsd/cxx/parser/xerces/elements.hxx
   // for details.
   //
-  typedef ::xsd::cxx::parser::xerces::properties< char > properties;
+  typedef ::xsd::cxx::parser::xerces::properties< char > properties_;
 
   // Document type. See libxsd/xsd/cxx/parser/xerces/elements.hxx
   // for details.
