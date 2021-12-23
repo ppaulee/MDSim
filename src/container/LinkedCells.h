@@ -255,6 +255,8 @@ public:
      */
     bool allInRightCell();
 
+    int coordToIndexNew(std::array<int, 3> coords);
+
     /**
      * Calculates new velocity
      *
@@ -281,6 +283,8 @@ public:
      * @param algorithm
      */
     void simulate(ForceCalculation *algorithm, double delta_a) override;
+
+    void applyForceBuffer();
 
     /**
      * Iterates over particle in boundary cells and applies boundary conditions according to boundaryCondition

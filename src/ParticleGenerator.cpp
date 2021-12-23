@@ -33,8 +33,7 @@ void generateCube(std::array<int, 3> dimension, std::array<double, 3> startPoint
                 // Add particle to ParticleContainer
                 Particle p = Particle({x * h + startPoint[0], y * h + startPoint[1], z * h + startPoint[2]}, v, m, type,
                                       sigma, epsilon);
-                p.setType(type);
-                container.insert(p);
+                container.forceInsert(p);
             }
         }
     }

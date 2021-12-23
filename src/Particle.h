@@ -14,57 +14,61 @@
 class Particle {
 
 private:
-  /**
-   * Position of the particle
-   */
-  std::array<double, 3> x;
+    /**
+     * Position of the particle
+     */
+    std::array<double, 3> x;
 
-  /**
-   * Velocity of the particle
-   */
-  std::array<double, 3> v;
+    /**
+     * Velocity of the particle
+     */
+    std::array<double, 3> v;
 
-  /**
-   * Force effective on this particle
-   */
-  std::array<double, 3> f;
+    /**
+     * Force effective on this particle
+     */
+    std::array<double, 3> f;
 
-  /**
-   * Force which was effective on this particle
-   */
-  std::array<double, 3> old_f;
+    std::array<double, 3> forceBuffer;
 
-  /**
-   * Mass of this particle
-   */
-  double m;
+private:
 
-  /**
-   * Tells if the particle is marked
-   */
-  bool marked;
+    /**
+     * Force which was effective on this particle
+     */
+    std::array<double, 3> old_f;
 
-  /**
-   * Type of the particle. Use it for whatever you want (e.g. to separate
-   * molecules belonging to different bodies, matters, and so on)
-   */
-  int type;
+    /**
+     * Mass of this particle
+     */
+    double m;
 
-  /**
-   * Parameters for Lennard-Jones force calculation
-   */
-  double sigma, epsilon;
+    /**
+     * Tells if the particle is marked
+     */
+    bool marked;
+
+    /**
+     * Type of the particle. Use it for whatever you want (e.g. to separate
+     * molecules belonging to different bodies, matters, and so on)
+     */
+    int type;
+
+    /**
+     * Parameters for Lennard-Jones force calculation
+     */
+    double sigma, epsilon;
 
 public:
-  explicit Particle(int type = 0);
+    explicit Particle(int type = 0);
 
-  Particle(const Particle &other);
+    Particle(const Particle &other);
 
-  Particle(
-      // for visualization, we need always 3 coordinates
-      // -> in case of 2d, we use only the first and the second
-      std::array<double, 3> x_arg, std::array<double, 3> v_arg, double m_arg,
-      int type = 0, double sigma_arg = 1, double epsilon_arg = 5);
+    Particle(
+            // for visualization, we need always 3 coordinates
+            // -> in case of 2d, we use only the first and the second
+            std::array<double, 3> x_arg, std::array<double, 3> v_arg, double m_arg,
+            int type = 0, double sigma_arg = 1, double epsilon_arg = 5);
 
     double getSigma() const;
 
@@ -72,33 +76,45 @@ public:
 
     virtual ~Particle();
 
-  const std::array<double, 3> &getX() const;
-  void setX(std::array<double, 3> xNew);
+    const std::array<double, 3> &getX() const;
 
-  const std::array<double, 3> &getV() const;
-  void setV(std::array<double, 3>  vNew);
+    void setX(std::array<double, 3> xNew);
 
-  const std::array<double, 3> &getF() const;
-  void setF(std::array<double, 3>  fNew);
+    const std::array<double, 3> &getV() const;
 
-  const std::array<double, 3> &getOldF() const;
-  void setOldF(std::array<double, 3> oldFNew);
+    void setV(std::array<double, 3> vNew);
 
-  double getM() const;
+    const std::array<double, 3> &getF() const;
 
-  void setType(int typeNew);
-  int getType() const;
+    void setF(std::array<double, 3> fNew);
 
-  void mark();
-  void unmark();
-  bool isMarked();
+    const std::array<double, 3> &getOldF() const;
 
-  bool operator==(Particle &other);
+    void setOldF(std::array<double, 3> oldFNew);
 
-  bool operator==(const Particle &rhs) const;
-  bool operator==(const Particle* rhs) const;
+    double getM() const;
 
-  std::string toString() const;
+    void setType(int typeNew);
+
+    int getType() const;
+
+    void mark();
+
+    void unmark();
+
+    bool isMarked();
+
+    bool operator==(Particle &other);
+
+    bool operator==(const Particle &rhs) const;
+
+    bool operator==(const Particle *rhs) const;
+
+    std::string toString() const;
+
+    void setForceBuffer(const std::array<double, 3> &forceBuffer);
+
+    const std::array<double, 3> &getForceBuffer() const;
 };
 
 std::ostream &operator<<(std::ostream &stream, Particle &p);

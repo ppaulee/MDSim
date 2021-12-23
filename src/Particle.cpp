@@ -68,14 +68,15 @@ int Particle::getType() const { return type; }
 
 std::string Particle::toString() const {
     std::stringstream stream;
-    stream << "Particle: X:" << x << " v: " << v << " f: " << f
-           << " old_f: " << old_f << " type: " << type;
+    stream << "Particle: X:" << x << " v: " << v << " f: " << f << " m: " << m
+           << " old_f: " << old_f << " type: " << type << " sigma: " << sigma << " epsilon: " << epsilon;
     return stream.str();
 }
 
 bool Particle::operator==(Particle &other) {
     return (x == other.x) and (v == other.v) and (f == other.f or isnan(f[0])) and
-           (type == other.type) and (m == other.m) and (old_f == other.old_f);
+           (type == other.type) and (m == other.m) and (old_f == other.old_f) and (sigma == other.sigma) and
+           (epsilon == other.epsilon);
 }
 
 bool Particle::operator==(const Particle &rhs) const {
@@ -112,6 +113,14 @@ double Particle::getSigma() const {
 
 double Particle::getEpsilon() const {
     return epsilon;
+}
+
+void Particle::setForceBuffer(const std::array<double, 3> &forceBuffer) {
+    Particle::forceBuffer = forceBuffer;
+}
+
+const std::array<double, 3> &Particle::getForceBuffer() const {
+    return forceBuffer;
 }
 
 std::ostream &operator<<(std::ostream &stream, Particle &p) {

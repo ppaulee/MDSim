@@ -7,6 +7,7 @@
 #include "XMLReader/MolSimImpl.h"
 #include "XMLReader/library.h"
 #include "Log.h"
+#include "CheckpointFileWriter.h"
 #include <iostream>
 #include <chrono>
 #include <getopt.h>
@@ -22,16 +23,16 @@ double end_time = 1000;
 double delta_t = 0.014;
 int outputStep = 100;
 // Parameters for Lennard Jones Potential
-double epsilon = 5;
-double sigma = 1;
+double epsilon = 1;
+double sigma = 1.2;
 // Brownian Motion average velocity
-double averageV = 0.1;
+double averageV = 0.7;
 
-std::array<int, 3> dim = {8, 8, 0};
+std::array<int, 3> dim = {302, 180, 0};
 double mesh = 3;
 double cutOff = 3;
-std::array<int, 3> bound = {2, 1, 1};
-SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, 0, bound);
+std::array<int, 3> bound = {2, 1, 0};
+SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -12.44, bound);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
@@ -278,9 +279,14 @@ int main(int argc, char *argsv[]) {
             fileReader.readFile(particles, file);
          */
     } else {
-        char *file_char = &file[0];
-        generateFromFile(*particles, file_char);
-        //generateCube({40, 8, 1}, {0, 0, 0}, 1.1225, 1, {0, 0, 0}, averageV, particles);
+        //char *file_char = &file[0];
+        //generateFromFile(*particles, file_char);
+
+        generateCube({250, 50, 1}, {7.5, 8, 0}, 1.2, 1, {0, 0, 0}, 0, 0, 1.2, 1, *particles);
+
+        //generateCube({50, 14, 1}, {5.6, 7, 0}, 1.2, 1, {0, 0, 0}, 1.2, 0, 1, 1, *particles);
+       // generateCube({50, 14, 1}, {5.6, 24, 0}, 1.2, 2, {0, 0, 0}, 1.2, 1, 0.9412, 1, *particles);
+
         //generateCube({2, 2, 1}, {15, 15, 0}, 1.1225, 1, {-10, 0, 0}, averageV, 0, 1, 5, *particles);
 
         particles->addBrownianMotion(averageV, 2);
@@ -317,9 +323,9 @@ int main(int argc, char *argsv[]) {
         </xsd:sequence>
     </xsd:complexType>
      **/
-    double initial_temp = 20;
-    int stepSize = 1;
-    double target_temp = 1000;
+    double initial_temp = 0.5;
+    int stepSize = 1000;
+    double target_temp = 0.5;
     // TODO Dieser Parameter ist optional, wenn nicht angegeben wird -1 übergeben
     double max_delta_temp = -1;
 
@@ -330,7 +336,7 @@ int main(int argc, char *argsv[]) {
     thermostat->adjustTemperature(*particles, current_time);
 
     while (current_time < end_time) {
-        //std::cout << "Number particles: " << particles->numberParticles() << "\n";
+        std::cout << "Number particles: " << particles->numberParticles() << "\n";
         particles->simulate(algorithm, delta_t);
         // Control temperature
         thermostat->calcCurrentTemperature(*particles);
@@ -359,7 +365,8 @@ int main(int argc, char *argsv[]) {
         std::cout << "Time (only calculations) = "
                   << std::chrono::duration_cast<std::chrono::seconds>(end - beginAfterIO).count() << "[s]" << std::endl;
     }
-
+    CheckpointFileWriter w = CheckpointFileWriter();
+    w.writeFile(*particles, "stableLiquid");
     LOGC_INFO("output written. Terminating...");
     return 0;
 }

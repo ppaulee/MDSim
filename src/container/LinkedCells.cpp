@@ -58,10 +58,16 @@ LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOf
         particles.push_back(std::list<Particle>({}));
     }
 }
-
 int LinkedCells::coordToIndex(std::array<int, 3> coords) {
     if (dimensions[2] == 0) {
         return (coords[0]) * dimensions[0] + (coords[1]);
+    } else {
+        return coords[0] * dimensions[1] * dimensions[2] + coords[1] * dimensions[2] + coords[2];
+    }
+}
+int LinkedCells::coordToIndexNew(std::array<int, 3> coords) {
+    if (dimensions[2] == 0) {
+        return (coords[1]) * dimensions[0] + (coords[0]);
     } else {
         return coords[0] * dimensions[1] * dimensions[2] + coords[1] * dimensions[2] + coords[2];
     }
@@ -93,7 +99,7 @@ void LinkedCells::insert(Particle &p) {
                 if (calc.getType() != p.getType()) {
                     double tempEpsilon = sqrt(calc.getEpsilon() * p.getEpsilon());
                     double tempSigma = (calc.getSigma() + p.getSigma()) / 2;
-                    auto temp = MixedLennardJones(tempEpsilon, tempSigma, 0, p.getType());
+                    auto temp = MixedLennardJones(tempEpsilon, tempSigma, calc.getType(), p.getType());
                     mixedForceCalcs.push_back(temp);
                 }
             }
@@ -156,7 +162,7 @@ std::list<Particle> &LinkedCells::indexGet(int i) {
     return particles[i];
 }
 
-void LinkedCells::calculateF(ForceCalculation *algorithm) {
+/*void LinkedCells::calculateF(ForceCalculation *algorithm) {
     initCalculateF();
     for (int x = 0; x < dimensions[0] - 1; ++x) {
         for (int y = 0; y < dimensions[1] - 1; ++y) {
@@ -165,6 +171,135 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
             } else {
                 for (int z = 0; z < dimensions[2] - 1; ++z) {
                     ThreeDcalculateF(x, y, z, algorithm);
+                }
+            }
+
+        }
+    }
+    ghosts.clear();
+}*/
+
+void LinkedCells::calculateF(ForceCalculation *algorithm) {
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
+            p.setOldF(p.getF());
+            p.setF({0, 0, 0});
+            p.unmark();
+        }
+    }
+
+    for (int x = 1; x < dimensions[0] - 1; ++x) {
+        for (int y = 1; y < dimensions[1] - 1; ++y) {
+            if (dimensions[2] == 0) {
+                //2D case
+                // Loop over all particles in cell
+                for (auto &current_particle: particles[coordToIndex({x, y, 0})]) {
+                    current_particle.mark();
+                    // Get neighbours
+                    for (int x_diff = -1; x_diff <= 1; ++x_diff) {
+                        for (int y_diff = -1; y_diff <= 1; ++y_diff) {
+                            // Coordinates including offset for neighboured cells
+                            std::array<int, 3> c = {x + x_diff, y + y_diff, 0};
+                            if (c[0] < 0 || c[0] >= dimensions[0] || c[1] < 0 || c[1] >= dimensions[1]) {
+                                continue;
+                            }
+                            if (coordToIndex(c) < 0) {
+                                continue;
+                            }
+
+                            // Particles in neighboured cells
+                            for (auto &p: particles[coordToIndex(c)]) {
+                                // Check if particle is inside the cut-off radius
+                                if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
+                                    !(p == current_particle) && !p.isMarked()) {
+                                    // Actual force calculation according to the used algorithm
+                                    std::array<double, 3> force;
+                                    if (p.getType() == current_particle.getType())
+                                        force = forceCalcs[p.getType()].calculateF(
+                                                current_particle, p);
+                                    else {
+                                        for (auto &calc: mixedForceCalcs) {
+                                            if ((calc.getType1() == p.getType() &&
+                                                 calc.getType2() == current_particle.getType()) ||
+                                                (calc.getType1() == current_particle.getType() &&
+                                                 calc.getType2() == p.getType()))
+                                                force = calc.calculateF(current_particle, p);
+                                        }
+                                    }
+
+                                    // Make use of Newtons third law
+                                    current_particle.setF(current_particle.getF() + force);
+                                    p.setF(p.getF() - force);
+                                }
+                            }
+                            for (auto &p: ghosts) {
+                                if (getCellCoords(p) == c) {
+                                    if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
+                                        !(p == current_particle)) {
+                                        std::array<double, 3> force;
+                                        if (p.getType() == current_particle.getType())
+                                            force = forceCalcs[p.getType()].calculateF(
+                                                    current_particle, p);
+                                        else {
+                                            for (auto &calc: mixedForceCalcs) {
+                                                if ((calc.getType1() == p.getType() &&
+                                                     calc.getType2() == current_particle.getType()) ||
+                                                    (calc.getType1() == current_particle.getType() &&
+                                                     calc.getType2() == p.getType()))
+                                                    force = calc.calculateF(current_particle, p);
+                                            }
+                                        }
+                                        current_particle.setF(current_particle.getF() + force);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    current_particle.setF({current_particle.getF()[0], current_particle.getF()[1], 0});
+                    /*for(int i = 0; i<3;i++){
+                        if(std::isnan(current_particle.getF()[i])){
+                            std::array<double, 3> temp = current_particle.getF();
+                            temp[i] = 0;
+                            current_particle.setF(temp);
+                        }
+                    }*/
+                }
+            } else {
+                for (int z = 0; z < dimensions[2] - 1; ++z) {
+                    // Loop over all particles in cell
+                    for (auto &current_particle: particles[coordToIndex({x, y, z})]) {
+                        current_particle.mark();
+                        // Get neighbours
+                        for (int x_diff = -1; x_diff <= 1; ++x_diff) {
+                            for (int y_diff = -1; y_diff <= 1; ++y_diff) {
+                                for (int z_diff = -1; z_diff <= 1; ++z_diff) {
+
+                                    // Coordinates including offset for neighboured cells
+                                    std::array<int, 3> c = {x + x_diff, y + y_diff, z + z_diff};
+
+                                    if (coordToIndex(c) < 0) {
+                                        continue;
+                                    }
+
+                                    // Particles in neighboured cells
+                                    for (auto &p: particles[coordToIndex(c)]) {
+                                        // Check if particle is inside of the cut off radius
+                                        if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
+                                            !(p == current_particle) && !p.isMarked()) {
+                                            // Actual force calculation according to the used algorithm
+                                            std::array<double, 3> force = algorithm->calculateF(current_particle, p);
+                                            // Make use of Newtons third law
+                                            current_particle.setF(current_particle.getF() + force);
+                                            p.setF(p.getF() - force);
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
                 }
             }
 
@@ -194,7 +329,7 @@ void LinkedCells::TwoDcalculateF(int x, int y, ForceCalculation *algorithm) {
                 // Coordinates including offset for neighboured cells
                 std::array<int, 3> c = {x + x_diff, y + y_diff, 0};
 
-                if (coordToIndex(c) < 0) {
+                if (coordToIndex(c) < 0 || coordToIndex(c) >= particles.size()) {
                     continue;
                 }
                 calculateNeighbouredF(c, algorithm, current_particle);
@@ -204,10 +339,10 @@ void LinkedCells::TwoDcalculateF(int x, int y, ForceCalculation *algorithm) {
                         if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
                             !(p == current_particle)) {
                             std::array<double, 3> force;
-                            if (p.getType() == current_particle.getType())
+                            if (p.getType() == current_particle.getType()) {
                                 force = forceCalcs[p.getType()].calculateF(
                                         current_particle, p);
-                            else {
+                            } else {
                                 for (auto &calc: mixedForceCalcs) {
                                     if ((calc.getType1() == p.getType() &&
                                          calc.getType2() == current_particle.getType()) ||
@@ -222,7 +357,14 @@ void LinkedCells::TwoDcalculateF(int x, int y, ForceCalculation *algorithm) {
                 }
             }
         }
-
+        current_particle.setF({current_particle.getF()[0], current_particle.getF()[1], 0});
+        /*for(int i = 0; i<3;i++){
+            if(std::isnan(current_particle.getF()[i])){
+                std::array<double, 3> temp = current_particle.getF();
+                temp[i] = 0;
+                current_particle.setF(temp);
+            }
+        }*/
     }
 }
 
@@ -285,6 +427,13 @@ void LinkedCells::calculateV(double delta_t) {
             res = delta_t * res;
             res = res + p.getV();
             p.setV(res);
+            for(int i = 0; i<3;i++){
+                if(std::isnan(p.getV()[i])){
+                    std::array<double, 3> temp = p.getV();
+                    temp[i] = 0;
+                    p.setV(temp);
+                }
+            }
         }
     }
 }
@@ -299,6 +448,14 @@ void LinkedCells::calculateX(double delta_t) {
             res = res + res2;
 
             p.setX(res + p.getX());
+            p.setX({p.getX()[0], p.getX()[1], 0});
+            /*for(int i = 0; i<3;i++){
+                if(std::isnan(p.getX()[i])){
+                    std::array<double, 3> temp = p.getX();
+                    temp[i] = 0;
+                    p.setX(temp);
+                }
+            }*/
         }
     }
 }
@@ -323,15 +480,27 @@ void LinkedCells::move() {
         // remove
         auto &to_remove = tmp_stack_remove[i];
         int index = tmp_stack_remove_index[i];
+        int sizeBefore = particles[index].size();
         particles[index].remove(to_remove);
-
+        //std::cout << "par count after remove: "<< numberParticles() << "\n";
+        /*if (sizeBefore == particles[index].size()) {
+            std::cout << "not deleted\n";
+            std::cout << to_remove.toString() << "\n";
+            std::cout << "Cell: \n";
+            for (auto &par: particles[index]) {
+                std::cout << par.toString() << "\n";
+            }
+        }*/
         // insert
         auto &p = tmp_stack_insert[i];
 
         if (coordToIndex(getCellCoords(p)) >= 0 &&
             (long unsigned int) coordToIndex(getCellCoords(p)) < particles.size()) {
             particles[coordToIndex(getCellCoords(p))].push_back(p);
+        } else {
+            // std::cout << "par not inserted\n";
         }
+        //std::cout << "par count after insert: "<< numberParticles() << "\n";
 
     }
 }
@@ -350,25 +519,71 @@ bool LinkedCells::allInRightCell() {
 void LinkedCells::simulate(ForceCalculation *algorithm, double delta_t) {
     // calculate new x
     calculateX(delta_t);
-
+    if (numberParticles() > 12500) {
+        std::cout << "here1\n";
+        exit(1);
+    }
+    // std::cout << "Done calculate X\n";
     //deleteParticlesInHalo();
     // moves particles to correct cell
     move();
-
+    if (numberParticles() > 12500) {
+        std::cout << "here2\n";
+        exit(1);
+    }
 
     // TODO here boundary conditions
     //reflection with ghost particle
     handleBoundary();
-
+    if (numberParticles() > 12500) {
+        std::cout << "here3\n";
+        exit(1);
+    }
+    //std::cout << "Done handle boundary\n";
 
     // calculate new f
     calculateF(algorithm);
+    if (numberParticles() > 12500) {
+        std::cout << "here4\n";
+        exit(1);
+    }
+    //std::cout << "Done calculate F\n";
+    applyForceBuffer();
+    if (numberParticles() > 12500) {
+        std::cout << "here5\n";
+        exit(1);
+    }
+    // std::cout << "Done apply force buffer\n";
     deleteParticlesInHalo();
+    if (numberParticles() > 12500) {
+        std::cout << "here6\n";
+        exit(1);
+    }
+    //std::cout << "Done delete halo particels\n";
     if (grav != 0) {
         applyGravity();
     }
+    if (numberParticles() > 12500) {
+        std::cout << "here7\n";
+        exit(1);
+    }
+    // std::cout << "Done apply gravity\n";
     // calculate new v
     calculateV(delta_t);
+    if (numberParticles() > 12500) {
+        std::cout << "here8\n";
+        exit(1);
+    }
+    //std::cout << "Done calculate V\n";
+}
+
+void LinkedCells::applyForceBuffer() {
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
+            p.setF(p.getF() + p.getForceBuffer());
+            p.setForceBuffer({0, 0, 0});
+        }
+    }
 }
 
 void LinkedCells::handleBoundary() {
@@ -383,13 +598,15 @@ void LinkedCells::handleBoundary() {
                     //c++;
                     if (boundaryCondition[0] == 1) {
                         if (isBoundaryCell(getCellCoords(p))) {
+                            //std::cout << "particle on LR boundary\n";
                             double leftDistance = p.getX()[0] - meshSize;
                             if (leftDistance <= reflectionDistance[p.getType()]) {
                                 Particle temp = Particle({(meshSize - leftDistance), p.getX()[1], p.getX()[2]},
                                                          {0, 0, 0},
                                                          p.getM(),
                                                          p.getType(), p.getSigma(), p.getEpsilon());
-                                p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                p.setForceBuffer(forceCalcs[p.getType()].calculateF(p, temp));
+                                //ghosts.push_back(temp);
 
                             }
                             double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
@@ -397,7 +614,8 @@ void LinkedCells::handleBoundary() {
                                 Particle temp = Particle(
                                         {((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1], p.getX()[2]},
                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
-                                p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                p.setForceBuffer(forceCalcs[p.getType()].calculateF(p, temp));
+                                //ghosts.push_back(temp);
                             }
                         }
                     } else if (boundaryCondition[0] == 2) {
@@ -454,19 +672,23 @@ void LinkedCells::handleBoundary() {
                     }
                     if (boundaryCondition[1] == 1) {
                         if (isBoundaryCell(getCellCoords(p))) {
+                            //std::cout << "particle on TB boundary\n";
                             double bottomDistance = p.getX()[1] - meshSize;
                             if (bottomDistance <= reflectionDistance[p.getType()]) {
                                 Particle temp = Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]},
                                                          {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
                                                          p.getEpsilon());
-                                p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                p.setForceBuffer(forceCalcs[p.getType()].calculateF(p, temp));
+                                //ghosts.push_back(temp);
                             }
                             double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
                             if (topDistance <= reflectionDistance[p.getType()]) {
+                                std::cout << "top bound reached\n";
                                 Particle temp = Particle(
                                         {(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
-                                p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                p.setForceBuffer(forceCalcs[p.getType()].calculateF(p, temp));
+                                //ghosts.push_back(temp);
                             }
                         }
                     } else if (boundaryCondition[1] == 2) {
@@ -532,11 +754,13 @@ void LinkedCells::handleBoundary() {
             }
         }
     }
-    deleteParticlesInHalo();
+    //deleteParticlesInHalo();
     for (auto par: ins) {
+        //std::cout << "got here\n";
         forceInsert(par);
     }
     for (auto par: del) {
+        //std::cout << "got here2\n";
         remove(par);
     }
     //std::cout << "nr particles: " << numberParticles() << "\n";
@@ -588,11 +812,11 @@ void LinkedCells::deleteParticlesInHalo() {
     for (int x = 0; x < dimensions[0] - 1; x++) {
         for (int y = 0; y < dimensions[1] - 1; y++) {
             if (dimensions[2] == 0) {
-                if (isHaloCell({x, y, 0})) {
+                if (isHaloCell({x, y, 0}) && !particles[(coordToIndex({x, y, 0}))].empty()) {
                     std::list<Particle> newList;
                     particles[(coordToIndex({x, y, 0}))].clear();
-                    particles.at(coordToIndex({x, y, 0})) = newList;
-                    //std::cout << "Particle in halo detected \n";
+                    //particles.at(coordToIndex({x, y, 0})) = newList;
+                    std::cout << "Particle in halo detected \n";
                     //exit(1);
                 }
             } else {
@@ -639,13 +863,7 @@ void LinkedCells::applyGravity() {
 }
 
 std::vector<Particle> LinkedCells::getParticles() {
-    std::vector<Particle> res;
-    for (auto &vec: particles) {
-        for (auto &p: vec) {
-            res.push_back(p);
-        }
-    }
-    return res;
+    return std::vector<Particle>();
 }
 
 
