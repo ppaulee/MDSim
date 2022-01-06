@@ -863,7 +863,13 @@ void LinkedCells::applyGravity() {
 }
 
 std::vector<Particle> LinkedCells::getParticles() {
-    return std::vector<Particle>();
+    std::vector<Particle> res;
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
+            res.push_back(p);
+        }
+    }
+    return res;
 }
 
 
