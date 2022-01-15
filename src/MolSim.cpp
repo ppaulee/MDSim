@@ -64,7 +64,7 @@ int main(int argc, char *argsv[]) {
             return 0;
         }
         if (c == 'x') {
-            library::molsim m = generateFromXML(argsv[1]);
+            library::molsim m = generateFromXML(optarg);
 
             /**
              * Preparing values from xml for simulation
