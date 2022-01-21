@@ -94,8 +94,17 @@ TEST(LinkedCells, periodicBoundaryGhost) {
     std::vector<Particle> pars = cells.getParticles();
     for (auto &p: pars) {
         if (p.getX()[0] > 10) {
-            std::array<double, 3> comp = calc->calculateF(p2,p1Ghost);
+            std::array<double, 3> comp = calc->calculateF(p2, p1Ghost);
             EXPECT_TRUE(p.getF() == comp);
         }
     }
+}
+
+TEST(LinkedCells, insert) {
+    std::array<int, 3> bounds = {0, 0, 0};
+    auto cells = LinkedCells({2, 2, 0}, 3, 3, 0, bounds);
+    auto p1 = Particle({3.5, 14.5, 0}, {0, 0, 0}, 1, 0, 1, 5);
+    cells.forceInsert(p1);
+    EXPECT_TRUE(cells.indexGet(25).front() == p1);
+    EXPECT_TRUE(cells.indexGet(cells.coordToIndex({1, 4, 0})).front() == p1);
 }

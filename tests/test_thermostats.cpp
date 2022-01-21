@@ -10,14 +10,17 @@
  * Warms up the simulation and compare the end temperature with the expected temperature
  */
 TEST(Thermostats, warm_up) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
-    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
-    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
+    std::array<int, 3> bounds = {1, 1, 0};
+    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 0, bounds);
+    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 0, 1, 1);
+    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 0, 1, 1);
 
     cells->insert(*p1);
     cells->insert(*p2);
 
-    double delta_t = 1;
+    int count = cells->numberParticles();
+
+    double delta_t = 0.005;
     double end_t = 5;
     int initialTemp = 20;
     int stepSize = 1;
@@ -34,11 +37,13 @@ TEST(Thermostats, warm_up) {
     thermo->adjustTemperature(*cells, current_time);
     while (current_time < end_t) {
         cells->simulate(algorithm, delta_t);
+        count = cells->numberParticles();
         thermo->calcCurrentTemperature(*cells);
         thermo->adjustTemperature(*cells, current_time);
         thermo->calcCurrentTemperature(*cells);
         current_time += delta_t;
     }
+    count = cells->numberParticles();
     EXPECT_NEAR(thermo->getCurrentTemperature(), 40, 0.001);
 }
 
@@ -47,14 +52,15 @@ TEST(Thermostats, warm_up) {
  * we have a multiple of 2 as the end_time
  */
 TEST(Thermostats, warm_up_steps) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
-    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
-    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
+    std::array<int, 3> bounds = {1, 1, 0};
+    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 0, bounds);
+    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 0, 1, 1);
+    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 0, 1, 1);
 
     cells->insert(*p1);
     cells->insert(*p2);
 
-    double delta_t = 1;
+    double delta_t = 0.005;
     double end_t = 6;
     int initialTemp = 20;
     int stepSize = 2;
@@ -84,14 +90,15 @@ TEST(Thermostats, warm_up_steps) {
  * we do not have a multiple of 2 as the end_time
  */
 TEST(Thermostats, warm_up_steps_off) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
-    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
-    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
+    std::array<int, 3> bounds = {1, 1, 0};
+    auto cells = new LinkedCells({40, 40, 0}, 1, 1, 0, bounds);
+    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 0, 1, 1);
+    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 0, 1, 1);
 
     cells->insert(*p1);
     cells->insert(*p2);
 
-    double delta_t = 1;
+    double delta_t = 0.005;
     double end_t = 5;
     int initialTemp = 20;
     int stepSize = 2;
@@ -120,14 +127,15 @@ TEST(Thermostats, warm_up_steps_off) {
  * Cools down the simulation and compare the end temperature with the expected temperature
  */
 TEST(Thermostats, cool_down) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
-    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
-    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
+    std::array<int, 3> bounds = {1,1,0};
+    auto cells = new LinkedCells({40, 40, 0}, 1, 1,0,bounds);
+    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 0,1,1);
+    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 0,1,1);
 
     cells->insert(*p1);
     cells->insert(*p2);
 
-    double delta_t = 1;
+    double delta_t = 0.005;
     double end_t = 5;
     int initialTemp = 40;
     int stepSize = 1;
@@ -157,14 +165,15 @@ TEST(Thermostats, cool_down) {
  * we have a multiple of 2 as the end_time
  */
 TEST(Thermostats, cool_down_steps) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
-    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
-    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
+    std::array<int, 3> bounds = {1,1,0};
+    auto cells = new LinkedCells({40, 40, 0}, 1, 1,0,bounds);
+    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 0, 1,1);
+    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 0,1,1);
 
     cells->insert(*p1);
     cells->insert(*p2);
 
-    double delta_t = 1;
+    double delta_t = 0.005;
     double end_t = 6;
     int initialTemp = 40;
     int stepSize = 2;
@@ -193,14 +202,15 @@ TEST(Thermostats, cool_down_steps) {
  * Hold the temperature of the simulation and compares the end temperature with the initial temperature
  */
 TEST(Thermostats, hold) {
-    auto cells = new LinkedCells({40, 40, 0}, 1, 5);
-    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 1);
-    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 1);
+    std::array<int, 3> bounds = {1,1,0};
+    auto cells = new LinkedCells({40, 40, 0}, 1, 1,0,bounds);
+    auto p1 = new Particle({0, 0, 0}, {0, 1, 0}, 1, 0,1,1);
+    auto p2 = new Particle({1, 1, 0}, {1, 1, 0}, 1, 0,1,1);
 
     cells->insert(*p1);
     cells->insert(*p2);
 
-    double delta_t = 1;
+    double delta_t = 0.005;
     double end_t = 5;
     int initialTemp = 40;
     int stepSize = 1;

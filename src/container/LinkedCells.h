@@ -255,8 +255,6 @@ public:
      */
     bool allInRightCell();
 
-    int coordToIndexNew(std::array<int, 3> coords);
-
     /**
      * Calculates new velocity
      *
@@ -325,6 +323,10 @@ public:
      * Applies gravitational force to all particles
      */
     void applyGravity();
+
+    bool isOutOfScope(Particle &p);
+
+    std::array<double, 3> calculateLJForce(Particle &p1, Particle &p2);
 };
 
 
