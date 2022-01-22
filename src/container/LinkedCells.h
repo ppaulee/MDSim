@@ -11,6 +11,7 @@
 #include "Particle.h"
 #include "forceCalculation/ForceCalculation.h"
 #include "SimulationContainer.h"
+#include "forceCalculation/HarmonicPotential.h"
 
 
 /**
@@ -327,6 +328,16 @@ public:
     bool isOutOfScope(Particle &p);
 
     std::array<double, 3> calculateLJForce(Particle &p1, Particle &p2);
+
+    void simulateMembrane(double delta_t, bool pullState) override;
+
+    /**
+     * Calculates the harmonic potential for all particles
+     *
+     * @param k see harmonic potential
+     * @param r0 see harmonic potential
+     */
+    void calculateHarmonicPotential(double k, double r0);
 };
 
 

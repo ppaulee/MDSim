@@ -79,6 +79,18 @@ void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int
  */
 void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int r, double h, double m, double meanV,
                       int type, SimulationContainer &container);
+/**
+ * Generates a membrane
+ *
+ * @param center center point of the membrane
+ * @param v Initial velocity of all particles
+ * @param dimension Dimensions in x,y,z
+ * @param h Distance h of the particles
+ * @param pull Coordinates of particles which will be pulled
+ * @param m Mass
+ * @param container SiimulationContainer where the particles will be stored in (LinkedCells!)
+ */
+void generateMembrane(std::array<double, 3> center, std::array<double, 3> v,std::array<int, 3> dimension, double h, const std::vector<std::array<int, 3>>& pull, double m, SimulationContainer &container);
 
 /**
  * Generates cubes from input file

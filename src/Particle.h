@@ -10,6 +10,8 @@
 #include <array>
 #include <string>
 #include <math.h>
+#include <vector>
+#include <memory>
 
 class Particle {
 
@@ -30,6 +32,17 @@ private:
     std::array<double, 3> f;
 
     std::array<double, 3> forceBuffer;
+
+    /**
+     * Stores all neighbours in the xy plane (only for membrane)
+     */
+    std::vector<std::reference_wrapper<Particle>> neighbours;
+    std::vector<std::reference_wrapper<Particle>> neighboursDiag;
+
+    /**
+     * Indicates whether this particle should be pulled up in the membrane simulation
+     */
+    bool membranePull;
 
 private:
 
@@ -58,6 +71,7 @@ private:
      * Parameters for Lennard-Jones force calculation
      */
     double sigma, epsilon;
+
 
 public:
     explicit Particle(int type = 0);
@@ -115,6 +129,15 @@ public:
     void setForceBuffer(const std::array<double, 3> &forceBuffer);
 
     const std::array<double, 3> &getForceBuffer() const;
+
+    void addNeighbour(Particle &p, bool diag);
+    std::vector<std::reference_wrapper<Particle>> getNeighbours();
+    std::vector<std::reference_wrapper<Particle>> getNeighboursDiag();
+
+    bool isMembranePull();
+    void setMembranePull();
 };
 
 std::ostream &operator<<(std::ostream &stream, Particle &p);
+
+

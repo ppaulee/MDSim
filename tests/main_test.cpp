@@ -6,6 +6,7 @@
 #include "forceCalculation/LennardJones.cpp"
 #include "forceCalculation/MixedLennardJones.cpp"
 #include "forceCalculation/Gravitation.cpp"
+#include "forceCalculation/HarmonicPotential.cpp"
 #include "container/LinkedCells.cpp"
 #include "../src/outputWriter/vtk-unstructured.cpp"
 #include "../src/outputWriter/VTKWriter.cpp"

@@ -21,3 +21,14 @@ TEST(ForceCalculation, Gravitation) {
     EXPECT_EQ(0.25, vec[1]);
     EXPECT_EQ(0, vec[2]);
 }
+
+// Testing Harmonic Potential against hand-calculated values
+TEST(ForceCalculation, HarmonicPotential) {
+    HarmonicPotential *algorithm = new HarmonicPotential(1, 1);
+    auto *p1 = new Particle({0,0,0},{1,0,0},1,0);
+    auto *p2 = new Particle({0,2,0},{1,1,0},1,0);
+    std::array<double, 3> vec = algorithm->calculateFDiag(*p1, *p2);
+    EXPECT_EQ(0, vec[0]);
+    EXPECT_DOUBLE_EQ(0.58578643762690485, vec[1]);
+    EXPECT_EQ(0, vec[2]);
+}

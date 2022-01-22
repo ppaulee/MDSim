@@ -91,6 +91,66 @@ void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int
     }
 }
 
+void generateMembrane(std::array<double, 3> center, std::array<double, 3> v,std::array<int, 3> dimension, double h, const std::vector<std::array<int, 3>>& pull, double m, SimulationContainer &container) {
+    Particle ps[dimension[0]][dimension[1]][dimension[2]];
+    for (int x = 0; x < dimension[0]; x++) {
+        for (int y = 0; y < dimension[1]; y++) {
+            for (int z = 0; z < dimension[2]; z++) {
+                // Add particle to the grid
+                ps[x][y][z] = Particle({x * h + center[0], y * h + center[1], z * h + center[2]}, v, m, 0, 1, 1);
+            }
+        }
+    }
+
+
+
+    // Indicate that the particles with indices in vector pull should be pulled upwards during the simulation
+    for (auto position : pull) {
+        ps[position[0]][position[1]][position[2]].setMembranePull();
+    }
+
+    for (int x = 0; x < dimension[0]; x++) {
+        for (int y = 0; y < dimension[1]; y++) {
+            for (int z = 0; z < dimension[2]; z++) {
+
+                if (abs(ps[x][y][z].getX()[0] - 120.6) < 1 && abs(ps[x][y][z].getX()[1] - 43.6) < 1) {
+                    std::cout << "test";
+                }
+                // set neighbours
+                // note that only neighbours in the xy plane matter
+                if (x != dimension[0]-1) {
+                    ps[x][y][z].addNeighbour(ps[x+1][y][z], false);
+                }
+                if (x != 0) {
+                    ps[x][y][z].addNeighbour(ps[x-1][y][z], false);
+                }
+                if (y != dimension[1]-1) {
+                    ps[x][y][z].addNeighbour(ps[x][y+1][z], false);
+                }
+                if (y != 0) {
+                    ps[x][y][z].addNeighbour(ps[x][y-1][z], false);
+                }
+                if (x != 0 && y != 0) {
+                    ps[x][y][z].addNeighbour(ps[x-1][y-1][z], true);
+                }
+                if (x != dimension[0]-1 && y != dimension[1]-1) {
+                    ps[x][y][z].addNeighbour(ps[x+1][y+1][z], true);
+                }
+                if (x != 0 && y != dimension[1]-1) {
+                    ps[x][y][z].addNeighbour(ps[x-1][y+1][z], true);
+                }
+                if (x != dimension[0]-1 && y != 0) {
+                    ps[x][y][z].addNeighbour(ps[x+1][y-1][z], true);
+                }
+
+                // add to simulation contaienr
+                container.forceInsert(ps[x][y][z]);
+                //std::cout << "X: " << x << " Y: " << y << std::endl;
+            }
+        }
+    }
+}
+
 void generateFromFileTest(SimulationContainer &particles, std::string f) {
     int num = 0;
 
