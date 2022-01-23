@@ -5,7 +5,7 @@
 
 #include "ForceCalculation.h"
 
-class HarmonicPotential : public ForceCalculation {
+class HarmonicPotential {
 public:
     // stiffness constant
     double k;
@@ -13,7 +13,7 @@ public:
     double r0;
     explicit HarmonicPotential(double k, double r0);
 
-    std::array<double, 3> calculateF(Particle p1, Particle p2) override;
+    std::array<double, 3> calculateF(const Particle &p1, const Particle &p2);
 
-    std::array<double, 3> calculateFDiag(Particle p1, Particle p2);
+    std::array<double, 3> calculateFDiag(const Particle &p1, const Particle &p2);
 };

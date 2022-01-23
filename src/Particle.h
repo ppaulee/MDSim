@@ -36,8 +36,11 @@ private:
     /**
      * Stores all neighbours in the xy plane (only for membrane)
      */
-    std::vector<std::reference_wrapper<Particle>> neighbours;
-    std::vector<std::reference_wrapper<Particle>> neighboursDiag;
+    std::vector<std::shared_ptr<Particle>> neighbours;
+    std::vector<std::shared_ptr<Particle>> neighboursDiag;
+
+    //std::vector<const Particle*> neighbours;
+    //std::vector<const Particle*> neighboursDiag;
 
     /**
      * Indicates whether this particle should be pulled up in the membrane simulation
@@ -130,9 +133,10 @@ public:
 
     const std::array<double, 3> &getForceBuffer() const;
 
-    void addNeighbour(Particle &p, bool diag);
-    std::vector<std::reference_wrapper<Particle>> getNeighbours();
-    std::vector<std::reference_wrapper<Particle>> getNeighboursDiag();
+    void addNeighbour(const Particle &p, bool diag);
+
+    std::vector<std::shared_ptr<Particle>> getNeighbours();
+    std::vector<std::shared_ptr<Particle>> getNeighboursDiag();
 
     bool isMembranePull();
     void setMembranePull();

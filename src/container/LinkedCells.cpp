@@ -304,7 +304,7 @@ void LinkedCells::TwoDcalculateF(int x, int y, ForceCalculation *algorithm) {
                 }
             }
         }
-        current_particle.setF({current_particle.getF()[0], current_particle.getF()[1], 0});
+        //current_particle.setF({current_particle.getF()[0], current_particle.getF()[1], 0});
     }
 }
 
@@ -451,7 +451,7 @@ void LinkedCells::simulate(ForceCalculation *algorithm, double delta_t) {
 
 void LinkedCells::simulateMembrane(double delta_t, bool pullState) {
     ForceCalculation *lj = new LennardJones(1,1);
-    std::array<double, 3> f_z_up = {0, 0.8, 0};
+    std::array<double, 3> f_z_up = {0, 0, 0.8};
 
     // calculate new x
     calculateX(delta_t);
@@ -462,21 +462,24 @@ void LinkedCells::simulateMembrane(double delta_t, bool pullState) {
     handleBoundary();
 
     // calculate new f
-    calculateF(lj);
-    calculateHarmonicPotential(300, 2.2);
-
     // Pull the membrane up
     if (pullState) {
         for (auto &vec: particles) {
             for (auto &p: vec) {
                 if (p.isMembranePull()) {
                     p.setF(f_z_up  + p.getF());
+                    //std::cout << "###PULL UP###" << std::endl;
                 }
             }
         }
     }
 
+    calculateF(lj);
+    calculateHarmonicPotential(300, 2.2);
     applyForceBuffer();
+
+
+
     deleteParticlesInHalo();
     if (grav != 0) {
         applyGravity();
@@ -486,30 +489,26 @@ void LinkedCells::simulateMembrane(double delta_t, bool pullState) {
 }
 
 void LinkedCells::calculateHarmonicPotential(double k, double r0) {
-    HarmonicPotential *harmonic = new HarmonicPotential(k,r0);
+    auto harmonic = new HarmonicPotential(k,r0);
     int x = 0;
     for (auto &vec: particles) {
         for (auto &p: vec) {
-            for (auto &neighbour : p.getNeighbours()) {
-                if (x == 18985) {
-                    std::cout << "test";
-                }
-                x++;
-                std::cout << "X: " << p.getX()[0] << " Y: " << p.getX()[1] << " index: " << x << std::endl;
-                if (&neighbour == nullptr)
-                    continue;
-                p.setF(p.getF() + harmonic->calculateF(p, neighbour));
+            bool isna = std::isnan(p.getF()[0]) || std::isnan(p.getF()[1]) || std::isnan(p.getF()[2]);
+
+            x++;
+            if (x == 2454) {
+                //std::cout << "HERE NAN";
+            }
+            for (const auto &neighbour : p.getNeighbours()) {
+                if (neighbour != nullptr)
+                    p.setF(p.getF() + harmonic->calculateF(p, *neighbour));
             }
             for (auto &neighbour : p.getNeighboursDiag()) {
-                if (x == 18985) {
-                    std::cout << "test";
-                }
-                int fd = coordToIndex(getCellCoords(neighbour));
-                x++;
-                std::cout << "X: " << p.getX()[0] << " Y: " << p.getX()[1] << " index: " << x << std::endl;
-                if (&neighbour == nullptr)
-                    continue;
-                p.setF(p.getF() + harmonic->calculateFDiag(p, neighbour));
+                if (neighbour != nullptr)
+                    p.setF(p.getF() + harmonic->calculateFDiag(p, *neighbour));
+            }
+            if ((std::isnan(p.getF()[0]) || std::isnan(p.getF()[1]) || std::isnan(p.getF()[2])) && isna == false) {
+                std::cout << "NAN in calc " << x << std::endl;
             }
         }
     }

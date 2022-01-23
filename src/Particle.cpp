@@ -47,8 +47,6 @@ Particle::Particle(std::array<double, 3> x_arg, std::array<double, 3> v_arg,
     epsilon = epsilon_arg;
     membranePull = false;
 
-    //neighbours.push_back((std::reference_wrapper<Particle>) 0);
-
     std::cout << "Particle generated!" << std::endl;
 }
 
@@ -137,20 +135,36 @@ std::ostream &operator<<(std::ostream &stream, Particle &p) {
     return stream;
 }
 
-void Particle::addNeighbour(Particle &p, bool diag) {
+void Particle::addNeighbour(const Particle &p, bool diag) {
+    /*
     if (diag) {
-        neighboursDiag.emplace_back((std::reference_wrapper<Particle>) p);
+        neighboursDiag.push_back((std::reference_wrapper<Particle>) p);
     } else {
-        neighbours.emplace_back((std::reference_wrapper<Particle>) p);
+        neighbours.push_back((std::reference_wrapper<Particle>) p);
     }
-
+    */
+    if (diag) {
+        neighboursDiag.push_back(std::make_shared<Particle> (p));
+    } else {
+        neighbours.push_back(std::make_shared<Particle> (p));
+    }
 }
 
+/*
 std::vector<std::reference_wrapper<Particle>> Particle::getNeighbours() {
     return neighbours;
 }
 
 std::vector<std::reference_wrapper<Particle>> Particle::getNeighboursDiag() {
+    return neighboursDiag;
+}
+*/
+
+std::vector<std::shared_ptr<Particle>> Particle::getNeighbours() {
+    return neighbours;
+}
+
+std::vector<std::shared_ptr<Particle>> Particle::getNeighboursDiag() {
     return neighboursDiag;
 }
 

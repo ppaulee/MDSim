@@ -32,7 +32,7 @@ double averageV = 0.7;
 std::array<int, 3> dim = {148, 148, 148};
 double mesh = 3;
 double cutOff = 3;
-std::array<int, 3> bound = {2, 1, 0};
+std::array<int, 3> bound = {2, 2, 2};
 SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -0.001, bound);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
@@ -187,7 +187,25 @@ int main(int argc, char *argsv[]) {
     }
 
     //TODO
-    std::array<double, 3> center = {15,15,1.5};
+    auto cells = new LinkedCells({144, 144, 144}, 4, 4);
+
+    std::vector<std::array<int, 3>> pull;
+    std::array<double, 3> center = {15,15,50};
+    std::array<double, 3> v = {0,0,0};
+    std::array<int, 3> dim_ = {5,5,1};
+    generateMembrane(center, v, dim_, 5, pull, 1,*cells);
+
+    int index = 0;
+    for (auto &p : cells->getParticles()) {
+        auto coords = p.getX();
+        std::cout << coords[0] << "|" << coords[1] << "|" << coords[2] << std::endl;
+        index++;
+    }
+    return 1;
+
+    /*
+
+    std::array<double, 3> center = {15,15,50};
     //std::vector<std::array<int, 3>> pull = {{17,24,0}, {17,25,0} ,{18,24,0} ,{18,25,0}};
     std::vector<std::array<int, 3>> pull;
     pull.push_back({17,24,0});
@@ -196,6 +214,8 @@ int main(int argc, char *argsv[]) {
     pull.push_back({18,25,0});
     std::array<double, 3> v = {0,0,0};
     std::array<int, 3> dim_ = {50,50,1};
+     */
+
     generateMembrane(center, v, dim_, 2.2, pull, 1,*particles);
     if (benchmark_active) {
         beginAfterIO = std::chrono::steady_clock::now();
