@@ -10,7 +10,7 @@
 #include "MolSimImpl.h"
 #include <iostream>
 
-library::molsim generateFromXML(std::string xmlInput){
+library::molsim generateFromXML(const std::string& xmlInput){
     library::molsim m;
     try {
         // Instantiate individual parsers.
@@ -25,6 +25,7 @@ library::molsim generateFromXML(std::string xmlInput){
         ::algorithm_pimpl algorithm_p;
         ::simulationContainer_pimpl simulationContainer_p;
         ::boundaryConditions_pimpl boundaryConditions_p;
+        ::boundary_pimpl boundary_p;
         ::dimension_pimpl dimension_p;
         ::containerAlgorithm_pimpl containerAlgorithm_p;
         ::particles_pimpl particles_p;
@@ -33,6 +34,7 @@ library::molsim generateFromXML(std::string xmlInput){
         ::velocity_pimpl velocity_p;
         ::Sphere_pimpl Sphere_p;
         ::thermostats_pimpl thermostats_p;
+        ::parallelizationStrategy_pimpl parallelizationStrategy_p;
         ::benchmark_pimpl benchmark_p;
 
         // Connect the parsers together.
@@ -49,6 +51,7 @@ library::molsim generateFromXML(std::string xmlInput){
                          simulationContainer_p,
                          particles_p,
                          thermostats_p,
+                         parallelizationStrategy_p,
                          benchmark_p);
 
         simulationContainer_p.parsers(boundaryConditions_p,
@@ -56,6 +59,10 @@ library::molsim generateFromXML(std::string xmlInput){
                                       double_p,
                                       double_p,
                                       containerAlgorithm_p);
+
+        boundaryConditions_p.parsers (boundary_p,
+                                      boundary_p,
+                                      boundary_p);
 
         dimension_p.parsers(int_p,
                             int_p,

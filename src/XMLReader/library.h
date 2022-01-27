@@ -32,6 +32,10 @@ namespace library
 
     //
     //
+    typedef int boundary;
+
+    //
+    //
     typedef std::string benchmark;
 
     //
@@ -156,7 +160,43 @@ namespace library
 
     //
     //
-    typedef std::string boundaryConditions;
+    struct boundaryConditions
+    {
+    public:
+        const library::boundary
+        x () const
+        {
+            return xBoundary_;
+        }
+        void x (const library::boundary& x)
+        {
+            xBoundary_ = x;
+        }
+
+        const library::boundary
+        y () const
+        {
+            return yBoundary_;
+        }
+        void y (const library::boundary& y)
+        {
+            yBoundary_ = y;
+        }
+
+        const library::boundary
+        z () const
+        {
+            return zBoundary_;
+        }
+        void z (const library::boundary& z)
+        {
+            zBoundary_ = z;
+        }
+    private:
+        library::boundary xBoundary_;
+        library::boundary yBoundary_;
+        library::boundary zBoundary_;
+    };
 
     //
     //
@@ -503,6 +543,10 @@ namespace library
         int stepSize_;
     };
 
+    //
+    //
+    typedef int parallelizationStrategy;
+
 
 
     struct molsim
@@ -635,6 +679,16 @@ namespace library
             thermostats_=t;
         }
 
+        library::parallelizationStrategy
+        parStrat()const
+        {
+            return parallelizationStrategy_;
+        }
+        void
+        parStrat(const library::parallelizationStrategy& p){
+            parallelizationStrategy_=p;
+        }
+
         library::benchmark
         benchmark()const
         {
@@ -657,6 +711,7 @@ namespace library
         library::simulationContainer simulationContainer_;
         library::particles particles_;
         library::thermostats thermostats_;
+        library::parallelizationStrategy parallelizationStrategy_;
         library::benchmark benchmark_;
     };
 

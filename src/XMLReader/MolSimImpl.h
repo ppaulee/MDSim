@@ -133,7 +133,39 @@ class containerAlgorithm_pimpl: public virtual containerAlgorithm_pskel,
 
   virtual library::containerAlgorithm
   post_containerAlgorithm ();
+};
 
+class boundary_pimpl: public virtual boundary_pskel,
+                      public ::xml_schema::int_pimpl
+{
+public:
+    virtual void
+    pre ();
+
+    virtual library::boundary
+    post_boundary ();
+};
+
+class boundaryConditions_pimpl: public virtual boundaryConditions_pskel
+{
+public:
+    virtual void
+    pre ();
+
+    virtual void
+    xBoundary (library::boundary);
+
+    virtual void
+    yBoundary (library::boundary);
+
+    virtual void
+    zBoundary (library::boundary);
+
+    virtual library::boundaryConditions
+    post_boundaryConditions ();
+
+private:
+    library::boundaryConditions boundaryConditions_;
 };
 
 class simulationContainer_pimpl: public virtual simulationContainer_pskel
@@ -162,17 +194,6 @@ class simulationContainer_pimpl: public virtual simulationContainer_pskel
 
 private:
     library::simulationContainer simulationContainer_;
-};
-
-class boundaryConditions_pimpl: public virtual boundaryConditions_pskel,
-  public ::xml_schema::string_pimpl
-{
-  public:
-  virtual void
-  pre ();
-
-  virtual library::boundaryConditions
-  post_boundaryConditions ();
 };
 
 class benchmark_pimpl: public virtual benchmark_pskel,
@@ -298,6 +319,18 @@ private:
     library::thermostats thermostats_;
 };
 
+class parallelizationStrategy_pimpl: public virtual parallelizationStrategy_pskel,
+                                     public ::xml_schema::int_pimpl
+{
+public:
+    virtual void
+    pre ();
+
+    virtual library::parallelizationStrategy
+    post_parallelizationStrategy ();
+};
+
+
 class molsim_pimpl: public virtual molsim_pskel
 {
   public:
@@ -339,6 +372,9 @@ class molsim_pimpl: public virtual molsim_pskel
 
   virtual void
   thermostats (library::thermostats);
+
+  virtual void
+  parallelizationStrategy (library::parallelizationStrategy);
 
   virtual void
   benchmark (library::benchmark);
