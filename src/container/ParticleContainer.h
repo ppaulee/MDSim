@@ -74,5 +74,7 @@ public:
     int numberParticles() override;
 
     void scaleVelocity(double scale) override;
+
+    void simulateMembrane(double delta_t, bool pullState) override;
 };
 

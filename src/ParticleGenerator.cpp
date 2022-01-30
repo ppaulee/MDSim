@@ -91,6 +91,56 @@ void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int
     }
 }
 
+void generateMembrane(std::array<double, 3> center, std::array<double, 3> v,std::array<int, 3> dimension, double h, const std::vector<std::array<int, 3>>& pull, double m, SimulationContainer &container) {
+    Particle ps[dimension[0]][dimension[1]];
+    for (int x = 0; x < dimension[0]; x++) {
+        for (int y = 0; y < dimension[1]; y++) {
+            // Add particle to the grid
+            ps[x][y] = Particle({x * h + center[0], y * h + center[1], center[2]}, v, m, 0, 1, 1);
+        }
+    }
+
+    // Indicate that the particles with indices in vector pull should be pulled upwards during the simulation
+    for (auto position : pull) {
+        ps[position[0]][position[1]].setMembranePull();
+    }
+
+    for (int x = 0; x < dimension[0]; x++) {
+        for (int y = 0; y < dimension[1]; y++) {
+            // set neighbours
+            // note that only neighbours in the xy plane matter
+            if (x < dimension[0]-1) {
+                ps[x][y].addNeighbour(ps[x+1][y], false);
+            }
+            if (x > 0) {
+                ps[x][y].addNeighbour(ps[x-1][y], false);
+            }
+            if (y < dimension[1]-1) {
+                ps[x][y].addNeighbour(ps[x][y+1], false);
+            }
+            if (y > 0) {
+                ps[x][y].addNeighbour(ps[x][y-1], false);
+            }
+
+            if (x > 0 && y > 0) {
+                ps[x][y].addNeighbour(ps[x-1][y-1], true);
+            }
+            if (x < dimension[0]-1 && y < dimension[1]-1) {
+                ps[x][y].addNeighbour(ps[x+1][y+1], true);
+            }
+            if (x > 0 && y < dimension[1]-1) {
+                ps[x][y].addNeighbour(ps[x-1][y+1], true);
+            }
+            if (x < dimension[0]-1 && y > 0) {
+                ps[x][y].addNeighbour(ps[x+1][y-1], true);
+            }
+            // add to simulation contaienr
+            container.forceInsert(ps[x][y]);
+            //std::cout << "X: " << x << " Y: " << y << std::endl;
+        }
+    }
+}
+
 void generateFromFileTest(SimulationContainer &particles, std::string f) {
     int num = 0;
 

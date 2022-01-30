@@ -19,6 +19,7 @@ std::array<double, 3> LennardJones::calculateF(Particle p1, Particle p2) {
     return vec;
 }
 
+
 LennardJones::LennardJones(double epsilon, double sigma, int type) : epsilon(epsilon), sigma(sigma), type(type) {}
 
 double LennardJones::getEpsilon() const {

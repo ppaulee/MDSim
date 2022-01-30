@@ -1,9 +1,7 @@
 //
 // Created by Jonas on 13.11.21.
 //
-
-#ifndef PSEMOLDYN_GROUPB_LENNARDJONES_H
-#define PSEMOLDYN_GROUPB_LENNARDJONES_H
+#pragma once
 
 
 #include "ForceCalculation.h"
@@ -40,5 +38,3 @@ public:
     std::array<double, 3> calculateF(Particle p1, Particle p2);
 };
 
-
-#endif //PSEMOLDYN_GROUPB_LENNARDJONES_H

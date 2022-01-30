@@ -4,6 +4,7 @@
 #include "container/LinkedCells.h"
 #include "forceCalculation/Gravitation.h"
 #include "forceCalculation/LennardJones.h"
+#include "forceCalculation/HarmonicPotential.h"
 #include "XMLReader/driver.h"
 #include "XMLReader/library.h"
 #include "Log.h"
@@ -28,11 +29,12 @@ double sigma = 1.2;
 // Brownian Motion average velocity
 double averageV = 0.7;
 
-std::array<int, 3> dim = {302, 180, 0};
+std::array<int, 3> dim = {148, 148, 148};
 double mesh = 3;
 double cutOff = 3;
-std::array<int, 3> bound = {2, 1, 0};
-SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -12.44, bound);
+std::array<int, 3> bound = {2, 2, 2};
+bool simuMembrane = true;
+SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -0.001, bound);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
@@ -55,7 +57,6 @@ int main(int argc, char *argsv[]) {
         printHelp();
         return 1;
     }
-
     bool cuboids = false;
     std::string file;
     int c;
@@ -191,6 +192,22 @@ int main(int argc, char *argsv[]) {
         particles->addBrownianMotion(averageV, 2);
     }
 
+    if (simuMembrane) {
+        std::array<double, 3> center = {15,15,50};
+        std::vector<std::array<int, 3>> pull;
+        pull.push_back({17,24,0});
+        pull.push_back({17,25,0});
+        pull.push_back({18,24,0});
+        pull.push_back({18,25,0});
+        std::array<double, 3> v = {0,0,0};
+        std::array<int, 3> dim_ = {50,50,1};
+        generateMembrane(center, v, dim_, 2.2, pull, 1,*particles);
+    }
+
+
+
+
+
     if (benchmark_active) {
         beginAfterIO = std::chrono::steady_clock::now();
     }
@@ -211,19 +228,35 @@ int main(int argc, char *argsv[]) {
         dimensions = 2;
     }
 
-    auto thermostat = new Thermostats(*particles, delta_t, end_time, initial_temp, stepSize, dimensions, target_temp,
-                                      max_delta_temp);
+    Thermostats* thermostat;
+    if (!simuMembrane) {
+        thermostat = new Thermostats(*particles, delta_t, end_time, initial_temp, stepSize, dimensions, target_temp,
+                                          max_delta_temp);
 
-    thermostat->calcCurrentTemperature(*particles);
-    thermostat->adjustTemperature(*particles, current_time);
-
-    while (current_time < end_time) {
-        std::cout << "Number particles: " << particles->numberParticles() << "\n";
-        particles->simulate(algorithm, delta_t);
-        // Control temperature
         thermostat->calcCurrentTemperature(*particles);
         thermostat->adjustTemperature(*particles, current_time);
-        thermostat->calcCurrentTemperature(*particles);
+    }
+
+
+    bool pullState = true;
+    while (current_time < end_time) {
+       std::cout << "Number particles: " << particles->numberParticles() << "\n";
+        if (iteration >= 15000) {
+            pullState = false;
+        }
+        if (simuMembrane) {
+            particles->simulateMembrane(delta_t, pullState);
+        } else {
+            particles->simulate(algorithm, delta_t);
+        }
+
+        // Control temperature
+        if (!simuMembrane) {
+            thermostat->calcCurrentTemperature(*particles);
+            thermostat->adjustTemperature(*particles, current_time);
+            thermostat->calcCurrentTemperature(*particles);
+        }
+
 
         iteration++;
         if (iteration % outputStep == 0 && !benchmark_active) {
@@ -264,3 +297,4 @@ void printHelp() {
     LOGC_INFO("Possible Algorithms: sv (Stoermer Verlet), lj (Lennard Jones, generates cuboids)");
     LOGC_INFO("Benchmark: Disables writing files and benchmarks the program");
 }
+

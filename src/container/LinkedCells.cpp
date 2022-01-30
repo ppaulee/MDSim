@@ -87,7 +87,9 @@ void LinkedCells::insert(Particle &p) {
         p.setX(tmp + p.getX());
     }
     if (forceCalcs.size() == p.getType()) {
-        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        //forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        //TODO HANDLING
+        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma()));
         reflectionDistance.push_back((cbrt(sqrt(2)) * p.getSigma()) / 2);
         if (forceCalcs.size() >= 1) {
             for (auto &calc: forceCalcs) {
@@ -105,7 +107,12 @@ void LinkedCells::insert(Particle &p) {
 
 void LinkedCells::forceInsert(Particle &p) {
     if (forceCalcs.size() == p.getType()) {
-        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        if (membraneSimulation) {
+            forceCalcs.push_back(TruncatedLennardJones(0, 0, 0, p.getEpsilon(), p.getSigma()));
+        } else {
+            forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        }
+
         reflectionDistance.push_back((cbrt(sqrt(2)) * p.getSigma()) / 2);
         if (forceCalcs.size() >= 1) {
             for (auto &calc: forceCalcs) {
@@ -246,7 +253,6 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
             } else {
                 for (int z = 0; z < dimensions[2] - 1; ++z) {
                     ThreeDcalculateF(x, y, z, algorithm);
-
                 }
             }
 
@@ -304,7 +310,7 @@ void LinkedCells::TwoDcalculateF(int x, int y, ForceCalculation *algorithm) {
                 }
             }
         }
-        current_particle.setF({current_particle.getF()[0], current_particle.getF()[1], 0});
+        //current_particle.setF({current_particle.getF()[0], current_particle.getF()[1], 0});
     }
 }
 
@@ -381,7 +387,7 @@ void LinkedCells::calculateX(double delta_t) {
             res = res + res2;
 
             p.setX(res + p.getX());
-            p.setX({p.getX()[0], p.getX()[1], 0});
+            // p.setX({p.getX()[0], p.getX()[1], 0});
         }
     }
 }
@@ -447,6 +453,68 @@ void LinkedCells::simulate(ForceCalculation *algorithm, double delta_t) {
     }
     // calculate new v
     calculateV(delta_t);
+}
+
+void LinkedCells::simulateMembrane(double delta_t, bool pullState) {
+    ForceCalculation *lj = new TruncatedLennardJones(0, 0, 0, 1, 1);
+    std::array<double, 3> f_z_up = {0, 0, 0.8};
+    std::array<double, 3> f_z_up_mul = {0, 0, 1.8};
+    // calculate new x
+    calculateX(delta_t);
+    //deleteParticlesInHalo();
+    // moves particles to correct cell
+    move();
+
+    //handleBoundary();
+
+    // calculate new f
+    // Pull the membrane up
+    calculateF(lj);
+
+    if (pullState) {
+        for (auto &vec: particles) {
+            for (auto &p: vec) {
+                if (p.isMembranePull()) {
+                    p.setF(f_z_up  + p.getF());
+                    //p.setF(f_z_up_mul  * p.getF());
+                }
+            }
+        }
+    }
+
+    calculateHarmonicPotential(300, 2.2);
+    applyForceBuffer();
+
+
+
+    deleteParticlesInHalo();
+    if (grav != 0) {
+        applyGravity();
+    }
+    // calculate new v
+    calculateV(delta_t);
+}
+
+void LinkedCells::calculateHarmonicPotential(double k, double r0) {
+    auto harmonic = new HarmonicPotential(k,r0);
+
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
+            bool isna = std::isnan(p.getF()[0]) || std::isnan(p.getF()[1]) || std::isnan(p.getF()[2]);
+
+            for (const auto &neighbour : p.getNeighbours()) {
+                if (neighbour != nullptr)
+                    p.setF(p.getF() + harmonic->calculateF(p, *neighbour));
+            }
+            for (auto &neighbour : p.getNeighboursDiag()) {
+                if (neighbour != nullptr)
+                    p.setF(p.getF() + harmonic->calculateFDiag(p, *neighbour));
+            }
+            if ((std::isnan(p.getF()[0]) || std::isnan(p.getF()[1]) || std::isnan(p.getF()[2])) && isna == false) {
+                std::cout << "NAN in calc " << std::endl;
+            }
+        }
+    }
 }
 
 void LinkedCells::applyForceBuffer() {
@@ -646,6 +714,7 @@ void LinkedCells::plotParticles(int iteration) {
         for (auto &p: vec) {
 
             std::array<double, 3> tmp;
+            /*
             if (dimensions[2] == 0) {
                 // Transfer the coordinates back to original scheme
                 tmp = {(double) dimensions[0] / 2, (double) dimensions[1] / 2, 0};
@@ -655,9 +724,10 @@ void LinkedCells::plotParticles(int iteration) {
                 tmp = {(double) dimensions[0] / 2, (double) dimensions[1] / 2, (double) dimensions[2] / 2};
                 p.setX((std::array<double, 3>) (p.getX() - tmp));
             }
+             */
             writer.plotParticle(p);
             // Transfer the coordinates back to calculate them correctly again
-            p.setX((std::array<double, 3>) (p.getX() + tmp));
+            //p.setX((std::array<double, 3>) (p.getX() + tmp));
         }
 
     }
@@ -752,6 +822,11 @@ std::vector<Particle> LinkedCells::getParticles() {
     }
     return res;
 }
+
+void LinkedCells::setMembraneSimulation() {
+    membraneSimulation = true;
+}
+
 
 
 
