@@ -222,6 +222,57 @@ post_containerAlgorithm ()
   //
 }
 
+
+// boundary_pimpl
+//
+
+void boundary_pimpl::
+pre ()
+{
+}
+
+library::boundary boundary_pimpl::
+post_boundary ()
+{
+    int v (post_int ());
+
+    // TODO
+    return v;
+    //
+}
+
+// boundaryConditions_pimpl
+//
+
+void boundaryConditions_pimpl::
+pre ()
+{
+}
+
+void boundaryConditions_pimpl::
+xBoundary (library::boundary b)
+{
+    boundaryConditions_.x(b);
+}
+
+void boundaryConditions_pimpl::
+yBoundary (library::boundary b)
+{
+    boundaryConditions_.y(b);
+}
+
+void boundaryConditions_pimpl::
+zBoundary (library::boundary b)
+{
+    boundaryConditions_.z(b);
+}
+
+library::boundaryConditions boundaryConditions_pimpl::
+post_boundaryConditions ()
+{
+    return boundaryConditions_;
+}
+
 // simulationContainer_pimpl
 //
 
@@ -269,24 +320,6 @@ post_simulationContainer ()
 {
     return simulationContainer_;
 }
-
-// boundaryConditions_pimpl
-//
-
-void boundaryConditions_pimpl::
-pre ()
-{
-}
-
-library::boundaryConditions boundaryConditions_pimpl::
-post_boundaryConditions ()
-{
-  // TODO
-  return post_string();
-  //
-}
-
-
 
 // Cube_pimpl
 //
@@ -482,6 +515,24 @@ post_thermostats ()
     return thermostats_;
 }
 
+// parallelizationStrategy_pimpl
+//
+
+void parallelizationStrategy_pimpl::
+pre ()
+{
+}
+
+library::parallelizationStrategy parallelizationStrategy_pimpl::
+post_parallelizationStrategy ()
+{
+    int v (post_int ());
+
+    // TODO
+    return v;
+    //
+}
+
 // molsim_pimpl
 //
 
@@ -568,6 +619,12 @@ void molsim_pimpl::
 thermostats (library::thermostats t)
 {
     molsim_.thermostats(t);
+}
+
+void molsim_pimpl::
+parallelizationStrategy (library::parallelizationStrategy p)
+{
+    molsim_.parStrat(p);
 }
 
 void molsim_pimpl::

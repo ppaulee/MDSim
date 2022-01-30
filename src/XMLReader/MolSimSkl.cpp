@@ -157,6 +157,45 @@ velocity_pskel ()
 {
 }
 
+// boundaryConditions_pskel
+//
+
+void boundaryConditions_pskel::
+xBoundary_parser (::boundary_pskel& p)
+{
+    this->xBoundary_parser_ = &p;
+}
+
+void boundaryConditions_pskel::
+yBoundary_parser (::boundary_pskel& p)
+{
+    this->yBoundary_parser_ = &p;
+}
+
+void boundaryConditions_pskel::
+zBoundary_parser (::boundary_pskel& p)
+{
+    this->zBoundary_parser_ = &p;
+}
+
+void boundaryConditions_pskel::
+parsers (::boundary_pskel& xBoundary,
+         ::boundary_pskel& yBoundary,
+         ::boundary_pskel& zBoundary)
+{
+    this->xBoundary_parser_ = &xBoundary;
+    this->yBoundary_parser_ = &yBoundary;
+    this->zBoundary_parser_ = &zBoundary;
+}
+
+boundaryConditions_pskel::
+boundaryConditions_pskel ()
+        : xBoundary_parser_ (0),
+          yBoundary_parser_ (0),
+          zBoundary_parser_ (0)
+{
+}
+
 // simulationContainer_pskel
 //
 
@@ -518,6 +557,12 @@ thermostats_parser (::thermostats_pskel& p)
 }
 
 void molsim_pskel::
+parallelizationStrategy_parser (::parallelizationStrategy_pskel& p)
+{
+    this->parallelizationStrategy_parser_ = &p;
+}
+
+void molsim_pskel::
 benchmark_parser (::benchmark_pskel& p)
 {
   this->benchmark_parser_ = &p;
@@ -536,6 +581,7 @@ parsers (::xml_schema::string_pskel& input_file,
          ::simulationContainer_pskel& simulationContainer,
          ::particles_pskel& particles,
          ::thermostats_pskel& thermostats,
+         ::parallelizationStrategy_pskel& parallelizationStrategy,
          ::benchmark_pskel& benchmark)
 {
   this->input_file_parser_ = &input_file;
@@ -550,6 +596,7 @@ parsers (::xml_schema::string_pskel& input_file,
   this->simulationContainer_parser_ = &simulationContainer;
   this->particles_parser_ = &particles;
   this->thermostats_parser_ = &thermostats;
+  this->parallelizationStrategy_parser_ = &parallelizationStrategy;
   this->benchmark_parser_ = &benchmark;
 }
 
@@ -567,6 +614,7 @@ molsim_pskel ()
   simulationContainer_parser_ (0),
   particles_parser_ (0),
   thermostats_parser_ (0),
+  parallelizationStrategy_parser_ (0),
   benchmark_parser_ (0)
 {
 }
@@ -874,6 +922,107 @@ _end_element_impl (const ::xml_schema::ro_string& ns,
 
 // simulationContainer_pskel
 //
+
+// boundaryConditions_pskel
+//
+
+void boundaryConditions_pskel::
+xBoundary (library::boundary)
+{
+}
+
+void boundaryConditions_pskel::
+yBoundary (library::boundary)
+{
+}
+
+void boundaryConditions_pskel::
+zBoundary (library::boundary)
+{
+}
+
+bool boundaryConditions_pskel::
+_start_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n,
+                     const ::xml_schema::ro_string* t)
+{
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+        return true;
+
+    if (n == "xBoundary" && ns.empty ())
+    {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->xBoundary_parser_;
+
+        if (this->xBoundary_parser_)
+            this->xBoundary_parser_->pre ();
+
+        return true;
+    }
+
+    if (n == "yBoundary" && ns.empty ())
+    {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->yBoundary_parser_;
+
+        if (this->yBoundary_parser_)
+            this->yBoundary_parser_->pre ();
+
+        return true;
+    }
+
+    if (n == "zBoundary" && ns.empty ())
+    {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->zBoundary_parser_;
+
+        if (this->zBoundary_parser_)
+            this->zBoundary_parser_->pre ();
+
+        return true;
+    }
+
+    return false;
+}
+
+bool boundaryConditions_pskel::
+_end_element_impl (const ::xml_schema::ro_string& ns,
+                   const ::xml_schema::ro_string& n)
+{
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+        return true;
+
+    if (n == "xBoundary" && ns.empty ())
+    {
+        if (this->xBoundary_parser_)
+        {
+            this->xBoundary (this-> xBoundary_parser_ -> post_boundary());
+        }
+
+        return true;
+    }
+
+    if (n == "yBoundary" && ns.empty ())
+    {
+        if (this->yBoundary_parser_)
+        {
+            this->yBoundary (this->yBoundary_parser_->post_boundary ());
+        }
+
+        return true;
+    }
+
+    if (n == "zBoundary" && ns.empty ())
+    {
+        if (this->zBoundary_parser_)
+        {
+            this->zBoundary (this->zBoundary_parser_->post_boundary ());
+        }
+
+        return true;
+    }
+
+    return false;
+}
 
 void simulationContainer_pskel::
 boundaryConditions (const ::library::boundaryConditions)
@@ -1673,6 +1822,11 @@ thermostats (::library::thermostats)
 }
 
 void molsim_pskel::
+parallelizationStrategy (::library::parallelizationStrategy)
+{
+}
+
+void molsim_pskel::
 benchmark (::library::benchmark)
 {
 }
@@ -1807,6 +1961,16 @@ _start_element_impl (const ::xml_schema::ro_string& ns,
     return true;
   }
 
+  if (n == "parallelizationStrategy" && ns.empty ())
+  {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->parallelizationStrategy_parser_;
+
+       if (this->parallelizationStrategy_parser_)
+           this->parallelizationStrategy_parser_->pre ();
+
+       return true;
+  }
+
   if (n == "benchmark" && ns.empty ())
   {
     this->::xml_schema::complex_content::context_.top ().parser_ = this->benchmark_parser_;
@@ -1937,6 +2101,16 @@ _end_element_impl (const ::xml_schema::ro_string& ns,
     }
 
     return true;
+  }
+
+  if (n == "parallelizationStrategy" && ns.empty ())
+  {
+        if (this->parallelizationStrategy_parser_)
+        {
+            this->parallelizationStrategy (this->parallelizationStrategy_parser_->post_parallelizationStrategy ());
+        }
+
+        return true;
   }
 
   if (n == "benchmark" && ns.empty ())

@@ -39,9 +39,10 @@ SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -0.001, boun
 ForceCalculation *algorithm = nullptr;
 
 //thermostats variables
-double initial_temp = 20;
-int stepSize = 1;
-double target_temp = 1000;
+double initial_temp = 0.5;
+int stepSize = 1000;
+double target_temp = 0.5;
+// TODO Dieser Parameter ist optional, wenn nicht angegeben wird -1 übergeben
 double max_delta_temp = -1;
 
 // Variables for the benchmark
@@ -86,10 +87,10 @@ int main(int argc, char *argsv[]) {
             std::cout << "container: " << m.simu().containerAlgorithm() << "\n";
             if (m.simu().containerAlgorithm() == std::string("linkedCells")) {
                 dim = {m.simu().dimension().x(), m.simu().dimension().y(), m.simu().dimension().z()};
-                std::array<int, 3> bounds = {1, 1, 1};
-                particles = new LinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bounds);
+                bound = {m.simu().boundaryConditions().x(), m.simu().boundaryConditions().y(), m.simu().boundaryConditions().z()};
+                particles = new LinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bound);
             } else if (m.simu().containerAlgorithm() == std::string("naiv")) {
-                //TODO make naive container here
+                algorithm = new Gravitation();
             } else {
                 LOGC_ERROR("Error: container algorithm doesnt fit, -naiv or -linkedCells");
             }
@@ -105,6 +106,9 @@ int main(int argc, char *argsv[]) {
             if (m.benchmark() == std::string("yes")) {
                 benchmark_active = true;
             }
+
+            //parallelization strategy
+            //parallelstrategy = m.parStrat()
 
             //  generate particle from xml
             int currentType = 0;
@@ -131,6 +135,7 @@ int main(int argc, char *argsv[]) {
                 * end setting values from xml for simulation
                 */
             }
+            particles->addBrownianMotion(averageV, 2);
             break;
         }
         if (c == 'f') {
@@ -179,8 +184,8 @@ int main(int argc, char *argsv[]) {
 
         generateCube({250, 50, 1}, {7.5, 8, 0}, 1.2, 1, {0, 0, 0}, 0, 0, 1.2, 1, *particles);
 
-        //generateCube({50, 14, 1}, {5.6, 7, 0}, 1.2, 1, {0, 0, 0}, 1.2, 0, 1, 1, *particles);
-        // generateCube({50, 14, 1}, {5.6, 24, 0}, 1.2, 2, {0, 0, 0}, 1.2, 1, 0.9412, 1, *particles);
+        //generateCube({4, 4, 1}, {5.6, 7, 0}, 1.2, 1, {0, 0, 0}, 1.2, 0, 1, 1, *particles);
+        //generateCube({4, 4, 1}, {5.6, 9, 0}, 1.2, 2, {0, 0, 0}, 1.2, 1, 0.9412, 1, *particles);
 
         //generateCube({2, 2, 1}, {15, 15, 0}, 1.1225, 1, {-10, 0, 0}, averageV, 0, 1, 5, *particles);
 
@@ -222,22 +227,6 @@ int main(int argc, char *argsv[]) {
     if (dim[0] == 0) {
         dimensions = 2;
     }
-    // TODO set to XML values
-    /*
-    <xsd:complexType name="thermostats">
-        <xsd:sequence>
-            <xsd:element name="initialTemperature" type="xsd:double"/>
-            <xsd:element name="targetTemperature" type="xsd:double"/>
-            <xsd:element name="maxDelta" type="xsd:double"/>
-            <xsd:element name="stepSize" type="xsd:int"/>
-        </xsd:sequence>
-    </xsd:complexType>
-     **/
-    initial_temp = 80;
-    stepSize = 1000;
-    target_temp = 80;
-    // TODO Dieser Parameter ist optional, wenn nicht angegeben wird -1 übergeben
-    max_delta_temp = -1;
 
     Thermostats* thermostat;
     if (!simuMembrane) {
