@@ -33,6 +33,7 @@ std::array<int, 3> dim = {148, 148, 148};
 double mesh = 3;
 double cutOff = 3;
 std::array<int, 3> bound = {2, 2, 2};
+bool simuMembrane = true;
 SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -0.001, bound);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
@@ -186,37 +187,22 @@ int main(int argc, char *argsv[]) {
         particles->addBrownianMotion(averageV, 2);
     }
 
-    //TODO
-    auto cells = new LinkedCells({144, 144, 144}, 4, 4);
-
-    std::vector<std::array<int, 3>> pull;
-    std::array<double, 3> center = {15,15,50};
-    std::array<double, 3> v = {0,0,0};
-    std::array<int, 3> dim_ = {5,5,1};
-    generateMembrane(center, v, dim_, 5, pull, 1,*cells);
-
-    int index = 0;
-    for (auto &p : cells->getParticles()) {
-        auto coords = p.getX();
-        std::cout << coords[0] << "|" << coords[1] << "|" << coords[2] << std::endl;
-        index++;
+    if (simuMembrane) {
+        std::array<double, 3> center = {15,15,50};
+        std::vector<std::array<int, 3>> pull;
+        pull.push_back({17,24,0});
+        pull.push_back({17,25,0});
+        pull.push_back({18,24,0});
+        pull.push_back({18,25,0});
+        std::array<double, 3> v = {0,0,0};
+        std::array<int, 3> dim_ = {50,50,1};
+        generateMembrane(center, v, dim_, 2.2, pull, 1,*particles);
     }
-    return 1;
 
-    /*
 
-    std::array<double, 3> center = {15,15,50};
-    //std::vector<std::array<int, 3>> pull = {{17,24,0}, {17,25,0} ,{18,24,0} ,{18,25,0}};
-    std::vector<std::array<int, 3>> pull;
-    pull.push_back({17,24,0});
-    pull.push_back({17,25,0});
-    pull.push_back({18,24,0});
-    pull.push_back({18,25,0});
-    std::array<double, 3> v = {0,0,0};
-    std::array<int, 3> dim_ = {50,50,1};
-     */
 
-    generateMembrane(center, v, dim_, 2.2, pull, 1,*particles);
+
+
     if (benchmark_active) {
         beginAfterIO = std::chrono::steady_clock::now();
     }
@@ -253,11 +239,15 @@ int main(int argc, char *argsv[]) {
     // TODO Dieser Parameter ist optional, wenn nicht angegeben wird -1 übergeben
     max_delta_temp = -1;
 
-    //auto thermostat = new Thermostats(*particles, delta_t, end_time, initial_temp, stepSize, dimensions, target_temp,
-    //                                  max_delta_temp);
+    Thermostats* thermostat;
+    if (!simuMembrane) {
+        thermostat = new Thermostats(*particles, delta_t, end_time, initial_temp, stepSize, dimensions, target_temp,
+                                          max_delta_temp);
 
-    //thermostat->calcCurrentTemperature(*particles);
-    //thermostat->adjustTemperature(*particles, current_time);
+        thermostat->calcCurrentTemperature(*particles);
+        thermostat->adjustTemperature(*particles, current_time);
+    }
+
 
     bool pullState = true;
     while (current_time < end_time) {
@@ -265,11 +255,19 @@ int main(int argc, char *argsv[]) {
         if (iteration >= 15000) {
             pullState = false;
         }
-        particles->simulateMembrane(delta_t, pullState);
+        if (simuMembrane) {
+            particles->simulateMembrane(delta_t, pullState);
+        } else {
+            particles->simulate(algorithm, delta_t);
+        }
+
         // Control temperature
-        //thermostat->calcCurrentTemperature(*particles);
-        //thermostat->adjustTemperature(*particles, current_time);
-        //thermostat->calcCurrentTemperature(*particles);
+        if (!simuMembrane) {
+            thermostat->calcCurrentTemperature(*particles);
+            thermostat->adjustTemperature(*particles, current_time);
+            thermostat->calcCurrentTemperature(*particles);
+        }
+
 
         iteration++;
         if (iteration % outputStep == 0 && !benchmark_active) {
@@ -311,24 +309,3 @@ void printHelp() {
     LOGC_INFO("Benchmark: Disables writing files and benchmarks the program");
 }
 
-void simulateMembrane() {
-    int current_time = 0;
-    int iteration = 0;
-    while (current_time < end_time) {
-        std::cout << "Number particles: " << particles->numberParticles() << "\n";
-        particles->simulate(algorithm, delta_t);
-
-        iteration++;
-        if (iteration % outputStep == 0 && !benchmark_active) {
-            particles->plotParticles(iteration);
-        }
-
-        if (!benchmark_active) {
-            LOGC_TRACE("Iteration {} finished.", iteration);
-        } else if (iteration % outputStep == 0) {
-            std::cout << "Iteration " << iteration << "finished." << std::endl;
-            std::cout << "Current time " << current_time << std::endl;
-        }
-        current_time += delta_t;
-    }
-}

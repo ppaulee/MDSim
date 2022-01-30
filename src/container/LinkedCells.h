@@ -12,6 +12,7 @@
 #include "forceCalculation/ForceCalculation.h"
 #include "SimulationContainer.h"
 #include "forceCalculation/HarmonicPotential.h"
+#include "forceCalculation/TruncatedLennardJones.h"
 
 
 /**
@@ -53,6 +54,11 @@ private:
      * Stores LennardJones objects for force calculations between particles of different types
      */
     std::vector<MixedLennardJones> mixedForceCalcs;
+
+    /**
+     * true iff a membrane is simulated
+     */
+    bool membraneSimulation = false;
 
     /**
      * Used for periodic boundaries, stores ghosts of particles in boundary cells that are mirrored into the halo on the other side
@@ -338,6 +344,8 @@ public:
      * @param r0 see harmonic potential
      */
     void calculateHarmonicPotential(double k, double r0);
+
+    void setMembraneSimulation();
 };
 
 

@@ -5,6 +5,7 @@
 #include "../src/Particle.cpp"
 #include "forceCalculation/LennardJones.cpp"
 #include "forceCalculation/MixedLennardJones.cpp"
+#include "forceCalculation/TruncatedLennardJones.cpp"
 #include "forceCalculation/Gravitation.cpp"
 #include "forceCalculation/HarmonicPotential.cpp"
 #include "container/LinkedCells.cpp"

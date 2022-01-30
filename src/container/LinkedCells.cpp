@@ -87,7 +87,9 @@ void LinkedCells::insert(Particle &p) {
         p.setX(tmp + p.getX());
     }
     if (forceCalcs.size() == p.getType()) {
-        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        //forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        //TODO HANDLING
+        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma()));
         reflectionDistance.push_back((cbrt(sqrt(2)) * p.getSigma()) / 2);
         if (forceCalcs.size() >= 1) {
             for (auto &calc: forceCalcs) {
@@ -105,7 +107,12 @@ void LinkedCells::insert(Particle &p) {
 
 void LinkedCells::forceInsert(Particle &p) {
     if (forceCalcs.size() == p.getType()) {
-        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        if (membraneSimulation) {
+            forceCalcs.push_back(TruncatedLennardJones(0, 0, 0, p.getEpsilon(), p.getSigma()));
+        } else {
+            forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        }
+
         reflectionDistance.push_back((cbrt(sqrt(2)) * p.getSigma()) / 2);
         if (forceCalcs.size() >= 1) {
             for (auto &calc: forceCalcs) {
@@ -246,7 +253,6 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
             } else {
                 for (int z = 0; z < dimensions[2] - 1; ++z) {
                     ThreeDcalculateF(x, y, z, algorithm);
-
                 }
             }
 
@@ -450,31 +456,32 @@ void LinkedCells::simulate(ForceCalculation *algorithm, double delta_t) {
 }
 
 void LinkedCells::simulateMembrane(double delta_t, bool pullState) {
-    ForceCalculation *lj = new LennardJones(1,1);
+    ForceCalculation *lj = new TruncatedLennardJones(0, 0, 0, 1, 1);
     std::array<double, 3> f_z_up = {0, 0, 0.8};
-
+    std::array<double, 3> f_z_up_mul = {0, 0, 1.8};
     // calculate new x
     calculateX(delta_t);
     //deleteParticlesInHalo();
     // moves particles to correct cell
     move();
 
-    handleBoundary();
+    //handleBoundary();
 
     // calculate new f
     // Pull the membrane up
+    calculateF(lj);
+
     if (pullState) {
         for (auto &vec: particles) {
             for (auto &p: vec) {
                 if (p.isMembranePull()) {
                     p.setF(f_z_up  + p.getF());
-                    //std::cout << "###PULL UP###" << std::endl;
+                    //p.setF(f_z_up_mul  * p.getF());
                 }
             }
         }
     }
 
-    calculateF(lj);
     calculateHarmonicPotential(300, 2.2);
     applyForceBuffer();
 
@@ -490,15 +497,11 @@ void LinkedCells::simulateMembrane(double delta_t, bool pullState) {
 
 void LinkedCells::calculateHarmonicPotential(double k, double r0) {
     auto harmonic = new HarmonicPotential(k,r0);
-    int x = 0;
+
     for (auto &vec: particles) {
         for (auto &p: vec) {
             bool isna = std::isnan(p.getF()[0]) || std::isnan(p.getF()[1]) || std::isnan(p.getF()[2]);
 
-            x++;
-            if (x == 2454) {
-                //std::cout << "HERE NAN";
-            }
             for (const auto &neighbour : p.getNeighbours()) {
                 if (neighbour != nullptr)
                     p.setF(p.getF() + harmonic->calculateF(p, *neighbour));
@@ -508,7 +511,7 @@ void LinkedCells::calculateHarmonicPotential(double k, double r0) {
                     p.setF(p.getF() + harmonic->calculateFDiag(p, *neighbour));
             }
             if ((std::isnan(p.getF()[0]) || std::isnan(p.getF()[1]) || std::isnan(p.getF()[2])) && isna == false) {
-                std::cout << "NAN in calc " << x << std::endl;
+                std::cout << "NAN in calc " << std::endl;
             }
         }
     }
@@ -818,6 +821,10 @@ std::vector<Particle> LinkedCells::getParticles() {
         }
     }
     return res;
+}
+
+void LinkedCells::setMembraneSimulation() {
+    membraneSimulation = true;
 }
 
 

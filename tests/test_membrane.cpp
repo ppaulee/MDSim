@@ -40,36 +40,36 @@ TEST(Membrane, neighbours) {
         bool bottom_left_bool = true;
         bool bottom_right_bool = true;
 
-        // top left corner
-        if (coords[0] == 15 && coords[1] == 15) {
-            top_left_bool = true;
-        }
-        // top right corner
-        if (coords[0] == 15 && coords[1] == 35) {
-            top_right_bool = false;
-        }
         // bottom left corner
-        if (coords[0] == 35 && coords[1] == 15) {
+        if (coords[1] == 15 || coords[0] == 15) {
             bottom_left_bool = false;
         }
         // bottom right corner
-        if (coords[0] == 35 && coords[1] == 35) {
+        if (coords[1] == 15 || coords[0] == 35) {
             bottom_right_bool = false;
         }
-        // top row
-        if (coords[0] == 15) {
-            top_bool = false;
+        // top left corner
+        if (coords[1] == 35 || coords[0] == 15) {
+            top_left_bool = false;
+        }
+        // top right corner
+        if (coords[1] == 35 || coords[0] == 35) {
+            top_right_bool = false;
         }
         // bottom row
-        if (coords[0] == 35) {
+        if (coords[1] == 15) {
             bottom_bool = false;
         }
+        // top row
+        if (coords[1] == 35) {
+            top_bool = false;
+        }
         // left row
-        if (coords[1] == 15) {
+        if (coords[0] == 15) {
             left_bool = false;
         }
         // right row
-        if (coords[1] == 35) {
+        if (coords[0] == 35) {
             right_bool = false;
         }
 
@@ -99,8 +99,8 @@ TEST(Membrane, neighbours) {
 
         if (top_left_bool) {
             std::array<double, 3> top_left = coords;
-            top_left[0] += 5;
-            top_left[1] -= 5;
+            top_left[0] -= 5;
+            top_left[1] += 5;
             EXPECT_TRUE(contains(p.getNeighboursDiag(), cells->get(top_left).front()));
         }
 
@@ -120,8 +120,8 @@ TEST(Membrane, neighbours) {
 
         if (bottom_right_bool) {
             std::array<double, 3> bottom_right = coords;
-            bottom_right[0] -= 5;
-            bottom_right[1] += 5;
+            bottom_right[0] += 5;
+            bottom_right[1] -= 5;
             EXPECT_TRUE(contains(p.getNeighboursDiag(), cells->get(bottom_right).front()));
         }
     }
