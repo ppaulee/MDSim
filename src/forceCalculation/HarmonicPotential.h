@@ -13,7 +13,7 @@ public:
     double r0;
     explicit HarmonicPotential(double k, double r0);
 
-    std::array<double, 3> calculateF(const Particle &p1, const Particle &p2);
+    std::array<double, 3> calculateF(const Particle p1, const Particle p2);
 
-    std::array<double, 3> calculateFDiag(const Particle &p1, const Particle &p2);
+    std::array<double, 3> calculateFDiag(const Particle p1, const Particle p2);
 };

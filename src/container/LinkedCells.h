@@ -6,6 +6,7 @@
 #include <vector>
 #include <list>
 #include <memory>
+#include <functional>
 #include "forceCalculation/MixedLennardJones.h"
 #include "forceCalculation/LennardJones.h"
 #include "Particle.h"
@@ -13,6 +14,7 @@
 #include "SimulationContainer.h"
 #include "forceCalculation/HarmonicPotential.h"
 #include "forceCalculation/TruncatedLennardJones.h"
+#include <unordered_map>
 
 
 /**
@@ -41,6 +43,12 @@
 class LinkedCells : public SimulationContainer {
 
 private:
+
+    /**
+     *  Store neighbours
+     */
+    std::unordered_map<int, std::shared_ptr<Particle>> neighbours_membrane;
+
     /**
      * This vector stores cells. These cells store a vector of particles in this cell
      */
@@ -335,6 +343,12 @@ public:
 
     std::array<double, 3> calculateLJForce(Particle &p1, Particle &p2);
 
+    /**
+     * Simulates a membrane
+     *
+     * @param delta_t Delta T
+     * @param pullState True iff particles are pulled up
+     */
     void simulateMembrane(double delta_t, bool pullState) override;
 
     /**
@@ -345,7 +359,12 @@ public:
      */
     void calculateHarmonicPotential(double k, double r0);
 
-    void setMembraneSimulation();
+    void setMembraneSimulation() override;
+
+    /**
+     * Updates the neighbours for each particle in membrane
+     */
+    void initMembrane() override;
 };
 
 

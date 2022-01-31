@@ -12,6 +12,7 @@
 #include <math.h>
 #include <vector>
 #include <memory>
+#include <functional>
 
 class Particle {
 
@@ -34,13 +35,22 @@ private:
     std::array<double, 3> forceBuffer;
 
     /**
-     * Stores all neighbours in the xy plane (only for membrane)
+     * Stores all direct neighbours in the xy plane (only for membrane)
      */
-    std::vector<std::shared_ptr<Particle>> neighbours;
-    std::vector<std::shared_ptr<Particle>> neighboursDiag;
+    //std::vector<std::reference_wrapper<Particle>> neighbours;
+    std::vector<int> neighbours;
 
-    //std::vector<const Particle*> neighbours;
-    //std::vector<const Particle*> neighboursDiag;
+    /**
+     * Stores all diagonal neighbours in the xy plane (only for membrane)
+     */
+    //std::vector<std::reference_wrapper<Particle>> neighboursDiag;
+    std::vector<int> neighboursDiag;
+
+    /*
+     * ID for a particle
+     */
+    int id;
+
 
     /**
      * Indicates whether this particle should be pulled up in the membrane simulation
@@ -133,13 +143,42 @@ public:
 
     const std::array<double, 3> &getForceBuffer() const;
 
-    void addNeighbour(const Particle &p, bool diag);
+    /**
+     * Adds a particle to the neighbour list
+     *
+     * @param p Particle to add
+     * @param diag Should be true iff the particle is a diagonal neighbour, false if not
+     */
+    void addNeighbour(int id, bool diag);
+    //void addNeighbour(std::reference_wrapper<Particle> p, bool diag);
 
-    std::vector<std::shared_ptr<Particle>> getNeighbours();
-    std::vector<std::shared_ptr<Particle>> getNeighboursDiag();
+    /**
+     *
+     * @return All direct neighboured particles
+     */
+    //std::vector<std::reference_wrapper<Particle>>& getNeighbours();
+    //Particle& getNeighbours();
+    std::vector<int> getNeighbours();
+    /**
+     *
+     * @return All diagonal neighboured particles
+     */
+    //std::vector<std::reference_wrapper<Particle>>& getNeighboursDiag();
+    //Particle& getNeighboursDiag();
+    std::vector<int> getNeighboursDiag();
 
+    /**
+     *
+     * @return True if the particle should be pulled up in the membrane simulation
+     */
     bool isMembranePull();
+    /**
+     * Sets the membranePull to true
+     */
     void setMembranePull();
+
+    void setID(int id_arg);
+    int getID();
 };
 
 std::ostream &operator<<(std::ostream &stream, Particle &p);

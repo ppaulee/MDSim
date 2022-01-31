@@ -75,5 +75,9 @@ public:
      * @return vector of particles
      */
     virtual std::vector<Particle> getParticles() = 0;
+
+    virtual void setMembraneSimulation() = 0;
+
+    virtual void initMembrane() = 0;
 };
 

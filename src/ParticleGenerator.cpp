@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <memory>
 #include <list>
 #include "vector"
 #include "utils/ArrayUtils.h"
@@ -92,11 +93,16 @@ void generateSphere2D(std::array<double, 3> center, std::array<double, 3> v, int
 }
 
 void generateMembrane(std::array<double, 3> center, std::array<double, 3> v,std::array<int, 3> dimension, double h, const std::vector<std::array<int, 3>>& pull, double m, SimulationContainer &container) {
+    int id = 0;
     Particle ps[dimension[0]][dimension[1]];
+    //std::shared_ptr<Particle> ps_ptr[dimension[0]][dimension[1]];
     for (int x = 0; x < dimension[0]; x++) {
         for (int y = 0; y < dimension[1]; y++) {
             // Add particle to the grid
             ps[x][y] = Particle({x * h + center[0], y * h + center[1], center[2]}, v, m, 0, 1, 1);
+            ps[x][y].setID(id);
+            //ps_ptr[x][y] = std::make_shared<Particle>(ps[x][y]);
+            id++;
         }
     }
 
@@ -107,38 +113,42 @@ void generateMembrane(std::array<double, 3> center, std::array<double, 3> v,std:
 
     for (int x = 0; x < dimension[0]; x++) {
         for (int y = 0; y < dimension[1]; y++) {
+            if (ps[x][y].getX()[1] == 17.2) {
+                std::cout << "TEST" << std::endl;
+            }
             // set neighbours
             // note that only neighbours in the xy plane matter
             if (x < dimension[0]-1) {
-                ps[x][y].addNeighbour(ps[x+1][y], false);
+                ps[x][y].addNeighbour(ps[x + 1][y].getID(), false);
             }
             if (x > 0) {
-                ps[x][y].addNeighbour(ps[x-1][y], false);
+                ps[x][y].addNeighbour(ps[x-1][y].getID(), false);
             }
             if (y < dimension[1]-1) {
-                ps[x][y].addNeighbour(ps[x][y+1], false);
+                ps[x][y].addNeighbour(ps[x][y+1].getID(), false);
             }
             if (y > 0) {
-                ps[x][y].addNeighbour(ps[x][y-1], false);
+                ps[x][y].addNeighbour(ps[x][y-1].getID(), false);
             }
 
             if (x > 0 && y > 0) {
-                ps[x][y].addNeighbour(ps[x-1][y-1], true);
+                ps[x][y].addNeighbour(ps[x-1][y-1].getID(), true);
             }
             if (x < dimension[0]-1 && y < dimension[1]-1) {
-                ps[x][y].addNeighbour(ps[x+1][y+1], true);
+                ps[x][y].addNeighbour(ps[x+1][y+1].getID(), true);
             }
             if (x > 0 && y < dimension[1]-1) {
-                ps[x][y].addNeighbour(ps[x-1][y+1], true);
+                ps[x][y].addNeighbour(ps[x-1][y+1].getID(), true);
             }
             if (x < dimension[0]-1 && y > 0) {
-                ps[x][y].addNeighbour(ps[x+1][y-1], true);
+                ps[x][y].addNeighbour(ps[x+1][y-1].getID(), true);
             }
             // add to simulation contaienr
             container.forceInsert(ps[x][y]);
-            //std::cout << "X: " << x << " Y: " << y << std::endl;
+            std::cout << "X: " << x << " Y: " << y << std::endl;
         }
     }
+
 }
 
 void generateFromFileTest(SimulationContainer &particles, std::string f) {

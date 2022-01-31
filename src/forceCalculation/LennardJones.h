@@ -11,6 +11,8 @@
  */
 class LennardJones : public ForceCalculation {
 private:
+
+    bool isMembrane_bool;
     /**
      *  Parameter for Lennard Jones potential
      */
@@ -36,5 +38,9 @@ public:
     int getType() const;
 
     std::array<double, 3> calculateF(Particle p1, Particle p2);
+
+    void setMembrane();
+
+    bool isMembrane();
 };
 

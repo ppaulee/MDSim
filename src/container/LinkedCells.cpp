@@ -87,9 +87,12 @@ void LinkedCells::insert(Particle &p) {
         p.setX(tmp + p.getX());
     }
     if (forceCalcs.size() == p.getType()) {
-        //forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
-        //TODO HANDLING
-        forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma()));
+        if (membraneSimulation) {
+            forceCalcs.push_back(TruncatedLennardJones(1, 1, 0, 1, 1));
+            forceCalcs[0].setMembrane();
+        } else {
+            forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+        }
         reflectionDistance.push_back((cbrt(sqrt(2)) * p.getSigma()) / 2);
         if (forceCalcs.size() >= 1) {
             for (auto &calc: forceCalcs) {
@@ -108,7 +111,8 @@ void LinkedCells::insert(Particle &p) {
 void LinkedCells::forceInsert(Particle &p) {
     if (forceCalcs.size() == p.getType()) {
         if (membraneSimulation) {
-            forceCalcs.push_back(TruncatedLennardJones(0, 0, 0, p.getEpsilon(), p.getSigma()));
+            forceCalcs.push_back(TruncatedLennardJones(1, 1, 0, 1, 1));
+            forceCalcs[0].setMembrane();
         } else {
             forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
         }
@@ -455,37 +459,51 @@ void LinkedCells::simulate(ForceCalculation *algorithm, double delta_t) {
     calculateV(delta_t);
 }
 
+void LinkedCells::initMembrane() {
+    for (auto &vec : particles) {
+        for (auto &p : vec) {
+            //std::cout << "TEST INIT MEMBRANE" << std::endl;
+            neighbours_membrane[p.getID()] = std::make_shared<Particle>(p);
+        }
+    }
+}
+
 void LinkedCells::simulateMembrane(double delta_t, bool pullState) {
-    ForceCalculation *lj = new TruncatedLennardJones(0, 0, 0, 1, 1);
+    initMembrane();
+    ForceCalculation *lj = new TruncatedLennardJones(1, 1, 0, 1, 1);
     std::array<double, 3> f_z_up = {0, 0, 0.8};
-    std::array<double, 3> f_z_up_mul = {0, 0, 1.8};
+    std::array<double, 3> f_z_up_mul = {1, 1, 1.8};
     // calculate new x
     calculateX(delta_t);
-    //deleteParticlesInHalo();
-    // moves particles to correct cell
-    move();
 
-    //handleBoundary();
+    // moves particles to correct cell
+    //move();
+
+    handleBoundary();
 
     // calculate new f
-    // Pull the membrane up
     calculateF(lj);
 
+    // Pull the membrane up
     if (pullState) {
         for (auto &vec: particles) {
             for (auto &p: vec) {
                 if (p.isMembranePull()) {
                     p.setF(f_z_up  + p.getF());
-                    //p.setF(f_z_up_mul  * p.getF());
                 }
             }
         }
     }
 
     calculateHarmonicPotential(300, 2.2);
+
+    for (auto &vec: particles) {
+        for (auto &p: vec) {
+            p.setF(p.getF());
+        }
+    }
+
     applyForceBuffer();
-
-
 
     deleteParticlesInHalo();
     if (grav != 0) {
@@ -497,25 +515,21 @@ void LinkedCells::simulateMembrane(double delta_t, bool pullState) {
 
 void LinkedCells::calculateHarmonicPotential(double k, double r0) {
     auto harmonic = new HarmonicPotential(k,r0);
-
     for (auto &vec: particles) {
         for (auto &p: vec) {
-            bool isna = std::isnan(p.getF()[0]) || std::isnan(p.getF()[1]) || std::isnan(p.getF()[2]);
+            for (auto &neighbour_index : p.getNeighbours()) {
+                auto temp = harmonic->calculateF(p, *neighbours_membrane[neighbour_index]);
+                p.setF(p.getF() + temp);
+            }
 
-            for (const auto &neighbour : p.getNeighbours()) {
-                if (neighbour != nullptr)
-                    p.setF(p.getF() + harmonic->calculateF(p, *neighbour));
-            }
-            for (auto &neighbour : p.getNeighboursDiag()) {
-                if (neighbour != nullptr)
-                    p.setF(p.getF() + harmonic->calculateFDiag(p, *neighbour));
-            }
-            if ((std::isnan(p.getF()[0]) || std::isnan(p.getF()[1]) || std::isnan(p.getF()[2])) && isna == false) {
-                std::cout << "NAN in calc " << std::endl;
+            for (auto &neighbour_index : p.getNeighboursDiag()) {
+                auto temp = harmonic->calculateFDiag(p, *neighbours_membrane[neighbour_index]);
+                p.setF(p.getF() + temp);
             }
         }
     }
 }
+
 
 void LinkedCells::applyForceBuffer() {
     for (auto &vec: particles) {
@@ -677,14 +691,18 @@ void LinkedCells::handleBoundary() {
                                     Particle temp = Particle({p.getX()[0], p.getX()[1], (meshSize - frontDistance)},
                                                              {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
                                                              p.getEpsilon());
+                                    //TODO
                                     p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                    //p.setForceBuffer(p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                                 }
                                 double backDistance = (dimensions[2] - 1) * meshSize - p.getX()[2];
                                 if (backDistance <= reflectionDistance[p.getType()]) {
                                     Particle temp = Particle(
                                             {p.getX()[0], p.getX()[1], (dimensions[2] - 1) * meshSize + backDistance},
                                             {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                    // TODO
                                     p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                    //p.setForceBuffer(p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                                 }
                             }
                         }
@@ -712,22 +730,7 @@ void LinkedCells::plotParticles(int iteration) {
     writer.initializeOutput(numberParticles());
     for (auto &vec: particles) {
         for (auto &p: vec) {
-
-            std::array<double, 3> tmp;
-            /*
-            if (dimensions[2] == 0) {
-                // Transfer the coordinates back to original scheme
-                tmp = {(double) dimensions[0] / 2, (double) dimensions[1] / 2, 0};
-                p.setX((std::array<double, 3>) (p.getX() - tmp));
-            } else {
-                // Transfer the coordinates back to original scheme
-                tmp = {(double) dimensions[0] / 2, (double) dimensions[1] / 2, (double) dimensions[2] / 2};
-                p.setX((std::array<double, 3>) (p.getX() - tmp));
-            }
-             */
             writer.plotParticle(p);
-            // Transfer the coordinates back to calculate them correctly again
-            //p.setX((std::array<double, 3>) (p.getX() + tmp));
         }
 
     }

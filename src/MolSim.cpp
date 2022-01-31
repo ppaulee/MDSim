@@ -33,7 +33,9 @@ std::array<int, 3> dim = {148, 148, 148};
 double mesh = 3;
 double cutOff = 3;
 std::array<int, 3> bound = {2, 2, 2};
+
 bool simuMembrane = true;
+
 SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -0.001, bound);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
@@ -193,15 +195,21 @@ int main(int argc, char *argsv[]) {
     }
 
     if (simuMembrane) {
-        std::array<double, 3> center = {15,15,50};
+        particles->setMembraneSimulation();
+        std::array<double, 3> center = {15,15,1.5};
         std::vector<std::array<int, 3>> pull;
+
         pull.push_back({17,24,0});
         pull.push_back({17,25,0});
         pull.push_back({18,24,0});
         pull.push_back({18,25,0});
+
+        //pull.push_back({4,4,0});
         std::array<double, 3> v = {0,0,0};
         std::array<int, 3> dim_ = {50,50,1};
+        //std::array<int, 3> dim_ = {10,10,1};
         generateMembrane(center, v, dim_, 2.2, pull, 1,*particles);
+        particles->initMembrane();
     }
 
 

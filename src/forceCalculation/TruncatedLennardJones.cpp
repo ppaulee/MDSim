@@ -6,7 +6,7 @@
 #include "utils/ArrayUtils.h"
 
 std::array<double, 3> TruncatedLennardJones::calculateF(Particle p1, Particle p2) {
-    if (ArrayUtils::L2Norm(p1.getX() - p2.getX()) <= 1.1225*sigma) {
+    if (ArrayUtils::L2Norm(p1.getX() - p2.getX()) >= 1.1225*sigma) {
         return {0,0,0};
     } else {
         double normNoRoot = 0;

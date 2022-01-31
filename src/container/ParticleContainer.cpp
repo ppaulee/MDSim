@@ -148,3 +148,11 @@ std::vector<Particle> ParticleContainer::getParticles() {
 void ParticleContainer::simulateMembrane(double delta_t, bool pullState) {
     return;
 }
+
+void ParticleContainer::setMembraneSimulation() {
+    return;
+}
+
+void ParticleContainer::initMembrane() {
+    return;
+}

@@ -135,38 +135,59 @@ std::ostream &operator<<(std::ostream &stream, Particle &p) {
     return stream;
 }
 
-void Particle::addNeighbour(const Particle &p, bool diag) {
-    /*
-    if (diag) {
-        neighboursDiag.push_back((std::reference_wrapper<Particle>) p);
-    } else {
-        neighbours.push_back((std::reference_wrapper<Particle>) p);
-    }
-    */
-    if (diag) {
-        neighboursDiag.push_back(std::make_shared<Particle> (p));
-    } else {
-        neighbours.push_back(std::make_shared<Particle> (p));
-    }
-}
-
 /*
-std::vector<std::reference_wrapper<Particle>> Particle::getNeighbours() {
-    return neighbours;
-}
-
-std::vector<std::reference_wrapper<Particle>> Particle::getNeighboursDiag() {
-    return neighboursDiag;
+void Particle::addNeighbour(std::shared_ptr<Particle> p, bool diag) {
+    if (diag) {
+        neighboursDiag.push_back(std::move(p));
+    } else {
+        neighbours.push_back(std::move(p));
+    }
 }
 */
 
-std::vector<std::shared_ptr<Particle>> Particle::getNeighbours() {
+
+void Particle::addNeighbour(int id, bool diag) {
+    if (diag) {
+        neighboursDiag.push_back(id);
+    } else {
+        neighbours.push_back(id);
+    }
+}
+
+
+/*void Particle::addNeighbour(std::reference_wrapper<Particle> p, bool diag) {
+    if (diag) {
+        neighboursDiag.push_back(p);
+    } else {
+        neighbours.push_back(p);
+    }
+}*/
+
+
+/*
+std::vector<std::shared_ptr<Particle>>& Particle::getNeighbours() {
     return neighbours;
 }
 
-std::vector<std::shared_ptr<Particle>> Particle::getNeighboursDiag() {
+std::vector<std::shared_ptr<Particle>>& Particle::getNeighboursDiag() {
     return neighboursDiag;
 }
+ */
+
+
+
+
+std::vector<int> Particle::getNeighbours() {
+    return neighbours;
+}
+
+std::vector<int> Particle::getNeighboursDiag() {
+    return neighboursDiag;
+}
+
+
+void Particle::setID(int id_arg) {id = id_arg;}
+int Particle::getID() {return id;}
 
 bool Particle::isMembranePull() {return membranePull;}
 void Particle::setMembranePull() {membranePull = true;}

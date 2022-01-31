@@ -76,5 +76,9 @@ public:
     void scaleVelocity(double scale) override;
 
     void simulateMembrane(double delta_t, bool pullState) override;
+
+    void setMembraneSimulation() override;
+
+    void initMembrane() override;
 };
 
