@@ -347,6 +347,18 @@ namespace library
         {
             sigma_=sigma;
         }
+
+        const bool&
+        fixed () const
+        {
+            return fixed_;
+        }
+        void
+        fixed(const bool& f)
+        {
+            fixed_=f;
+        }
+
     private:
         library::dimension dimension_;
         library::point startPoint_;
@@ -355,6 +367,7 @@ namespace library
         library::velocity velocity_;
         library::epsilon epsilon_;
         library::sigma sigma_;
+        bool fixed_;
     };
 
     //
@@ -547,7 +560,9 @@ namespace library
     //
     typedef int parallelizationStrategy;
 
-
+    //
+    //
+    typedef std::string simulationType;
 
     struct molsim
     {
@@ -689,6 +704,16 @@ namespace library
             parallelizationStrategy_=p;
         }
 
+        library::simulationType
+        simulationType()const
+        {
+            return simulationType_;
+        }
+        void
+        simulationType(const library::simulationType & st){
+            simulationType_=st;
+        }
+
         library::benchmark
         benchmark()const
         {
@@ -712,6 +737,7 @@ namespace library
         library::particles particles_;
         library::thermostats thermostats_;
         library::parallelizationStrategy parallelizationStrategy_;
+        library::simulationType simulationType_;
         library::benchmark benchmark_;
     };
 

@@ -32,9 +32,11 @@ library::molsim generateFromXML(const std::string& xmlInput){
         ::Cube_pimpl Cube_p;
         ::point_pimpl point_p;
         ::velocity_pimpl velocity_p;
+        ::xml_schema::boolean_pimpl boolean_p;
         ::Sphere_pimpl Sphere_p;
         ::thermostats_pimpl thermostats_p;
         ::parallelizationStrategy_pimpl parallelizationStrategy_p;
+        ::simuType_pimpl simuType_p;
         ::benchmark_pimpl benchmark_p;
 
         // Connect the parsers together.
@@ -52,6 +54,7 @@ library::molsim generateFromXML(const std::string& xmlInput){
                          particles_p,
                          thermostats_p,
                          parallelizationStrategy_p,
+                         simuType_p,
                          benchmark_p);
 
         simulationContainer_p.parsers(boundaryConditions_p,
@@ -77,7 +80,8 @@ library::molsim generateFromXML(const std::string& xmlInput){
                        double_p,
                        velocity_p,
                        epsilon_p,
-                       sigma_p);
+                       sigma_p,
+                       boolean_p);
 
         point_p.parsers(double_p,
                         double_p,

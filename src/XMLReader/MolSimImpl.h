@@ -234,6 +234,9 @@ class Cube_pimpl: public virtual Cube_pskel
   virtual void
   sigma (library::sigma);
 
+  virtual void
+  fixed (bool);
+
   virtual library::Cube
   post_Cube ();
 
@@ -330,6 +333,17 @@ public:
     post_parallelizationStrategy ();
 };
 
+class simuType_pimpl: public virtual simuType_pskel,
+                      public ::xml_schema::string_pimpl
+{
+public:
+    virtual void
+    pre ();
+
+    virtual library::simulationType
+    post_simuType ();
+};
+
 
 class molsim_pimpl: public virtual molsim_pskel
 {
@@ -375,6 +389,9 @@ class molsim_pimpl: public virtual molsim_pskel
 
   virtual void
   parallelizationStrategy (library::parallelizationStrategy);
+
+  virtual void
+  simulationType (library::simulationType);
 
   virtual void
   benchmark (library::benchmark);

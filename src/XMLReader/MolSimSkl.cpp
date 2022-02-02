@@ -299,13 +299,21 @@ sigma_parser (::sigma_pskel& p)
 }
 
 void Cube_pskel::
+fixed_parser (::xml_schema::boolean_pskel& p)
+{
+    this->fixed_parser_ = &p;
+}
+
+
+void Cube_pskel::
 parsers (::dimension_pskel& dimension,
          ::point_pskel& startPoint,
          ::xml_schema::double_pskel& h,
          ::xml_schema::double_pskel& mass,
          ::velocity_pskel& velocity,
          ::epsilon_pskel& epsilon,
-         ::sigma_pskel& sigma)
+         ::sigma_pskel& sigma,
+         ::xml_schema::boolean_pskel& fixed)
 {
   this->dimension_parser_ = &dimension;
   this->startPoint_parser_ = &startPoint;
@@ -314,6 +322,7 @@ parsers (::dimension_pskel& dimension,
   this->velocity_parser_ = &velocity;
   this->epsilon_parser_ = &epsilon;
   this->sigma_parser_ = &sigma;
+  this->fixed_parser_ = &fixed;
 }
 
 Cube_pskel::
@@ -324,7 +333,8 @@ Cube_pskel ()
   mass_parser_ (0),
   velocity_parser_ (0),
   epsilon_parser_ (0),
-  sigma_parser_ (0)
+  sigma_parser_ (0),
+  fixed_parser_ (0)
 {
 }
 
@@ -563,6 +573,12 @@ parallelizationStrategy_parser (::parallelizationStrategy_pskel& p)
 }
 
 void molsim_pskel::
+simulationType_parser (::simuType_pskel& p)
+{
+    this->simulationType_parser_ = &p;
+}
+
+void molsim_pskel::
 benchmark_parser (::benchmark_pskel& p)
 {
   this->benchmark_parser_ = &p;
@@ -582,6 +598,7 @@ parsers (::xml_schema::string_pskel& input_file,
          ::particles_pskel& particles,
          ::thermostats_pskel& thermostats,
          ::parallelizationStrategy_pskel& parallelizationStrategy,
+         ::simuType_pskel& simulationType,
          ::benchmark_pskel& benchmark)
 {
   this->input_file_parser_ = &input_file;
@@ -597,6 +614,7 @@ parsers (::xml_schema::string_pskel& input_file,
   this->particles_parser_ = &particles;
   this->thermostats_parser_ = &thermostats;
   this->parallelizationStrategy_parser_ = &parallelizationStrategy;
+  this->simulationType_parser_ = &simulationType;
   this->benchmark_parser_ = &benchmark;
 }
 
@@ -615,6 +633,7 @@ molsim_pskel ()
   particles_parser_ (0),
   thermostats_parser_ (0),
   parallelizationStrategy_parser_ (0),
+  simulationType_parser_ (0),
   benchmark_parser_ (0)
 {
 }
@@ -1210,6 +1229,12 @@ sigma (const ::library::sigma)
 {
 }
 
+void Cube_pskel::
+fixed (bool)
+{
+}
+
+
 bool Cube_pskel::
 _start_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n,
@@ -1290,6 +1315,16 @@ _start_element_impl (const ::xml_schema::ro_string& ns,
     return true;
   }
 
+  if (n == "fixed" && ns.empty ())
+  {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->fixed_parser_;
+
+      if (this->fixed_parser_)
+          this->fixed_parser_->pre ();
+
+      return true;
+  }
+
   return false;
 }
 
@@ -1364,6 +1399,14 @@ _end_element_impl (const ::xml_schema::ro_string& ns,
     }
 
     return true;
+  }
+
+  if (n == "fixed" && ns.empty ())
+  {
+        if (this->fixed_parser_) {
+            this->fixed(this->fixed_parser_->post_boolean());
+        }
+        return true;
   }
 
   return false;
@@ -1827,6 +1870,10 @@ parallelizationStrategy (::library::parallelizationStrategy)
 }
 
 void molsim_pskel::
+simulationType (::library::simulationType)
+{
+}
+void molsim_pskel::
 benchmark (::library::benchmark)
 {
 }
@@ -1971,6 +2018,16 @@ _start_element_impl (const ::xml_schema::ro_string& ns,
        return true;
   }
 
+  if (n == "simulationType" && ns.empty ())
+  {
+        this->::xml_schema::complex_content::context_.top ().parser_ = this->simulationType_parser_;
+
+        if (this->simulationType_parser_)
+            this->simulationType_parser_->pre ();
+
+        return true;
+  }
+
   if (n == "benchmark" && ns.empty ())
   {
     this->::xml_schema::complex_content::context_.top ().parser_ = this->benchmark_parser_;
@@ -2108,6 +2165,16 @@ _end_element_impl (const ::xml_schema::ro_string& ns,
         if (this->parallelizationStrategy_parser_)
         {
             this->parallelizationStrategy (this->parallelizationStrategy_parser_->post_parallelizationStrategy ());
+        }
+
+        return true;
+  }
+
+  if (n == "simulationType" && ns.empty ())
+  {
+        if (this->simulationType_parser_)
+        {
+            this->simulationType (this->simulationType_parser_->post_simuType ());
         }
 
         return true;

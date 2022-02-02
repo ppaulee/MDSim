@@ -70,6 +70,7 @@ class Sphere_pskel;
 class particles_pskel;
 class thermostats_pskel;
 class parallelizationStrategy_pskel;
+class simuType_pskel;
 class molsim_pskel;
 
 #ifndef XSD_USE_CHAR
@@ -705,6 +706,9 @@ class Cube_pskel: public ::xml_schema::complex_content
   virtual void
   sigma (const ::library::sigma);
 
+  virtual void
+  fixed (bool);
+
   virtual library::Cube
   post_Cube ()=0;
 
@@ -732,13 +736,17 @@ class Cube_pskel: public ::xml_schema::complex_content
   sigma_parser (::sigma_pskel&);
 
   void
+  fixed_parser (::xml_schema::boolean_pskel&);
+
+  void
   parsers (::dimension_pskel& /* dimension */,
            ::point_pskel& /* startPoint */,
            ::xml_schema::double_pskel& /* h */,
            ::xml_schema::double_pskel& /* mass */,
            ::velocity_pskel& /* velocity */,
            ::epsilon_pskel& /* epsilon */,
-           ::sigma_pskel& /* sigma */);
+           ::sigma_pskel& /* sigma */,
+           ::xml_schema::boolean_pskel& /* fixed */);
 
   // Constructor.
   //
@@ -764,6 +772,7 @@ class Cube_pskel: public ::xml_schema::complex_content
   ::velocity_pskel* velocity_parser_;
   ::epsilon_pskel* epsilon_parser_;
   ::sigma_pskel* sigma_parser_;
+  ::xml_schema::boolean_pskel* fixed_parser_;
 };
 
 class Sphere_pskel: public ::xml_schema::complex_content
@@ -984,6 +993,18 @@ public:
     post_parallelizationStrategy ()=0;
 };
 
+class simuType_pskel: public virtual ::xml_schema::string_pskel
+{
+public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual library::simulationType
+    post_simuType ()=0;
+};
+
 class molsim_pskel: public ::xml_schema::complex_content
 {
   public:
@@ -1030,6 +1051,9 @@ class molsim_pskel: public ::xml_schema::complex_content
 
   virtual void
   parallelizationStrategy (::library::parallelizationStrategy);
+
+  virtual void
+  simulationType (::library::simulationType);
 
   virtual void
   benchmark (::library::benchmark);
@@ -1079,6 +1103,9 @@ class molsim_pskel: public ::xml_schema::complex_content
   parallelizationStrategy_parser (::parallelizationStrategy_pskel&);
 
   void
+  simulationType_parser (::simuType_pskel&);
+
+  void
   benchmark_parser (::benchmark_pskel&);
 
   void
@@ -1095,6 +1122,7 @@ class molsim_pskel: public ::xml_schema::complex_content
            ::particles_pskel& /* particles */,
            ::thermostats_pskel& /* thermostats */,
            ::parallelizationStrategy_pskel& /* parallelizationStrategy */,
+           ::simuType_pskel& /* simulationType */,
            ::benchmark_pskel& /* benchmark */);
 
   // Constructor.
@@ -1127,6 +1155,7 @@ class molsim_pskel: public ::xml_schema::complex_content
   ::particles_pskel* particles_parser_;
   ::thermostats_pskel* thermostats_parser_;
   ::parallelizationStrategy_pskel* parallelizationStrategy_parser_;
+  ::simuType_pskel* simulationType_parser_;
   ::benchmark_pskel* benchmark_parser_;
 };
 

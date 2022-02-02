@@ -58,6 +58,7 @@
             </velocity>
             <epsilon>1</epsilon>
             <sigma>1</sigma>
+            <fixed>false</fixed>
         </Cube>
         <Cube>
             <dimension>
@@ -79,6 +80,7 @@
             </velocity>
             <epsilon>1</epsilon>
             <sigma>0.9412</sigma>
+            <fixed>false</fixed>
         </Cube>
     </particles>
 
@@ -90,6 +92,8 @@
     </thermostats>
 
     <parallelizationStrategy>1</parallelizationStrategy>
+
+    <simulationType>simuMembrane</simulationType>
 
     <benchmark>no</benchmark>
 

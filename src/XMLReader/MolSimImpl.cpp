@@ -375,6 +375,14 @@ sigma (library::sigma s)
     cube_.sigma(s);
 }
 
+void Cube_pimpl::
+fixed (bool fixed)
+{
+    // TODO
+    cube_.fixed(fixed);
+    //
+}
+
 library::Cube Cube_pimpl::
 post_Cube ()
 {
@@ -533,6 +541,24 @@ post_parallelizationStrategy ()
     //
 }
 
+// simuType_pimpl
+//
+
+void simuType_pimpl::
+pre ()
+{
+}
+
+library::simulationType simuType_pimpl::
+post_simuType ()
+{
+    const ::std::string& v (post_string ());
+
+    // TODO
+    return v;
+    //
+}
+
 // molsim_pimpl
 //
 
@@ -625,6 +651,12 @@ void molsim_pimpl::
 parallelizationStrategy (library::parallelizationStrategy p)
 {
     molsim_.parStrat(p);
+}
+
+void molsim_pimpl::
+simulationType (library::simulationType sT)
+{
+    molsim_.simulationType(sT);
 }
 
 void molsim_pimpl::

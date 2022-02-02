@@ -93,6 +93,7 @@
             <xsd:element name="velocity" type="velocity"/>
             <xsd:element name="epsilon" type="epsilon"/>
             <xsd:element name="sigma" type="sigma"/>
+            <xsd:element name="fixed" type="xsd:boolean"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -131,6 +132,13 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="simuType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="simuMembrane"/>
+            <xsd:enumeration value="simuFlow"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="molsim">
         <xsd:sequence>
             <xsd:element name="input_file" type="xsd:string" minOccurs="0"/>
@@ -146,6 +154,7 @@
             <xsd:element name="particles" type="particles" minOccurs="0"/>
             <xsd:element name="thermostats" type="thermostats" minOccurs="0"/>
             <xsd:element name="parallelizationStrategy" type="parallelizationStrategy" minOccurs="0"/>
+            <xsd:element name="simulationType" type="simuType" minOccurs="0"/>
             <xsd:element name="benchmark" type="benchmark"/>
         </xsd:sequence>
     </xsd:complexType>
