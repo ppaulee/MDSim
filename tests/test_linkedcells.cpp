@@ -112,11 +112,11 @@ TEST(LinkedCells, periodicTeleport) {
     cells.handleBoundary();
     std::vector<Particle> pars = cells.getParticles();
     for (auto &p: pars) {
-        if (p.getId() == 0) {
+        if (p.getID() == 0) {
             std::array<double, 3> comp = {20.5, 8, 0};
             EXPECT_TRUE(p.getX() == comp);
         }
-        if (p.getId() == 1) {
+        if (p.getID() == 1) {
             std::array<double, 3> comp = {20.5, 7, 0};
             EXPECT_TRUE(p.getX() == comp);
         }
@@ -157,13 +157,13 @@ TEST(LinkedCells, forceCalc) {
     cells.calculateF(forceCalc);
     std::vector<Particle> pars = cells.getParticles();
     for (auto &p: pars) {
-        if (p.getId() == 0) {
+        if (p.getID() == 0) {
             EXPECT_TRUE(p.getF() == p1ForceExpected);
         }
-        if (p.getId() == 1) {
+        if (p.getID() == 1) {
             EXPECT_TRUE(p.getF() == p2ForceExpected);
         }
-        if (p.getId() == 2) {
+        if (p.getID() == 2) {
             EXPECT_TRUE(p.getF() == p3ForceExpected);
         }
     }
