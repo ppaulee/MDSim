@@ -12,6 +12,7 @@
 #include "Particle.h"
 #include "forceCalculation/ForceCalculation.h"
 #include "SimulationContainer.h"
+//#include <omp.h>
 #include "forceCalculation/HarmonicPotential.h"
 #include "forceCalculation/TruncatedLennardJones.h"
 #include <unordered_map>
@@ -45,6 +46,11 @@ class LinkedCells : public SimulationContainer {
 private:
 
     /**
+     * Stores the Id of the next inserted particle
+     */
+    int currentId;
+
+    /*
      *  Store neighbours
      */
     std::unordered_map<int, std::shared_ptr<Particle>> neighbours_membrane;
@@ -52,7 +58,7 @@ private:
     /**
      * This vector stores cells. These cells store a vector of particles in this cell
      */
-    std::vector<std::list<Particle>> particles;
+    std::vector<std::vector<Particle>> particles;
 
     /**
      * Stores LennardJones objects for force calculations between particles of the same type
@@ -162,6 +168,14 @@ private:
      */
     void calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *algorithm, Particle& current_particle);
 
+    /**
+     * Does the same as forceInsert() but without giving a new ID to the particle and incrementing current_id
+     *
+     * @param p Particle to be inserted
+     */
+    void forceInsertNoId(Particle &p);
+
+
 
 public:
     /**
@@ -210,7 +224,7 @@ public:
      * @param coords Coordinates of the cell
      * @return Returns the content of a cell
      */
-    std::list<Particle> &get(std::array<double, 3> coords);
+    std::vector<Particle> &get(std::array<double, 3> coords);
 
     /**
      * Same as get, but uses a "L" shaped coordinate system instead of a cross, meaning only indices >= 0 are allowed
@@ -226,7 +240,7 @@ public:
      * @param i index of a cell
      * @return The content of a cell
      */
-    std::list<Particle> &indexGet(int i);
+    std::vector<Particle> &indexGet(int i);
 
     /**
      * Inserts a particle into the data structure
@@ -267,6 +281,10 @@ public:
      */
     void calculateF(ForceCalculation *algorithm);
 
+    /**
+     * Multithreaded version of calculateF
+     */
+    void parallelCalculateF();
 
     /**
      * Checks if all particles are in the right cell
@@ -353,6 +371,11 @@ public:
 
     std::array<double, 3> calculateLJForce(Particle &p1, Particle &p2);
 
+
+    void calculateGhostForce(Particle &ghost);
+
+    void handleReflectionBoundary(Particle &p);
+
     /**
      * Simulates a membrane
      *
@@ -379,6 +402,7 @@ public:
      * Updates the neighbours for each particle in membrane
      */
     void initMembrane() override;
+
 };
 
 

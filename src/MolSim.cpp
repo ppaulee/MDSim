@@ -2,6 +2,7 @@
 #include "ParticleGenerator.h"
 #include "Thermostats.h"
 #include "container/LinkedCells.h"
+#include "container/ParallelLinkedCells.h"
 #include "forceCalculation/Gravitation.h"
 #include "forceCalculation/LennardJones.h"
 #include "forceCalculation/HarmonicPotential.h"
@@ -28,18 +29,21 @@ int outputStep = 100;
 double epsilon = 1;
 double sigma = 1.2;
 // Brownian Motion average velocity
-double averageV = 0.7;
-
+double averageV = 2 * sqrt(10);
+std::array<int, 3> dim = {60, 60, 60};
+//std::array<int, 3> dim = {64, 36, 0};
+double mesh = 2.5;
+double cutOff = 2.5;
+std::array<int, 3> bound = {2, 1, 1};
+SimulationContainer *particles = new ParallelLinkedCells(dim, mesh, cutOff, -12.44, bound, 2);
 //SimulationContiner
-std::array<int, 3> dim = {148, 148, 148};
-double mesh = 3;
-double cutOff = 3;
-std::array<int, 3> bound = {2, 2, 2};
-SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -0.001, bound);
+//std::array<int, 3> dim = {148, 148, 148};
+
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
 
 //thermostats variables
+
 double initial_temp = 0.5;
 int stepSize = 1000;
 double target_temp = 0.5;
@@ -218,14 +222,22 @@ int main(int argc, char *argsv[]) {
         //char *file_char = &file[0];
         //generateFromFile(*particles, file_char);
 
-        generateCube({250, 50, 1}, {7.5, 8, 0}, 1.2, 1, {0, 0, 0}, 0, 0, 1.2, 1, *particles);
+        //generateCube({250, 50, 1}, {7.5, 8, 0}, 1.2, 1, {0, 0, 0}, 0, 0, 1.2, 1, *particles);
+
+        //generateCube({50, 14, 1}, {5.6, 7, 0}, 1.2, 1, {0, 0, 0}, 2 * sqrt(10), 0, 1, 1, *particles);
+        //generateCube({50, 14, 1}, {5.6, 24.5, 0}, 1.2, 2, {0, 0, 0}, 2 * sqrt(5), 1, 0.9412, 1, *particles);
+
+
+        //3D rayleigh taylor
+        generateCube({50, 20, 50}, {6.2, 4.2, 6.2}, 1.2, 1, {0, 0, 0}, 2 * sqrt(10), 0, 1.2, 1, *particles);
+        generateCube({50, 20, 50}, {6.2, 32, 6.2}, 1.2, 2, {0, 0, 0}, 2 * sqrt(5), 1, 1.1, 1, *particles);
 
         //generateCube({4, 4, 1}, {5.6, 7, 0}, 1.2, 1, {0, 0, 0}, 1.2, 0, 1, 1, *particles);
         //generateCube({4, 4, 1}, {5.6, 9, 0}, 1.2, 2, {0, 0, 0}, 1.2, 1, 0.9412, 1, *particles);
 
         //generateCube({2, 2, 1}, {15, 15, 0}, 1.1225, 1, {-10, 0, 0}, averageV, 0, 1, 5, *particles);
 
-        particles->addBrownianMotion(averageV, 2);
+        particles->addBrownianMotion(averageV, 3);
     }
 
     if (simuMembrane) {

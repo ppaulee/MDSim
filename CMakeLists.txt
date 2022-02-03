@@ -21,7 +21,7 @@ file(GLOB_RECURSE MY_SRC
 
 # create make target
 #add_executable(MolSim ${MY_SRC} src/ForceCalculation.h src/Gravitation.h src/Gravitation.cpp src/XMLReader)
-add_executable(MolSim ${MY_SRC} src/forceCalculation/LennardJones.cpp src/forceCalculation/LennardJones.h src/forceCalculation/MixedLennardJones.cpp src/forceCalculation/MixedLennardJones.h src/container/LinkedCells.cpp src/container/LinkedCells.h src/container/LinkedCells.cpp src/container/LinkedCells.h src/XMLReader/MolSimImpl.h src/CheckpointFileReader.cpp src/CheckpointFileReader.h src/CheckpointFileWriter.cpp src/CheckpointFileWriter.h src/densityAndVelocityProfile/DensityAndVelocityToCSVWriter.h src/densityAndVelocityProfile/DensityAndVelocityProfile.h)
+add_executable(MolSim ${MY_SRC} src/forceCalculation/LennardJones.cpp src/forceCalculation/LennardJones.h src/forceCalculation/MixedLennardJones.cpp src/forceCalculation/MixedLennardJones.h src/container/LinkedCells.cpp src/container/LinkedCells.h src/container/LinkedCells.cpp src/container/LinkedCells.h src/XMLReader/MolSimImpl.h src/CheckpointFileReader.cpp src/CheckpointFileReader.h src/CheckpointFileWriter.cpp src/CheckpointFileWriter.h src/container/ParallelLinkedCells.cpp src/container/ParallelLinkedCells.h src/densityAndVelocityProfile/DensityAndVelocityToCSVWriter.h src/densityAndVelocityProfile/DensityAndVelocityProfile.h)
 
 # set cxx standard. You may raise this if you want.
 target_compile_features(MolSim
@@ -55,6 +55,8 @@ target_link_libraries(MolSim
         PUBLIC
         xerces-c
         spdlog
+        -fopenmp
+        -frounding-math
         )
 
 # activate all compiler warnings. Clean up your code :P
@@ -64,6 +66,8 @@ target_compile_options(MolSim
         $<$<CXX_COMPILER_ID:GNU>:-Wall>
         # disable some spam warnings for icpc...
         $<$<CXX_COMPILER_ID:Intel>:-w3 -wd383,981,1418,1572,2259>
+        -fopenmp
+        -frounding-math
         )
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
@@ -100,6 +104,8 @@ target_link_libraries(
         gtest_main
         PUBLIC
         xerces-c
+        PUBLIC
+        -fopenmp
 )
 
 

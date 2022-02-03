@@ -10,6 +10,7 @@
 #include <array>
 #include <string>
 #include <math.h>
+#include <omp.h>
 #include <vector>
 #include <memory>
 #include <functional>
@@ -32,6 +33,25 @@ private:
      */
     std::array<double, 3> f;
 
+    /**
+     * Buffer for multiple threads to store their force calculations without blocking
+     */
+    std::vector<std::array<double, 3>> parallelForceBuffer;
+
+#ifdef _OPENMP
+    /**
+     * Lock for access to force array of the particle
+     */
+    omp_lock_t lck;
+
+    /**
+    * Lock for access to mark of the particle
+    */
+    omp_lock_t markLck;
+#endif
+    /**
+     * Buffer to circumvent forces being moved to oldF when calculating forces outside of calculateF
+     */
     std::array<double, 3> forceBuffer;
 
     /**
@@ -45,11 +65,6 @@ private:
      */
     //std::vector<std::reference_wrapper<Particle>> neighboursDiag;
     std::vector<int> neighboursDiag;
-
-    /*
-     * ID for a particle
-     */
-    int id;
 
 
     /**
@@ -81,10 +96,19 @@ private:
     int type;
 
     /**
+     * Id of the particle
+     */
+    int id;
+
+    /**
      * Parameters for Lennard-Jones force calculation
      */
     double sigma, epsilon;
 
+
+public:
+
+    //std::vector<int> &getCalculated();
 
 public:
     explicit Particle(int type = 0);
@@ -95,7 +119,9 @@ public:
             // for visualization, we need always 3 coordinates
             // -> in case of 2d, we use only the first and the second
             std::array<double, 3> x_arg, std::array<double, 3> v_arg, double m_arg,
-            int type = 0, double sigma_arg = 1, double epsilon_arg = 5);
+            int type = 0, double sigma_arg = 1, double epsilon_arg = 5, int id_arg = -1);
+
+    //bool calculatedContains(int i);
 
     double getSigma() const;
 
@@ -111,11 +137,13 @@ public:
 
     void setV(std::array<double, 3> vNew);
 
-    const std::array<double, 3> &getF() const;
+     std::array<double, 3> &getF() ;
+
+    //void setCalculated(const std::vector<int> &calculated);
 
     void setF(std::array<double, 3> fNew);
 
-    const std::array<double, 3> &getOldF() const;
+     std::array<double, 3> &getOldF() ;
 
     void setOldF(std::array<double, 3> oldFNew);
 
@@ -142,6 +170,25 @@ public:
     void setForceBuffer(const std::array<double, 3> &forceBuffer);
 
     const std::array<double, 3> &getForceBuffer() const;
+
+#ifdef _OPENMP
+    void setLock();
+
+    void unSetLock();
+
+    int testLock();
+
+    void setMarkLock();
+
+    void unSetMarkLock();
+
+    int testMarkLock();
+#endif
+    void initParallelBuffer(int numThreads);
+
+    std::array<double, 3> &getParallelForce(int index);
+
+    void setParallelForce(int index, std::array<double, 3> force);
 
     /**
      * Adds a particle to the neighbour list
@@ -179,6 +226,7 @@ public:
 
     void setID(int id_arg);
     int getID();
+
 };
 
 std::ostream &operator<<(std::ostream &stream, Particle &p);
