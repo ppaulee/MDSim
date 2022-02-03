@@ -52,6 +52,21 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="boundary">
+        <xsd:restriction base="xsd:int">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="boundaryConditions">
+        <xsd:sequence>
+            <xsd:element name="xBoundary" type="boundary"/>
+            <xsd:element name="yBoundary" type="boundary"/>
+            <xsd:element name="zBoundary" type="boundary"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="simulationContainer">
         <xsd:sequence>
             <xsd:element name="boundaryConditions" type="boundaryConditions"/>
@@ -61,14 +76,6 @@
             <xsd:element name="containerAlgorithm" type="containerAlgorithm"/>
         </xsd:sequence>
     </xsd:complexType>
-
-    <xsd:simpleType name="boundaryConditions">
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="outflow"/>
-            <xsd:enumeration value="reflection"/>
-            <xsd:enumeration value="periodic"/>
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <xsd:simpleType name="benchmark">
         <xsd:restriction base="xsd:string">
@@ -86,6 +93,7 @@
             <xsd:element name="velocity" type="velocity"/>
             <xsd:element name="epsilon" type="epsilon"/>
             <xsd:element name="sigma" type="sigma"/>
+            <xsd:element name="fixed" type="xsd:boolean"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -117,6 +125,20 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:simpleType name="parallelizationStrategy">
+        <xsd:restriction base="xsd:int">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="simuType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="simuMembrane"/>
+            <xsd:enumeration value="simuFlow"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="molsim">
         <xsd:sequence>
             <xsd:element name="input_file" type="xsd:string" minOccurs="0"/>
@@ -131,6 +153,8 @@
             <xsd:element name="simulationContainer" type="simulationContainer"/>
             <xsd:element name="particles" type="particles" minOccurs="0"/>
             <xsd:element name="thermostats" type="thermostats" minOccurs="0"/>
+            <xsd:element name="parallelizationStrategy" type="parallelizationStrategy" minOccurs="0"/>
+            <xsd:element name="simulationType" type="simuType" minOccurs="0"/>
             <xsd:element name="benchmark" type="benchmark"/>
         </xsd:sequence>
     </xsd:complexType>

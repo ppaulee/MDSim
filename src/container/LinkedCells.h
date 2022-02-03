@@ -6,12 +6,16 @@
 #include <vector>
 #include <list>
 #include <memory>
+#include <functional>
 #include "forceCalculation/MixedLennardJones.h"
 #include "forceCalculation/LennardJones.h"
 #include "Particle.h"
 #include "forceCalculation/ForceCalculation.h"
 #include "SimulationContainer.h"
 //#include <omp.h>
+#include "forceCalculation/HarmonicPotential.h"
+#include "forceCalculation/TruncatedLennardJones.h"
+#include <unordered_map>
 
 
 /**
@@ -46,6 +50,10 @@ private:
      */
     int currentId;
 
+     *  Store neighbours
+     */
+    std::unordered_map<int, std::shared_ptr<Particle>> neighbours_membrane;
+
     /**
      * This vector stores cells. These cells store a vector of particles in this cell
      */
@@ -59,6 +67,16 @@ private:
      * Stores LennardJones objects for force calculations between particles of different types
      */
     std::vector<MixedLennardJones> mixedForceCalcs;
+
+    /**
+     * true iff a membrane is simulated
+     */
+    bool membraneSimulation = false;
+
+    /**
+     * true if nano scale flow is simulated
+     */
+    bool nanoScaleFlowSimulation = false;
 
     /**
      * Used for periodic boundaries, stores ghosts of particles in boundary cells that are mirrored into the halo on the other side
@@ -309,6 +327,11 @@ public:
     void handleBoundary();
 
     /**
+     * Iterates over particle in boundary cells and applies boundary conditions according to boundaryCondition
+     */
+    void handleNanoBoundary();
+
+    /**
      * Plots particles
      *
      * @param iteration current Iteration
@@ -347,9 +370,38 @@ public:
 
     std::array<double, 3> calculateLJForce(Particle &p1, Particle &p2);
 
+
     void calculateGhostForce(Particle &ghost);
 
     void handleReflectionBoundary(Particle &p);
+
+    /**
+     * Simulates a membrane
+     *
+     * @param delta_t Delta T
+     * @param pullState True iff particles are pulled up
+     */
+    void simulateMembrane(double delta_t, bool pullState) override;
+
+    /**
+     * Calculates the harmonic potential for all particles
+     *
+     * @param k see harmonic potential
+     * @param r0 see harmonic potential
+     */
+    void calculateHarmonicPotential(double k, double r0);
+
+    void setMembraneSimulation() override;
+
+    void setNanoScaleFlowSimulation() override;
+
+    double meanYVelocity();
+
+    /**
+     * Updates the neighbours for each particle in membrane
+     */
+    void initMembrane() override;
+
 };
 
 

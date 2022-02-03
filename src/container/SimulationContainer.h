@@ -27,6 +27,13 @@ public:
     virtual void simulate(ForceCalculation *algorithm, double delta_t) = 0;
 
     /**
+     * Simulates a membrane
+     *
+     * @param delta_t Timestep size
+     */
+    virtual void simulateMembrane(double delta_t, bool pullState) = 0;
+
+    /**
      * Inserts a particles into the datastructure
      *
      * @param p
@@ -68,5 +75,11 @@ public:
      * @return vector of particles
      */
     virtual std::vector<Particle> getParticles() = 0;
+
+    virtual void setMembraneSimulation() = 0;
+
+    virtual void setNanoScaleFlowSimulation() = 0;
+
+    virtual void initMembrane() = 0;
 };
 

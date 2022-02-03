@@ -12,6 +12,8 @@
 #include <math.h>
 #include <omp.h>
 #include <vector>
+#include <memory>
+#include <functional>
 
 class Particle {
 
@@ -52,6 +54,29 @@ private:
      */
     std::array<double, 3> forceBuffer;
 
+    /**
+     * Stores all direct neighbours in the xy plane (only for membrane)
+     */
+    //std::vector<std::reference_wrapper<Particle>> neighbours;
+    std::vector<int> neighbours;
+
+    /**
+     * Stores all diagonal neighbours in the xy plane (only for membrane)
+     */
+    //std::vector<std::reference_wrapper<Particle>> neighboursDiag;
+    std::vector<int> neighboursDiag;
+
+    /*
+     * ID for a particle
+     */
+    int id;
+
+
+    /**
+     * Indicates whether this particle should be pulled up in the membrane simulation
+     */
+    bool membranePull;
+
 private:
 
     /**
@@ -85,8 +110,8 @@ private:
      */
     double sigma, epsilon;
 
+
 public:
-    int getId();
 
     //std::vector<int> &getCalculated();
 
@@ -100,8 +125,6 @@ public:
             // -> in case of 2d, we use only the first and the second
             std::array<double, 3> x_arg, std::array<double, 3> v_arg, double m_arg,
             int type = 0, double sigma_arg = 1, double epsilon_arg = 5, int id_arg = -1);
-
-    void setId(int id);
 
     //bool calculatedContains(int i);
 
@@ -152,6 +175,7 @@ public:
     void setForceBuffer(const std::array<double, 3> &forceBuffer);
 
     const std::array<double, 3> &getForceBuffer() const;
+
 #ifdef _OPENMP
     void setLock();
 
@@ -170,6 +194,46 @@ public:
     std::array<double, 3> &getParallelForce(int index);
 
     void setParallelForce(int index, std::array<double, 3> force);
+
+    /**
+     * Adds a particle to the neighbour list
+     *
+     * @param p Particle to add
+     * @param diag Should be true iff the particle is a diagonal neighbour, false if not
+     */
+    void addNeighbour(int id, bool diag);
+    //void addNeighbour(std::reference_wrapper<Particle> p, bool diag);
+
+    /**
+     *
+     * @return All direct neighboured particles
+     */
+    //std::vector<std::reference_wrapper<Particle>>& getNeighbours();
+    //Particle& getNeighbours();
+    std::vector<int> getNeighbours();
+    /**
+     *
+     * @return All diagonal neighboured particles
+     */
+    //std::vector<std::reference_wrapper<Particle>>& getNeighboursDiag();
+    //Particle& getNeighboursDiag();
+    std::vector<int> getNeighboursDiag();
+
+    /**
+     *
+     * @return True if the particle should be pulled up in the membrane simulation
+     */
+    bool isMembranePull();
+    /**
+     * Sets the membranePull to true
+     */
+    void setMembranePull();
+
+    void setID(int id_arg);
+    int getID();
+
 };
 
 std::ostream &operator<<(std::ostream &stream, Particle &p);
+
+

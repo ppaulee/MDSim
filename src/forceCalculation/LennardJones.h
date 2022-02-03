@@ -1,9 +1,7 @@
 //
 // Created by Jonas on 13.11.21.
 //
-
-#ifndef PSEMOLDYN_GROUPB_LENNARDJONES_H
-#define PSEMOLDYN_GROUPB_LENNARDJONES_H
+#pragma once
 
 
 #include "ForceCalculation.h"
@@ -13,6 +11,11 @@
  */
 class LennardJones : public ForceCalculation {
 private:
+
+    bool isMembrane_bool;
+
+    bool isNano_bool;
+
     /**
      *  Parameter for Lennard Jones potential
      */
@@ -38,7 +41,13 @@ public:
     int getType() const;
 
     std::array<double, 3> calculateF(Particle p1, Particle p2);
+
+    void setMembrane();
+
+    bool isMembrane();
+
+    void setNano();
+
+    bool isNano();
 };
 
-
-#endif //PSEMOLDYN_GROUPB_LENNARDJONES_H

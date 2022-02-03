@@ -16,6 +16,9 @@ Particle::Particle(int type_arg) {
     //std::cout << "Particle generated!" << std::endl;
     f = {0., 0., 0.};
     old_f = {0., 0., 0.};
+    membranePull = false;
+
+    //neighbours = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
 }
 
 /*Particle::Particle(const Particle &other) {
@@ -43,6 +46,7 @@ Particle::Particle(std::array<double, 3> x_arg, std::array<double, 3> v_arg,
     old_f = {0., 0., 0.};
     sigma = sigma_arg;
     epsilon = epsilon_arg;
+    membranePull = false;
     forceBuffer = {0, 0, 0};
 #ifdef _OPENMP
     omp_init_lock(&lck);
@@ -58,7 +62,9 @@ Particle::~Particle() { /*std::cout << "Particle destructed!" << std::endl;*/
     omp_destroy_lock(&lck);
     omp_destroy_lock(&markLck);
 #endif
+
 }
+
 
 const std::array<double, 3> &Particle::getX() const { return x; }
 
@@ -199,17 +205,9 @@ int Particle::testMarkLock() {
 }
 #endif //_OPENMP
 
-int Particle::getId() {
-    return id;
-}
-
 /*std::vector<int> &Particle::getCalculated() {
     return calculated;
 }*/
-
-void Particle::setId(int id) {
-    Particle::id = id;
-}
 
 void Particle::initParallelBuffer(int numThreads) {
     for(int i = 0;i<numThreads;i++){
@@ -229,3 +227,60 @@ void Particle::setParallelForce(int index, std::array<double, 3> force) {
 /*void Particle::setCalculated(const std::vector<int> &calculated) {
     Particle::calculated = calculated;
 }*/
+
+/*
+void Particle::addNeighbour(std::shared_ptr<Particle> p, bool diag) {
+    if (diag) {
+        neighboursDiag.push_back(std::move(p));
+    } else {
+        neighbours.push_back(std::move(p));
+    }
+}
+*/
+
+
+void Particle::addNeighbour(int id, bool diag) {
+    if (diag) {
+        neighboursDiag.push_back(id);
+    } else {
+        neighbours.push_back(id);
+    }
+}
+
+
+/*void Particle::addNeighbour(std::reference_wrapper<Particle> p, bool diag) {
+    if (diag) {
+        neighboursDiag.push_back(p);
+    } else {
+        neighbours.push_back(p);
+    }
+}*/
+
+
+/*
+std::vector<std::shared_ptr<Particle>>& Particle::getNeighbours() {
+    return neighbours;
+}
+
+std::vector<std::shared_ptr<Particle>>& Particle::getNeighboursDiag() {
+    return neighboursDiag;
+}
+ */
+
+
+
+
+std::vector<int> Particle::getNeighbours() {
+    return neighbours;
+}
+
+std::vector<int> Particle::getNeighboursDiag() {
+    return neighboursDiag;
+}
+
+
+void Particle::setID(int id_arg) {id = id_arg;}
+int Particle::getID() {return id;}
+
+bool Particle::isMembranePull() {return membranePull;}
+void Particle::setMembranePull() {membranePull = true;}

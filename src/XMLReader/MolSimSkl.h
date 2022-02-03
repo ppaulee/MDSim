@@ -61,13 +61,16 @@ class point_pskel;
 class velocity_pskel;
 class algorithm_pskel;
 class containerAlgorithm_pskel;
-class simulationContainer_pskel;
+class boundary_pskel;
 class boundaryConditions_pskel;
+class simulationContainer_pskel;
 class benchmark_pskel;
 class Cube_pskel;
 class Sphere_pskel;
 class particles_pskel;
 class thermostats_pskel;
+class parallelizationStrategy_pskel;
+class simuType_pskel;
 class molsim_pskel;
 
 #ifndef XSD_USE_CHAR
@@ -517,6 +520,76 @@ class containerAlgorithm_pskel: public virtual ::xml_schema::string_pskel
   post_containerAlgorithm ()=0;
 };
 
+class boundary_pskel: public virtual ::xml_schema::int_pskel
+{
+public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual library::boundary
+    post_boundary ()=0;
+};
+
+class boundaryConditions_pskel: public ::xml_schema::complex_content
+{
+public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual void
+    xBoundary (library::boundary);
+
+    virtual void
+    yBoundary (library::boundary);
+
+    virtual void
+    zBoundary (library::boundary);
+
+    virtual library::boundaryConditions
+    post_boundaryConditions () = 0;
+
+    // Parser construction API.
+    //
+    void
+    xBoundary_parser (::boundary_pskel&);
+
+    void
+    yBoundary_parser (::boundary_pskel&);
+
+    void
+    zBoundary_parser (::boundary_pskel&);
+
+    void
+    parsers (::boundary_pskel& /* xBoundary */,
+             ::boundary_pskel& /* yBoundary */,
+             ::boundary_pskel& /* zBoundary */);
+
+    // Constructor.
+    //
+    boundaryConditions_pskel ();
+
+    // Implementation.
+    //
+protected:
+    virtual bool
+    _start_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string*);
+
+    virtual bool
+    _end_element_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+protected:
+    ::boundary_pskel* xBoundary_parser_;
+    ::boundary_pskel* yBoundary_parser_;
+    ::boundary_pskel* zBoundary_parser_;
+};
+
 class simulationContainer_pskel: public ::xml_schema::complex_content
 {
   public:
@@ -592,18 +665,6 @@ class simulationContainer_pskel: public ::xml_schema::complex_content
   ::containerAlgorithm_pskel* containerAlgorithm_parser_;
 };
 
-class boundaryConditions_pskel: public virtual ::xml_schema::string_pskel
-{
-  public:
-  // Parser callbacks. Override them in your implementation.
-  //
-  // virtual void
-  // pre ();
-
-  virtual library::boundaryConditions
-  post_boundaryConditions ()=0;
-};
-
 class benchmark_pskel: public virtual ::xml_schema::string_pskel
 {
   public:
@@ -645,6 +706,9 @@ class Cube_pskel: public ::xml_schema::complex_content
   virtual void
   sigma (const ::library::sigma);
 
+  virtual void
+  fixed (bool);
+
   virtual library::Cube
   post_Cube ()=0;
 
@@ -672,13 +736,17 @@ class Cube_pskel: public ::xml_schema::complex_content
   sigma_parser (::sigma_pskel&);
 
   void
+  fixed_parser (::xml_schema::boolean_pskel&);
+
+  void
   parsers (::dimension_pskel& /* dimension */,
            ::point_pskel& /* startPoint */,
            ::xml_schema::double_pskel& /* h */,
            ::xml_schema::double_pskel& /* mass */,
            ::velocity_pskel& /* velocity */,
            ::epsilon_pskel& /* epsilon */,
-           ::sigma_pskel& /* sigma */);
+           ::sigma_pskel& /* sigma */,
+           ::xml_schema::boolean_pskel& /* fixed */);
 
   // Constructor.
   //
@@ -704,6 +772,7 @@ class Cube_pskel: public ::xml_schema::complex_content
   ::velocity_pskel* velocity_parser_;
   ::epsilon_pskel* epsilon_parser_;
   ::sigma_pskel* sigma_parser_;
+  ::xml_schema::boolean_pskel* fixed_parser_;
 };
 
 class Sphere_pskel: public ::xml_schema::complex_content
@@ -912,6 +981,30 @@ class thermostats_pskel: public ::xml_schema::complex_content
   ::xml_schema::int_pskel* stepSize_parser_;
 };
 
+class parallelizationStrategy_pskel: public virtual ::xml_schema::int_pskel
+{
+public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual library::parallelizationStrategy
+    post_parallelizationStrategy ()=0;
+};
+
+class simuType_pskel: public virtual ::xml_schema::string_pskel
+{
+public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual library::simulationType
+    post_simuType ()=0;
+};
+
 class molsim_pskel: public ::xml_schema::complex_content
 {
   public:
@@ -955,6 +1048,12 @@ class molsim_pskel: public ::xml_schema::complex_content
 
   virtual void
   thermostats (::library::thermostats);
+
+  virtual void
+  parallelizationStrategy (::library::parallelizationStrategy);
+
+  virtual void
+  simulationType (::library::simulationType);
 
   virtual void
   benchmark (::library::benchmark);
@@ -1001,6 +1100,12 @@ class molsim_pskel: public ::xml_schema::complex_content
   thermostats_parser (::thermostats_pskel&);
 
   void
+  parallelizationStrategy_parser (::parallelizationStrategy_pskel&);
+
+  void
+  simulationType_parser (::simuType_pskel&);
+
+  void
   benchmark_parser (::benchmark_pskel&);
 
   void
@@ -1016,6 +1121,8 @@ class molsim_pskel: public ::xml_schema::complex_content
            ::simulationContainer_pskel& /* simulationContainer */,
            ::particles_pskel& /* particles */,
            ::thermostats_pskel& /* thermostats */,
+           ::parallelizationStrategy_pskel& /* parallelizationStrategy */,
+           ::simuType_pskel& /* simulationType */,
            ::benchmark_pskel& /* benchmark */);
 
   // Constructor.
@@ -1047,6 +1154,8 @@ class molsim_pskel: public ::xml_schema::complex_content
   ::simulationContainer_pskel* simulationContainer_parser_;
   ::particles_pskel* particles_parser_;
   ::thermostats_pskel* thermostats_parser_;
+  ::parallelizationStrategy_pskel* parallelizationStrategy_parser_;
+  ::simuType_pskel* simulationType_parser_;
   ::benchmark_pskel* benchmark_parser_;
 };
 

@@ -144,3 +144,19 @@ void ParticleContainer::forceInsert(Particle &p) {
 std::vector<Particle> ParticleContainer::getParticles() {
     return particles;
 }
+
+void ParticleContainer::simulateMembrane(double delta_t, bool pullState) {
+    return;
+}
+
+void ParticleContainer::setMembraneSimulation() {
+    return;
+}
+
+void  ParticleContainer::setNanoScaleFlowSimulation() {
+    return;
+}
+
+void ParticleContainer::initMembrane() {
+    return;
+}
