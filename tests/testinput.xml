@@ -22,7 +22,11 @@
     <algorithm>lj</algorithm>
 
     <simulationContainer>
-        <boundaryConditions>reflection</boundaryConditions>
+        <boundaryConditions>
+            <xBoundary>0</xBoundary>
+            <yBoundary>0</yBoundary>
+            <zBoundary>0</zBoundary>
+        </boundaryConditions>
         <dimension>
             <x>300</x>
             <y>54</y>
@@ -54,6 +58,7 @@
             </velocity>
             <epsilon>1.2</epsilon>
             <sigma>1</sigma>
+            <fixed>false</fixed>
         </Cube>
         <Cube>
             <dimension>
@@ -75,6 +80,7 @@
             </velocity>
             <epsilon>1</epsilon>
             <sigma>1.1</sigma>
+            <fixed>false</fixed>
         </Cube>
     </particles>
     <thermostats>
