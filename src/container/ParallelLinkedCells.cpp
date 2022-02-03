@@ -11,6 +11,7 @@
 #include <omp.h>
 
 #ifdef _OPENMP
+
 ParallelLinkedCells::ParallelLinkedCells(std::array<int, 3> dimension, double mesh, double cutOff, double gravConst,
                                          std::array<int, 3> &boundaryConds, int strat) {
     if (dimension[0] % 2 != 0 || dimension[1] % 2 != 0 || dimension[2] % 2 != 0) {
@@ -84,7 +85,7 @@ std::array<int, 3> ParallelLinkedCells::indexToCoords(int index) {
 }
 
 void ParallelLinkedCells::insert(Particle &p) {
-    p.setId(currentId);
+    p.setID(currentId);
     currentId++;
     if (strategy == 2)
         p.initParallelBuffer(omp_get_max_threads());
@@ -115,7 +116,7 @@ void ParallelLinkedCells::insert(Particle &p) {
 }
 
 void ParallelLinkedCells::forceInsert(Particle &p) {
-    p.setId(currentId);
+    p.setID(currentId);
     currentId++;
     if (strategy == 2)
         p.initParallelBuffer(omp_get_max_threads());
@@ -149,7 +150,7 @@ void ParallelLinkedCells::remove(Particle &p, int index = -1) {
         i = coordToIndex(getCellCoords(p));
     }
     for (std::vector<Particle>::iterator it = particles[i].begin(); it != particles[i].end(); ++it) {
-        if (p.getId() == it->getId()) {
+        if (p.getID() == it->getID()) {
             particles.at(i).erase(it);
             break;
         }
@@ -495,7 +496,7 @@ void ParallelLinkedCells::handleReflectionBoundary(Particle &p) {
                         {(meshSize - leftDistance), p.getX()[1], p.getX()[2]},
                         {0, 0, 0},
                         p.getM(),
-                        p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                        p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                 p.setForceBuffer(
                         p.getForceBuffer() +
                         forceCalcs[p.getType()].calculateF(p, temp));
@@ -508,7 +509,7 @@ void ParallelLinkedCells::handleReflectionBoundary(Particle &p) {
                         {((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1],
                          p.getX()[2]},
                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                        p.getId());
+                        p.getID());
                 p.setForceBuffer(
                         p.getForceBuffer() +
                         forceCalcs[p.getType()].calculateF(p, temp));
@@ -522,7 +523,7 @@ void ParallelLinkedCells::handleReflectionBoundary(Particle &p) {
             if (bottomDistance <= reflectionDistance[p.getType()]) {
                 Particle temp = Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]},
                                          {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                         p.getEpsilon(), p.getId());
+                                         p.getEpsilon(), p.getID());
                 p.setForceBuffer(p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                 //ghosts.push_back(temp);
             }
@@ -530,7 +531,7 @@ void ParallelLinkedCells::handleReflectionBoundary(Particle &p) {
             if (topDistance <= reflectionDistance[p.getType()]) {
                 Particle temp = Particle(
                         {(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
-                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                 p.setForceBuffer(p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                 //ghosts.push_back(temp);
             }
@@ -543,7 +544,7 @@ void ParallelLinkedCells::handleReflectionBoundary(Particle &p) {
                 if (frontDistance <= reflectionDistance[p.getType()]) {
                     Particle temp = Particle({p.getX()[0], p.getX()[1], (meshSize - frontDistance)},
                                              {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                             p.getEpsilon(), p.getId());
+                                             p.getEpsilon(), p.getID());
                     p.setForceBuffer(
                             p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                 }
@@ -553,7 +554,7 @@ void ParallelLinkedCells::handleReflectionBoundary(Particle &p) {
                             {p.getX()[0], p.getX()[1],
                              (dimensions[2] - 1) * meshSize + backDistance},
                             {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                            p.getId());
+                            p.getID());
                     p.setForceBuffer(
                             p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                 }
@@ -586,7 +587,7 @@ void ParallelLinkedCells::handleBoundary() {
                                 Particle par = Particle(
                                         {((dimensions[0] - 1) * meshSize - leftDistance), p.getX()[1],
                                          ((dimensions[2] - 1) * meshSize - frontDistance)},
-                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                                 par.setOldF(p.getOldF());
                                 par.setF(p.getF());
                                 par.setForceBuffer(p.getForceBuffer());
@@ -603,7 +604,7 @@ void ParallelLinkedCells::handleBoundary() {
                                          ((dimensions[2] - 1) * meshSize - frontDistance)},
                                         p.getV(),
                                         p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 par.setOldF(p.getOldF());
                                 par.setF(p.getF());
                                 par.setForceBuffer(p.getForceBuffer());
@@ -619,7 +620,7 @@ void ParallelLinkedCells::handleBoundary() {
                                                          meshSize + backDistance},
                                                         p.getV(),
                                                         p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                        p.getId());
+                                                        p.getID());
                                 par.setOldF(p.getOldF());
                                 par.setF(p.getF());
                                 par.setForceBuffer(p.getForceBuffer());
@@ -635,7 +636,7 @@ void ParallelLinkedCells::handleBoundary() {
                                         {meshSize + rightDistance, p.getX()[1], meshSize + backDistance},
                                         p.getV(),
                                         p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 par.setOldF(p.getOldF());
                                 par.setF(p.getF());
                                 par.setForceBuffer(p.getForceBuffer());
@@ -656,7 +657,7 @@ void ParallelLinkedCells::handleBoundary() {
                             // if (leftDistance <= reflectionDistance[p.getType()]) {
                             Particle par = Particle(
                                     {((dimensions[0] - 1) * meshSize + leftDistance), p.getX()[1], p.getX()[2]},
-                                    {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                    {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                             calculateGhostForce(par);
                             //ghosts.push_back(par);
                             //}
@@ -665,7 +666,7 @@ void ParallelLinkedCells::handleBoundary() {
                             //if (rightDistance <= reflectionDistance[p.getType()]) {
                             Particle par = Particle({(meshSize - rightDistance), p.getX()[1], p.getX()[2]},
                                                     {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                                    p.getEpsilon(), p.getId());
+                                                    p.getEpsilon(), p.getID());
                             calculateGhostForce(par);
                             //ghosts.push_back(par);
                             //}
@@ -679,7 +680,7 @@ void ParallelLinkedCells::handleBoundary() {
                             //if (leftDistance <= reflectionDistance[p.getType()]) {
                             Particle part1 = Particle(
                                     {((dimensions[0] - 1) * meshSize - leftDistance), p.getX()[1], p.getX()[2]},
-                                    p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                    p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                             part1.setOldF(p.getOldF());
                             part1.setF(p.getF());
                             part1.setForceBuffer(p.getForceBuffer());
@@ -693,7 +694,7 @@ void ParallelLinkedCells::handleBoundary() {
                             Particle part2 = Particle({meshSize + rightDistance, p.getX()[1], p.getX()[2]},
                                                       p.getV(),
                                                       p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                      p.getId());
+                                                      p.getID());
                             part2.setOldF(p.getOldF());
                             part2.setF(p.getF());
                             part2.setForceBuffer(p.getForceBuffer());
@@ -714,7 +715,7 @@ void ParallelLinkedCells::handleBoundary() {
                                 Particle par = Particle({p.getX()[0], meshSize - topDistance, p.getX()[2]},
                                                         {0, 0, 0},
                                                         p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                        p.getId());
+                                                        p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                             } else {
@@ -722,7 +723,7 @@ void ParallelLinkedCells::handleBoundary() {
                                 Particle par = Particle(
                                         {p.getX()[0], ((dimensions[1] - 1) * meshSize + bottomDistance),
                                          p.getX()[2]},
-                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                             }
@@ -733,7 +734,7 @@ void ParallelLinkedCells::handleBoundary() {
                                 Particle part1 = Particle({p.getX()[0], meshSize + topDistance, p.getX()[2]},
                                                           p.getV(),
                                                           p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                          p.getId());
+                                                          p.getID());
                                 part1.setF(p.getF());
                                 part1.setOldF(p.getF());
                                 ins.push_back(part1);
@@ -743,7 +744,7 @@ void ParallelLinkedCells::handleBoundary() {
                                 Particle part2 = Particle(
                                         {p.getX()[0], ((dimensions[1] - 1) * meshSize - bottomDistance),
                                          p.getX()[2]},
-                                        p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                        p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                                 part2.setF(p.getF());
                                 part2.setOldF(p.getOldF());
                                 ins.push_back(part2);
@@ -764,7 +765,7 @@ void ParallelLinkedCells::handleBoundary() {
                                         {p.getX()[0], p.getX()[1],
                                          ((dimensions[2] - 1) * meshSize + frontDistance)},
                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                                 //}
@@ -773,7 +774,7 @@ void ParallelLinkedCells::handleBoundary() {
                                 //if (rightDistance <= reflectionDistance[p.getType()]) {
                                 Particle par = Particle({p.getX()[0], p.getX()[1], meshSize - backDistance},
                                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                                        p.getEpsilon(), p.getId());
+                                                        p.getEpsilon(), p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                                 //}
@@ -789,7 +790,7 @@ void ParallelLinkedCells::handleBoundary() {
                                         {p.getX()[0], p.getX()[1],
                                          ((dimensions[2] - 1) * meshSize - frontDistance)},
                                         p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 part1.setOldF(p.getOldF());
                                 part1.setF(p.getF());
                                 part1.setForceBuffer(p.getForceBuffer());
@@ -803,7 +804,7 @@ void ParallelLinkedCells::handleBoundary() {
                                 Particle part2 = Particle({p.getX()[0], p.getX()[1], meshSize + backDistance},
                                                           p.getV(),
                                                           p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                          p.getId());
+                                                          p.getID());
                                 part2.setOldF(p.getOldF());
                                 part2.setF(p.getF());
                                 part2.setForceBuffer(p.getForceBuffer());
@@ -966,6 +967,23 @@ void ParallelLinkedCells::forceInsertNoId(Particle &p) {
         p.initParallelBuffer(omp_get_max_threads());
     if (!isOutOfScope(p))
         particles[coordToIndex(getCellCoords(p))].push_back(p);
+}
+
+void ParallelLinkedCells::setMembraneSimulation() {
+    return;
+
+}
+
+void ParallelLinkedCells::setNanoScaleFlowSimulation() {
+    return;
+}
+
+void ParallelLinkedCells::initMembrane() {
+    return;
+}
+
+void ParallelLinkedCells::simulateMembrane(double delta_t, bool pullState) {
+    return;
 }
 
 #endif //_OPENMP

@@ -50,6 +50,7 @@ private:
      */
     int currentId;
 
+    /*
      *  Store neighbours
      */
     std::unordered_map<int, std::shared_ptr<Particle>> neighbours_membrane;

@@ -66,11 +66,6 @@ private:
     //std::vector<std::reference_wrapper<Particle>> neighboursDiag;
     std::vector<int> neighboursDiag;
 
-    /*
-     * ID for a particle
-     */
-    int id;
-
 
     /**
      * Indicates whether this particle should be pulled up in the membrane simulation

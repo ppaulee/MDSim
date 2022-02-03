@@ -32,7 +32,7 @@ LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOf
     meshSize = mesh;
     // Initialise all vectors
     for (int i = 0; i < size; i++) {
-        particles.push_back(std::list<Particle>({}));
+        particles.push_back(std::vector<Particle>({}));
     }
 }
 
@@ -58,7 +58,7 @@ LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOf
     meshSize = mesh;
     // Initialise all vectors
     for (int i = 0; i < size; i++) {
-        particles.push_back(std::list<Particle>({}));
+        particles.push_back(std::vector<Particle>({}));
     }
 }
 
@@ -80,7 +80,7 @@ std::array<int, 3> LinkedCells::indexToCoords(int index) {
 }
 
 void LinkedCells::insert(Particle &p) {
-    p.setId(currentId);
+    p.setID(currentId);
     currentId++;
     // Transfer the coordinates into a system where (0,0,0) is the smallest coordinate
     if (dimensions[2] == 0) {
@@ -117,7 +117,7 @@ void LinkedCells::insert(Particle &p) {
 }
 
 void LinkedCells::forceInsert(Particle &p) {
-    p.setId(currentId);
+    p.setID(currentId);
     currentId++;
     if (forceCalcs.size() == p.getType()) {
         if (membraneSimulation) {
@@ -158,7 +158,7 @@ void LinkedCells::remove(Particle &p, int index = -1) {
         i = coordToIndex(getCellCoords(p));
     }
     for (std::vector<Particle>::iterator it = particles[i].begin(); it != particles[i].end(); ++it) {
-        if (p.getId() == it->getId()) {
+        if (p.getID() == it->getID()) {
             particles.at(i).erase(it);
             break;
         }
@@ -733,7 +733,7 @@ void LinkedCells::handleReflectionBoundary(Particle &p) {
                         {(meshSize - leftDistance), p.getX()[1], p.getX()[2]},
                         {0, 0, 0},
                         p.getM(),
-                        p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                        p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                 p.setForceBuffer(
                         p.getForceBuffer() +
                         forceCalcs[p.getType()].calculateF(p, temp));
@@ -746,7 +746,7 @@ void LinkedCells::handleReflectionBoundary(Particle &p) {
                         {((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1],
                          p.getX()[2]},
                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                        p.getId());
+                        p.getID());
                 p.setForceBuffer(
                         p.getForceBuffer() +
                         forceCalcs[p.getType()].calculateF(p, temp));
@@ -760,7 +760,7 @@ void LinkedCells::handleReflectionBoundary(Particle &p) {
             if (bottomDistance <= reflectionDistance[p.getType()]) {
                 Particle temp = Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]},
                                          {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                         p.getEpsilon(), p.getId());
+                                         p.getEpsilon(), p.getID());
                 p.setForceBuffer(p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                 //ghosts.push_back(temp);
             }
@@ -768,7 +768,7 @@ void LinkedCells::handleReflectionBoundary(Particle &p) {
             if (topDistance <= reflectionDistance[p.getType()]) {
                 Particle temp = Particle(
                         {(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
-                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                 p.setForceBuffer(p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                 //ghosts.push_back(temp);
             }
@@ -781,7 +781,7 @@ void LinkedCells::handleReflectionBoundary(Particle &p) {
                 if (frontDistance <= reflectionDistance[p.getType()]) {
                     Particle temp = Particle({p.getX()[0], p.getX()[1], (meshSize - frontDistance)},
                                              {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                             p.getEpsilon(), p.getId());
+                                             p.getEpsilon(), p.getID());
                     p.setForceBuffer(
                             p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                 }
@@ -791,7 +791,7 @@ void LinkedCells::handleReflectionBoundary(Particle &p) {
                             {p.getX()[0], p.getX()[1],
                              (dimensions[2] - 1) * meshSize + backDistance},
                             {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                            p.getId());
+                            p.getID());
                     p.setForceBuffer(
                             p.getForceBuffer() + forceCalcs[p.getType()].calculateF(p, temp));
                 }
@@ -823,7 +823,7 @@ void LinkedCells::handleBoundary() {
                                 Particle par = Particle(
                                         {((dimensions[0] - 1) * meshSize - leftDistance), p.getX()[1],
                                          ((dimensions[2] - 1) * meshSize - frontDistance)},
-                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                                 par.setOldF(p.getOldF());
                                 par.setF(p.getF());
                                 par.setForceBuffer(p.getForceBuffer());
@@ -840,7 +840,7 @@ void LinkedCells::handleBoundary() {
                                          ((dimensions[2] - 1) * meshSize - frontDistance)},
                                         p.getV(),
                                         p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 par.setOldF(p.getOldF());
                                 par.setF(p.getF());
                                 par.setForceBuffer(p.getForceBuffer());
@@ -856,7 +856,7 @@ void LinkedCells::handleBoundary() {
                                                          meshSize + backDistance},
                                                         p.getV(),
                                                         p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                        p.getId());
+                                                        p.getID());
                                 par.setOldF(p.getOldF());
                                 par.setF(p.getF());
                                 par.setForceBuffer(p.getForceBuffer());
@@ -872,7 +872,7 @@ void LinkedCells::handleBoundary() {
                                         {meshSize + rightDistance, p.getX()[1], meshSize + backDistance},
                                         p.getV(),
                                         p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 par.setOldF(p.getOldF());
                                 par.setF(p.getF());
                                 par.setForceBuffer(p.getForceBuffer());
@@ -893,7 +893,7 @@ void LinkedCells::handleBoundary() {
                             // if (leftDistance <= reflectionDistance[p.getType()]) {
                             Particle par = Particle(
                                     {((dimensions[0] - 1) * meshSize + leftDistance), p.getX()[1], p.getX()[2]},
-                                    {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                    {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                             calculateGhostForce(par);
                             //ghosts.push_back(par);
                             //}
@@ -902,7 +902,7 @@ void LinkedCells::handleBoundary() {
                             //if (rightDistance <= reflectionDistance[p.getType()]) {
                             Particle par = Particle({(meshSize - rightDistance), p.getX()[1], p.getX()[2]},
                                                     {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                                    p.getEpsilon(), p.getId());
+                                                    p.getEpsilon(), p.getID());
                             calculateGhostForce(par);
                             //ghosts.push_back(par);
                             //}
@@ -916,7 +916,7 @@ void LinkedCells::handleBoundary() {
                             //if (leftDistance <= reflectionDistance[p.getType()]) {
                             Particle part1 = Particle(
                                     {((dimensions[0] - 1) * meshSize - leftDistance), p.getX()[1], p.getX()[2]},
-                                    p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                    p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                             part1.setOldF(p.getOldF());
                             part1.setF(p.getF());
                             part1.setForceBuffer(p.getForceBuffer());
@@ -930,7 +930,7 @@ void LinkedCells::handleBoundary() {
                             Particle part2 = Particle({meshSize + rightDistance, p.getX()[1], p.getX()[2]},
                                                       p.getV(),
                                                       p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                      p.getId());
+                                                      p.getID());
                             part2.setOldF(p.getOldF());
                             part2.setF(p.getF());
                             part2.setForceBuffer(p.getForceBuffer());
@@ -951,7 +951,7 @@ void LinkedCells::handleBoundary() {
                                 Particle par = Particle({p.getX()[0], meshSize - topDistance, p.getX()[2]},
                                                         {0, 0, 0},
                                                         p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                        p.getId());
+                                                        p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                             } else {
@@ -959,7 +959,7 @@ void LinkedCells::handleBoundary() {
                                 Particle par = Particle(
                                         {p.getX()[0], ((dimensions[1] - 1) * meshSize + bottomDistance),
                                          p.getX()[2]},
-                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                             }
@@ -970,7 +970,7 @@ void LinkedCells::handleBoundary() {
                                 Particle part1 = Particle({p.getX()[0], meshSize + topDistance, p.getX()[2]},
                                                           p.getV(),
                                                           p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                          p.getId());
+                                                          p.getID());
                                 part1.setF(p.getF());
                                 part1.setOldF(p.getF());
                                 ins.push_back(part1);
@@ -980,7 +980,7 @@ void LinkedCells::handleBoundary() {
                                 Particle part2 = Particle(
                                         {p.getX()[0], ((dimensions[1] - 1) * meshSize - bottomDistance),
                                          p.getX()[2]},
-                                        p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getId());
+                                        p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(), p.getID());
                                 part2.setF(p.getF());
                                 part2.setOldF(p.getOldF());
                                 ins.push_back(part2);
@@ -1001,7 +1001,7 @@ void LinkedCells::handleBoundary() {
                                         {p.getX()[0], p.getX()[1],
                                          ((dimensions[2] - 1) * meshSize + frontDistance)},
                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                                 //}
@@ -1010,7 +1010,7 @@ void LinkedCells::handleBoundary() {
                                 //if (rightDistance <= reflectionDistance[p.getType()]) {
                                 Particle par = Particle({p.getX()[0], p.getX()[1], meshSize - backDistance},
                                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                                        p.getEpsilon(), p.getId());
+                                                        p.getEpsilon(), p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                                 //}
@@ -1026,7 +1026,7 @@ void LinkedCells::handleBoundary() {
                                         {p.getX()[0], p.getX()[1],
                                          ((dimensions[2] - 1) * meshSize - frontDistance)},
                                         p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 part1.setOldF(p.getOldF());
                                 part1.setF(p.getF());
                                 part1.setForceBuffer(p.getForceBuffer());
@@ -1040,7 +1040,7 @@ void LinkedCells::handleBoundary() {
                                 Particle part2 = Particle({p.getX()[0], p.getX()[1], meshSize + backDistance},
                                                           p.getV(),
                                                           p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                          p.getId());
+                                                          p.getID());
                                 part2.setOldF(p.getOldF());
                                 part2.setF(p.getF());
                                 part2.setForceBuffer(p.getForceBuffer());
@@ -1227,7 +1227,7 @@ void LinkedCells::handleNanoBoundary() {
                                 //if (rightDistance <= reflectionDistance[p.getType()]) {
                                 Particle par = Particle({p.getX()[0], p.getX()[1], meshSize - backDistance},
                                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
-                                                        p.getEpsilon(), p.getId());
+                                                        p.getEpsilon(), p.getID());
                                 //ghosts.push_back(par);
                                 calculateGhostForce(par);
                                 //}
@@ -1243,7 +1243,7 @@ void LinkedCells::handleNanoBoundary() {
                                         {p.getX()[0], p.getX()[1],
                                          ((dimensions[2] - 1) * meshSize - frontDistance)},
                                         p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                        p.getId());
+                                        p.getID());
                                 part1.setOldF(p.getOldF());
                                 part1.setF(p.getF());
                                 part1.setForceBuffer(p.getForceBuffer());
@@ -1257,7 +1257,7 @@ void LinkedCells::handleNanoBoundary() {
                                 Particle part2 = Particle({p.getX()[0], p.getX()[1], meshSize + backDistance},
                                                           p.getV(),
                                                           p.getM(), p.getType(), p.getSigma(), p.getEpsilon(),
-                                                          p.getId());
+                                                          p.getID());
                                 part2.setOldF(p.getOldF());
                                 part2.setF(p.getF());
                                 part2.setForceBuffer(p.getForceBuffer());
@@ -1474,6 +1474,8 @@ void LinkedCells::forceInsertNoId(Particle &p) {
     }*/
     if (!isOutOfScope(p))
         particles[coordToIndex(getCellCoords(p))].push_back(p);
+
+}
 
 void LinkedCells::setMembraneSimulation() {
     membraneSimulation = true;

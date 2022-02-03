@@ -17,7 +17,7 @@
 #define PSEMOLDYN_GROUPB_PARALLELLINKEDCELLS_H
 
 
-class ParallelLinkedCells : public SimulationContainer{
+class ParallelLinkedCells : public SimulationContainer {
 
 private:
 
@@ -116,7 +116,6 @@ private:
     void forceInsertNoId(Particle &p);
 
 
-
 public:
     /**
      * Finds the right cell for the particle
@@ -138,7 +137,7 @@ public:
      * @param boundaryConds Array setting boundary conditions
      */
     explicit ParallelLinkedCells(std::array<int, 3> dimension, double mesh, double cutOff, double gravConst,
-                         std::array<int, 3> &boundaryConds, int strat);
+                                 std::array<int, 3> &boundaryConds, int strat);
 
     /**
      * Note that a layer of halo and boundary cells are added on the side. E.g. if we have a 1x1x1 cube then the actual dimensions are (1+4)x(1+4)x(1+4). The coordinate of the inner cell is (0+2,0+2,0+2)
@@ -302,6 +301,14 @@ public:
     void calculateGhostForce(Particle &ghost);
 
     void handleReflectionBoundary(Particle &p);
+
+    void setMembraneSimulation() override;
+
+    void setNanoScaleFlowSimulation() override;
+
+    void initMembrane() override;
+
+    void simulateMembrane(double delta_t, bool pullState) override;
 };
 
 
