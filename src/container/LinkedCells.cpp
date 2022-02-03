@@ -159,8 +159,8 @@ bool LinkedCells::isHaloCell(std::array<int, 3> coords) {
 }
 
 bool LinkedCells::isBoundaryCell(std::array<int, 3> coords) {
-    return !isHaloCell(coords) && (coords[0] == dimensions[0] - 2 || coords[1] == dimensions[1] - 2 || coords[2] == dimensions[2] - 2 ||
-           coords[0] == 1 || coords[1] == 1 || coords[2] == 1);
+    return coords[0] == dimensions[0] - 2 || coords[1] == dimensions[1] - 2 || coords[2] == dimensions[2] - 2 ||
+           coords[0] == 1 || coords[1] == 1 || coords[2] == 1;
 }
 
 std::list<Particle> &LinkedCells::get(std::array<double, 3> coords) {
