@@ -78,6 +78,8 @@ public:
 
     virtual void setMembraneSimulation() = 0;
 
+    virtual void setNanoScaleFlowSimulation() = 0;
+
     virtual void initMembrane() = 0;
 };
 

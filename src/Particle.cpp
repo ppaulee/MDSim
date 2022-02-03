@@ -46,8 +46,6 @@ Particle::Particle(std::array<double, 3> x_arg, std::array<double, 3> v_arg,
     sigma = sigma_arg;
     epsilon = epsilon_arg;
     membranePull = false;
-
-    std::cout << "Particle generated!" << std::endl;
 }
 
 Particle::~Particle() {

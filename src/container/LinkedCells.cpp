@@ -20,16 +20,16 @@ LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOf
     if (dimension[2] == 0) {
         // 2D case
         dimensions = {dimension[0] + 4, dimension[1] + 4, 0};
-        size = coordToIndex({dimension[0] + 4, dimension[1] + 4, 0});
+        size = dimensions[0]*dimensions[1];
     } else {
         // 3D Case
         dimensions = {dimension[0] + 4, dimension[1] + 4, dimension[2] + 4};
-        size = coordToIndex({dimension[0] + 4, dimension[1] + 4, dimension[2] + 4});
+        size = dimensions[0]*dimensions[1]*dimensions[2];
     }
 
     meshSize = mesh;
     // Initialise all vectors
-    for (int i = 0; i < coordToIndex({dimensions[0], dimensions[1], dimensions[2]}) + 1; i++) {
+    for (int i = 0; i < size; i++) {
         particles.push_back(std::list<Particle>({}));
     }
 }
@@ -45,16 +45,16 @@ LinkedCells::LinkedCells(std::array<int, 3> dimension, double mesh, double cutOf
     if (dimension[2] == 0) {
         // 2D case
         dimensions = {dimension[0] + 4, dimension[1] + 4, 0};
-        size = coordToIndex({dimension[0] + 4, dimension[1] + 4, 0});
+        size = dimensions[0]*dimensions[1];
     } else {
         // 3D Case
         dimensions = {dimension[0] + 4, dimension[1] + 4, dimension[2] + 4};
-        size = coordToIndex({dimension[0] + 4, dimension[1] + 4, dimension[2] + 4});
+        size = dimensions[0]*dimensions[1]*dimensions[2];
     }
 
     meshSize = mesh;
     // Initialise all vectors
-    for (int i = 0; i < coordToIndex({dimensions[0], dimensions[1], dimensions[2]}) + 1; i++) {
+    for (int i = 0; i < size; i++) {
         particles.push_back(std::list<Particle>({}));
     }
 }
@@ -90,6 +90,9 @@ void LinkedCells::insert(Particle &p) {
         if (membraneSimulation) {
             forceCalcs.push_back(TruncatedLennardJones(1, 1, 0, 1, 1));
             forceCalcs[0].setMembrane();
+        } else if(nanoScaleFlowSimulation){
+            forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+            forceCalcs[p.getType()].setNano();
         } else {
             forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
         }
@@ -113,6 +116,9 @@ void LinkedCells::forceInsert(Particle &p) {
         if (membraneSimulation) {
             forceCalcs.push_back(TruncatedLennardJones(1, 1, 0, 1, 1));
             forceCalcs[0].setMembrane();
+        } else if(nanoScaleFlowSimulation){
+            forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
+            forceCalcs[p.getType()].setNano();
         } else {
             forceCalcs.push_back(LennardJones(p.getEpsilon(), p.getSigma(), p.getType()));
         }
@@ -153,8 +159,8 @@ bool LinkedCells::isHaloCell(std::array<int, 3> coords) {
 }
 
 bool LinkedCells::isBoundaryCell(std::array<int, 3> coords) {
-    return coords[0] == dimensions[0] - 2 || coords[1] == dimensions[1] - 2 || coords[2] == dimensions[2] - 2 ||
-           coords[0] == 1 || coords[1] == 1 || coords[2] == 1;
+    return !isHaloCell(coords) && (coords[0] == dimensions[0] - 2 || coords[1] == dimensions[1] - 2 || coords[2] == dimensions[2] - 2 ||
+           coords[0] == 1 || coords[1] == 1 || coords[2] == 1);
 }
 
 std::list<Particle> &LinkedCells::get(std::array<double, 3> coords) {
@@ -202,7 +208,7 @@ std::array<double, 3> LinkedCells::calculateLJForce(Particle &p1, Particle &p2) 
     return force;
 }
 
-
+//TODO some code redundancy here
 void LinkedCells::calculateF(ForceCalculation *algorithm) {
     initCalculateF();
 
@@ -235,8 +241,19 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
                                     force = calculateLJForce(current_particle, p);
 
                                     // Make use of Newtons third law
-                                    current_particle.setF(current_particle.getF() + force);
-                                    p.setF(p.getF() - force);
+                                    if(nanoScaleFlowSimulation) {
+                                        // Make use of Newtons third law
+                                        if (current_particle.getType() == 0) {
+                                            current_particle.setF(current_particle.getF() + force);
+                                        }
+                                        if (p.getType() == 0) {
+                                            p.setF(p.getF() - force);
+                                        }
+                                    }else{
+                                        // Make use of Newtons third law
+                                        current_particle.setF(current_particle.getF() + force);
+                                        p.setF(p.getF() - force);
+                                    }
                                 }
                             }
                             if (!ghosts.empty()) {
@@ -246,7 +263,13 @@ void LinkedCells::calculateF(ForceCalculation *algorithm) {
                                             !(p == current_particle)) {
                                             std::array<double, 3> force;
                                             force = calculateLJForce(current_particle, p);
-                                            current_particle.setF(current_particle.getF() + force);
+                                            if(nanoScaleFlowSimulation){
+                                                if(p.getType() == 0){
+                                                    current_particle.setF(current_particle.getF() + force);
+                                                }
+                                            }else{
+                                                current_particle.setF(current_particle.getF() + force);
+                                            }
                                         }
                                     }
                                 }
@@ -330,17 +353,67 @@ void LinkedCells::ThreeDcalculateF(int x, int y, int z, ForceCalculation *algori
                     // Coordinates including offset for neighboured cells
                     std::array<int, 3> c = {x + x_diff, y + y_diff, z + z_diff};
 
+                    //calculateNeighbouredF(c, algorithm, current_particle);
+                    // TODO 3D periodic boundary
+                    //TODO some code redundancy here
+                    if (c[0] < 0 || c[0] >= dimensions[0] ||
+                        c[1] < 0 || c[1] >= dimensions[1] ||
+                        c[2] < 0 || c[2] >= dimensions[2]) {
+                        continue;
+                    }
                     if (coordToIndex(c) < 0) {
                         continue;
                     }
-                    calculateNeighbouredF(c, algorithm, current_particle);
-                    // TODO 3D periodic boundary
+
+                    // Particles in neighboured cells
+                    for (auto &p: particles[coordToIndex(c)]) {
+                        // Check if particle is inside the cut-off radius
+                        if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
+                            !(p == current_particle) && !p.isMarked()) {
+                            // Actual force calculation according to the used algorithm
+                            std::array<double, 3> force;
+                            force = calculateLJForce(current_particle, p);
+
+                            if(nanoScaleFlowSimulation) {
+                                // Make use of Newtons third law
+                                if (current_particle.getType() == 0) {
+                                    current_particle.setF(current_particle.getF() + force);
+                                }
+                                if (p.getType() == 0) {
+                                    p.setF(p.getF() - force);
+                                }
+                            }else{
+                                // Make use of Newtons third law
+                                current_particle.setF(current_particle.getF() + force);
+                                p.setF(p.getF() - force);
+                            }
+                        }
+                    }
+                    if (!ghosts.empty()) {
+                        for (auto &p: ghosts) {
+                            if (getCellCoords(p) == c) {
+                                if (ArrayUtils::L2Norm(p.getX() - current_particle.getX()) <= cutOffRadius &&
+                                    !(p == current_particle)) {
+                                    std::array<double, 3> force;
+                                    force = calculateLJForce(current_particle, p);
+                                    if(nanoScaleFlowSimulation){
+                                        if(current_particle.getType()==0) {
+                                            current_particle.setF(current_particle.getF() + force);
+                                        }
+                                    } else{
+                                        current_particle.setF(current_particle.getF() + force);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+//TODO some code redundancy here
 void LinkedCells::calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *algorithm, Particle &current_particle) {
     // Particles in neighboured cells
     for (auto &p: particles[coordToIndex(c)]) {
@@ -361,10 +434,18 @@ void LinkedCells::calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *
                         force = calc.calculateF(current_particle, p);
                 }
             }
-
-            // Make use of Newtons third law
-            current_particle.setF(current_particle.getF() + force);
-            p.setF(p.getF() - force);
+            if(nanoScaleFlowSimulation){
+                if(current_particle.getType()==0) {
+                    current_particle.setF(current_particle.getF() + force);
+                }
+                if(current_particle.getType()==0) {
+                    p.setF(p.getF() - force);
+                }
+            }else{
+                // Make use of Newtons third law
+                current_particle.setF(current_particle.getF() + force);
+                p.setF(p.getF() - force);
+            }
         }
     }
 }
@@ -372,11 +453,21 @@ void LinkedCells::calculateNeighbouredF(std::array<int, 3> c, ForceCalculation *
 void LinkedCells::calculateV(double delta_t) {
     for (auto &vec: particles) {
         for (auto &p: vec) {
-            std::array<double, 3> res = p.getF() + p.getOldF();
-            res = (1 / (2 * p.getM())) * res;
-            res = delta_t * res;
-            res = res + p.getV();
-            p.setV(res);
+            if(nanoScaleFlowSimulation){
+                if(p.getType() == 0){
+                    std::array<double, 3> res = p.getF() + p.getOldF();
+                    res = (1 / (2 * p.getM())) * res;
+                    res = delta_t * res;
+                    res = res + p.getV();
+                    p.setV(res);
+                }
+            } else {
+                std::array<double, 3> res = p.getF() + p.getOldF();
+                res = (1 / (2 * p.getM())) * res;
+                res = delta_t * res;
+                res = res + p.getV();
+                p.setV(res);
+            }
         }
     }
 }
@@ -384,14 +475,27 @@ void LinkedCells::calculateV(double delta_t) {
 void LinkedCells::calculateX(double delta_t) {
     for (auto &vec: particles) {
         for (auto &p: vec) {
-            std::array<double, 3> res = (1 / (2 * p.getM())) * p.getOldF();
-            res = (delta_t * delta_t) * res;
+            if(nanoScaleFlowSimulation){
+                if(p.getType() == 0){
+                    std::array<double, 3> res = (1 / (2 * p.getM())) * p.getOldF();
+                    res = (delta_t * delta_t) * res;
 
-            std::array<double, 3> res2 = delta_t * p.getV();
-            res = res + res2;
+                    std::array<double, 3> res2 = delta_t * p.getV();
+                    res = res + res2;
 
-            p.setX(res + p.getX());
-            // p.setX({p.getX()[0], p.getX()[1], 0});
+                    p.setX(res + p.getX());
+                    // p.setX({p.getX()[0], p.getX()[1], 0});
+                }
+            } else {
+                std::array<double, 3> res = (1 / (2 * p.getM())) * p.getOldF();
+                res = (delta_t * delta_t) * res;
+
+                std::array<double, 3> res2 = delta_t * p.getV();
+                res = res + res2;
+
+                p.setX(res + p.getX());
+                // p.setX({p.getX()[0], p.getX()[1], 0});
+            }
         }
     }
 }
@@ -446,7 +550,12 @@ void LinkedCells::simulate(ForceCalculation *algorithm, double delta_t) {
     // moves particles to correct cell
     move();
 
-    handleBoundary();
+    //TODO
+    if(nanoScaleFlowSimulation){
+        handleNanoBoundary();
+    }else{
+        handleBoundary();
+    }
 
     // calculate new f
     calculateF(algorithm);
@@ -534,8 +643,15 @@ void LinkedCells::calculateHarmonicPotential(double k, double r0) {
 void LinkedCells::applyForceBuffer() {
     for (auto &vec: particles) {
         for (auto &p: vec) {
-            p.setF(p.getF() + p.getForceBuffer());
-            p.setForceBuffer({0, 0, 0});
+            if(nanoScaleFlowSimulation){
+                if(p.getType() == 0){
+                    p.setF(p.getF() + p.getForceBuffer());
+                    p.setForceBuffer({0, 0, 0});
+                }
+            } else {
+                p.setF(p.getF() + p.getForceBuffer());
+                p.setForceBuffer({0, 0, 0});
+            }
         }
     }
 }
@@ -723,6 +839,228 @@ void LinkedCells::handleBoundary() {
     //std::cout << "nr particles: " << numberParticles() << "\n";
 }
 
+void LinkedCells::handleNanoBoundary() {
+    std::list<Particle> ins;
+    std::list<Particle> del;
+    //int c = 0;
+    for (auto &vec: particles) {
+        if (!vec.empty()) {
+            if (isBoundaryCell(getCellCoords(vec.front())) || isHaloCell(getCellCoords(vec.front()))) {
+                for (auto &p: vec) {
+                    //std::cout << "par nr " << c << "\n";
+                    //c++;
+                    if (boundaryCondition[0] == 1) {
+                        if (isBoundaryCell(getCellCoords(p))) {
+                            //std::cout << "particle on LR boundary\n";
+                            double leftDistance = p.getX()[0] - meshSize;
+                            if (leftDistance <= reflectionDistance[p.getType()]) {
+                                Particle temp = Particle({(meshSize - leftDistance), p.getX()[1], p.getX()[2]},
+                                                         {0, 0, 0},
+                                                         p.getM(),
+                                                         p.getType(), p.getSigma(), p.getEpsilon());
+                                p.setForceBuffer(forceCalcs[p.getType()].calculateF(p, temp));
+                                //ghosts.push_back(temp);
+
+                            }
+                            double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
+                            if (rightDistance <= reflectionDistance[p.getType()]) {
+                                Particle temp = Particle(
+                                        {((dimensions[0] - 1) * meshSize + rightDistance), p.getX()[1], p.getX()[2]},
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                p.setForceBuffer(forceCalcs[p.getType()].calculateF(p, temp));
+                                //ghosts.push_back(temp);
+                            }
+                        }
+                    } else if (boundaryCondition[0] == 2) {
+                        // It's in the boundary -> create ghost in halo cell on the other side
+                        if (isBoundaryCell(getCellCoords(p))) {
+                            if (getCellCoords(p)[0] == 1) {
+                                double leftDistance = p.getX()[0] - meshSize;
+                                // if (leftDistance <= reflectionDistance[p.getType()]) {
+                                Particle par = Particle(
+                                        {((dimensions[0] - 1) * meshSize + leftDistance), p.getX()[1], p.getX()[2]},
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                ghosts.push_back(par);
+                                //}
+                            } else {
+                                double rightDistance = (dimensions[0] - 1) * meshSize - p.getX()[0];
+                                //if (rightDistance <= reflectionDistance[p.getType()]) {
+                                Particle par = Particle({(meshSize - rightDistance), p.getX()[1], p.getX()[2]},
+                                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
+                                                        p.getEpsilon());
+                                ghosts.push_back(par);
+                                //}
+                            }
+                            //std::cout << "got here3\n";
+                        }
+                            // It's in the halo -> move it to the boundary on the other side
+                        else if (isHaloCell(getCellCoords(p))) {
+                            bool rem = false;
+                            if (getCellCoords(p)[0] == 0) {
+                                double leftDistance = abs(meshSize - p.getX()[0]);
+                                //if (leftDistance <= reflectionDistance[p.getType()]) {
+                                Particle part1 = Particle(
+                                        {((dimensions[0] - 1) * meshSize - leftDistance), p.getX()[1], p.getX()[2]},
+                                        p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                part1.setOldF(p.getOldF());
+                                part1.setF(p.getF());
+                                ins.push_back(part1);
+                                rem = true;
+                                //}
+                            } else {
+                                double rightDistance = abs(p.getX()[0] - (dimensions[0] - 1) * meshSize);
+                                //if (rightDistance <= reflectionDistance[p.getType()]) {
+                                Particle part2 = Particle({meshSize + rightDistance, p.getX()[1], p.getX()[2]},
+                                                          p.getV(),
+                                                          p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                part2.setOldF(p.getOldF());
+                                part2.setF(p.getF());
+                                ins.push_back(part2);
+                                rem = true;
+                                //}
+                            }
+                            if (rem)
+                                del.push_back(p);
+                        }
+                    }
+                    if (boundaryCondition[1] == 1) {
+                        if (isBoundaryCell(getCellCoords(p))) {
+                            //std::cout << "particle on TB boundary\n";
+                            double bottomDistance = p.getX()[1] - meshSize;
+                            if (bottomDistance <= reflectionDistance[p.getType()]) {
+                                Particle temp = Particle({p.getX()[0], (meshSize - bottomDistance), p.getX()[2]},
+                                                         {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
+                                                         p.getEpsilon());
+                                p.setForceBuffer(forceCalcs[p.getType()].calculateF(p, temp));
+                                //ghosts.push_back(temp);
+                            }
+                            double topDistance = (dimensions[1] - 1) * meshSize - p.getX()[1];
+                            if (topDistance <= reflectionDistance[p.getType()]) {
+                                Particle temp = Particle(
+                                        {(p.getX()[0]), (dimensions[1] - 1) * meshSize + topDistance, p.getX()[2]},
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                p.setForceBuffer(forceCalcs[p.getType()].calculateF(p, temp));
+                                //ghosts.push_back(temp);
+                            }
+                        }
+                    } else if (boundaryCondition[1] == 2) {
+                        // It's in the boundary -> create ghost in halo cell on the other side
+                        if (isBoundaryCell(getCellCoords(p))) {
+                            if (getCellCoords(p)[1] == 1) {
+                                double topDistance = 2 - p.getX()[1];
+                                Particle par = Particle({p.getX()[0], dimensions[1] - 1 - topDistance, p.getX()[2]},
+                                                        {0, 0, 0},
+                                                        p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                ghosts.push_back(par);
+                            } else if (getCellCoords(p)[1] == dimensions[1] - 2) {
+                                double bottomDistance = p.getX()[1] - (dimensions[1] - 3);
+                                Particle par = Particle(
+                                        {p.getX()[0], bottomDistance, p.getX()[2]},
+                                        {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                ghosts.push_back(par);
+                            }
+                        } else {
+                            bool rem = false;
+                            if (getCellCoords(p)[1] == 0) {
+                                double topDistance = 1 - p.getX()[1];
+                                Particle part1 = Particle({p.getX()[0], (dimensions[1] - 2) - topDistance, p.getX()[2]},
+                                                          p.getV(),
+                                                          p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                part1.setF(p.getF());
+                                part1.setOldF(p.getF());
+                                ins.push_back(part1);
+                                rem = true;
+                            } else if (getCellCoords(p)[1] == dimensions[1] - 1) {
+                                double bottomDistance = p.getX()[1] - (dimensions[1] - 2);
+                                Particle part2 = Particle(
+                                        {p.getX()[0], bottomDistance, p.getX()[2]},
+                                        p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                part2.setF(p.getF());
+                                part2.setOldF(p.getOldF());
+                                ins.push_back(part2);
+                                rem = true;
+                            }
+                            if (rem)
+                                del.push_back(p);
+                        }
+                    }
+                    //TODO 3D periodic boundary
+                    if (dimensions[2] != 0) {
+                        if (boundaryCondition[2] == 1) {
+                            if (isBoundaryCell(getCellCoords(p))) {
+                                double frontDistance = p.getX()[2] - meshSize;
+                                if (frontDistance <= reflectionDistance[p.getType()]) {
+                                    Particle temp = Particle({p.getX()[0], p.getX()[1], (meshSize - frontDistance)},
+                                                             {0, 0, 0}, p.getM(), p.getType(), p.getSigma(),
+                                                             p.getEpsilon());
+                                    p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                }
+                                double backDistance = (dimensions[2] - 1) * meshSize - p.getX()[2];
+                                if (backDistance <= reflectionDistance[p.getType()]) {
+                                    Particle temp = Particle(
+                                            {p.getX()[0], p.getX()[1], (dimensions[2] - 1) * meshSize + backDistance},
+                                            {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                    p.setF(p.getF() + forceCalcs[p.getType()].calculateF(p, temp));
+                                }
+                            }
+                        } else if (boundaryCondition[2] == 2) {
+                            // It's in the boundary -> create ghost in halo cell on the other side
+                            if (isBoundaryCell(getCellCoords(p))) {
+                                if (getCellCoords(p)[2] == 1) {
+                                    double topDistance = 2 - p.getX()[2];
+                                    Particle par = Particle({p.getX()[0], p.getX()[1], dimensions[2] - 1 - topDistance},
+                                                            {0, 0, 0},
+                                                            p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                    ghosts.push_back(par);
+                                } else if (getCellCoords(p)[2] == dimensions[2] - 2) {
+                                    double bottomDistance = p.getX()[2] - (dimensions[2] - 3);
+                                    Particle par = Particle(
+                                            {p.getX()[0], p.getX()[1], bottomDistance},
+                                            {0, 0, 0}, p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                    ghosts.push_back(par);
+                                }
+                            } else {
+                                bool rem = false;
+                                if (getCellCoords(p)[2] == 0) {
+                                    double topDistance = 1 - p.getX()[2];
+                                    Particle part1 = Particle(
+                                            {p.getX()[0], p.getX()[1], (dimensions[2] - 2) - topDistance}, p.getV(),
+                                            p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                    part1.setF(p.getF());
+                                    part1.setOldF(p.getF());
+                                    ins.push_back(part1);
+                                    rem = true;
+                                } else if (getCellCoords(p)[2] == dimensions[2] - 1) {
+                                    double bottomDistance = p.getX()[2] - (dimensions[2] - 2);
+                                    Particle part2 = Particle(
+                                            {p.getX()[0], p.getX()[1], bottomDistance},
+                                            p.getV(), p.getM(), p.getType(), p.getSigma(), p.getEpsilon());
+                                    part2.setF(p.getF());
+                                    part2.setOldF(p.getOldF());
+                                    ins.push_back(part2);
+                                    rem = true;
+                                }
+                                if (rem)
+                                    del.push_back(p);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    //deleteParticlesInHalo();
+    for (auto par: ins) {
+        //std::cout << "got here\n";
+        forceInsert(par);
+    }
+    for (auto par: del) {
+        //std::cout << "got here2\n";
+        remove(par);
+    }
+    //std::cout << "nr particles: " << numberParticles() << "\n";
+}
+
 void LinkedCells::plotParticles(int iteration) {
     std::string out_name("MD_vtk");
 
@@ -740,7 +1078,13 @@ void LinkedCells::plotParticles(int iteration) {
 void LinkedCells::addBrownianMotion(double averageV, int dimension) {
     for (auto &vec: particles) {
         for (auto &p: vec) {
-            p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, dimension));
+            if(nanoScaleFlowSimulation){
+                if(p.getType() == 0){
+                    p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, dimension));
+                }
+            }else{
+                p.setV(p.getV() + maxwellBoltzmannDistributedVelocity(averageV, dimension));
+            }
         }
     }
 }
@@ -775,11 +1119,23 @@ void LinkedCells::deleteParticlesInHalo() {
 }
 
 bool LinkedCells::isOutOfScope(Particle &p) {
-    if (p.getX()[0] < 0 || p.getX()[0] > dimensions[0] * meshSize || p.getX()[1] < 0 ||
-        p.getX()[1] > dimensions[1] * meshSize)
-        return true;
-    if (dimensions[2] != 0) {
-        //TODO 3D case
+    if(nanoScaleFlowSimulation){
+        if (p.getX()[0] < 0 || p.getX()[0] > dimensions[0]-1 || p.getX()[1] < 0 ||
+            p.getX()[1] > dimensions[1]-1)
+            return true;
+        if (dimensions[2] != 0) {
+            if (p.getX()[0] < 0 || p.getX()[0] > dimensions[0]-1 ||
+                p.getX()[1] < 0 || p.getX()[1] > dimensions[1]-1 ||
+                p.getX()[2] < 0 || p.getX()[2] > dimensions[2]-1)
+                return true;
+        }
+    } else {
+        if (p.getX()[0] < 0 || p.getX()[0] > dimensions[0] * meshSize || p.getX()[1] < 0 ||
+            p.getX()[1] > dimensions[1] * meshSize)
+            return true;
+        if (dimensions[2] != 0) {
+            //TODO 3D case
+        }
     }
     return false;
 }
@@ -790,10 +1146,20 @@ std::array<int, 3> LinkedCells::getDimensions() {
 
 double LinkedCells::calcKineticEnergy() {
     double energy = 0;
-    for (auto &vec: particles) {
-        for (auto &p: vec) {
-            double scalar_product = p.getV()[0] * p.getV()[0] + p.getV()[1] * p.getV()[1] + p.getV()[2] * p.getV()[2];
-            energy += p.getM() * scalar_product / 2;
+    if(nanoScaleFlowSimulation){
+        double meanY = meanYVelocity();
+        for (auto &vec: particles) {
+            for (auto &p: vec) {
+                double scalar_product = p.getV()[0] * p.getV()[0] + (p.getV()[1]-meanY) * (p.getV()[1]-meanY) + p.getV()[2] * p.getV()[2];
+                energy += p.getM() * scalar_product / 2;
+            }
+        }
+    } else {
+        for (auto &vec: particles) {
+            for (auto &p: vec) {
+                double scalar_product = p.getV()[0] * p.getV()[0] + p.getV()[1] * p.getV()[1] + p.getV()[2] * p.getV()[2];
+                energy += p.getM() * scalar_product / 2;
+            }
         }
     }
     return energy;
@@ -802,7 +1168,11 @@ double LinkedCells::calcKineticEnergy() {
 void LinkedCells::scaleVelocity(double scale) {
     for (auto &vec: particles) {
         for (auto &p: vec) {
-            p.setV(scale * p.getV());
+            if(nanoScaleFlowSimulation && p.getType() == 0) {
+                p.setV({scale * p.getV()[0], p.getV()[1], scale * p.getV()[2]});
+            } else {
+                p.setV(scale * p.getV());
+            }
         }
     }
 }
@@ -830,6 +1200,17 @@ void LinkedCells::setMembraneSimulation() {
     membraneSimulation = true;
 }
 
+void LinkedCells::setNanoScaleFlowSimulation() {
+    nanoScaleFlowSimulation = true;
+}
+
+double LinkedCells::meanYVelocity() {
+    double meanYV=0;
+    for(auto &p : getParticles()){
+        meanYV += p.getV()[1];
+    }
+    return meanYV/getParticles().size();
+}
 
 
 

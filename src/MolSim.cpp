@@ -14,7 +14,8 @@
 #include <getopt.h>
 #include <sstream>
 #include <string>
-
+#include "densityAndVelocityProfile/DensityAndVelocityProfile.h"
+#include "densityAndVelocityProfile/DensityAndVelocityToCSVWriter.h"
 
 /**** forward declaration of the calculation functions ****/
 void printHelp();
@@ -29,13 +30,11 @@ double sigma = 1.2;
 // Brownian Motion average velocity
 double averageV = 0.7;
 
+//SimulationContiner
 std::array<int, 3> dim = {148, 148, 148};
 double mesh = 3;
 double cutOff = 3;
 std::array<int, 3> bound = {2, 2, 2};
-
-bool simuMembrane = true;
-
 SimulationContainer *particles = new LinkedCells(dim, mesh, cutOff, -0.001, bound);
 // Stores the algorithm used for force calculation between 2 particles
 ForceCalculation *algorithm = nullptr;
@@ -44,8 +43,18 @@ ForceCalculation *algorithm = nullptr;
 double initial_temp = 0.5;
 int stepSize = 1000;
 double target_temp = 0.5;
-// TODO Dieser Parameter ist optional, wenn nicht angegeben wird -1 übergeben
 double max_delta_temp = -1;
+
+//simulationType
+bool simuMembrane = true;
+bool simuFlow = true;
+
+//DensityAndVelocityProfiler
+DensityAndVelocityProfile *profile = nullptr;
+int profileBinSize;
+double profileH;
+double profileW = 3;
+std::array<double, 3> profileStartPoint;
 
 // Variables for the benchmark
 bool benchmark_active = false;
@@ -112,6 +121,18 @@ int main(int argc, char *argsv[]) {
             //parallelization strategy
             //parallelstrategy = m.parStrat()
 
+            if(m.simulationType() == std::string("simuMembrane")){
+                simuFlow = false;
+            }
+            else if (m.simulationType() == std::string("simuFlow")){
+                simuMembrane = false;
+            }
+            else{
+                simuMembrane = false;
+                simuFlow = false;
+            }
+
+
             //  generate particle from xml
             int currentType = 0;
             std::cout << "nr cubes " << m.particles().cube().size() << "\n";
@@ -123,6 +144,15 @@ int main(int argc, char *argsv[]) {
                 std::array<double, 3> velocity = {cube.velocity().x(), cube.velocity().y(), cube.velocity().z()};
                 generateCube(dim, startPoint, cube.h(), cube.m(), velocity, averageV, currentType, cube.sigma(),
                              cube.epsilon(), *particles);
+
+                //profiler for flow simulation
+                if(simuFlow && !cube.fixed()){
+                    profileBinSize = dim[0];
+                    profileH = cube.h();
+                    profileStartPoint = startPoint;
+                    profile = new DensityAndVelocityProfile(profileBinSize, profileW, profileH, profileStartPoint);
+                }
+
                 currentType++;
             }
             for (long unsigned int i = 0; i < m.particles().sphere().size(); i++) {
@@ -137,7 +167,11 @@ int main(int argc, char *argsv[]) {
                 * end setting values from xml for simulation
                 */
             }
-            particles->addBrownianMotion(averageV, 2);
+            if(dim[2]==0) {
+                particles->addBrownianMotion(averageV, 2);
+            } else {
+                particles->addBrownianMotion(averageV, 3);
+            }
             break;
         }
         if (c == 'f') {
@@ -212,9 +246,9 @@ int main(int argc, char *argsv[]) {
         particles->initMembrane();
     }
 
-
-
-
+    if(simuFlow){
+        particles->setNanoScaleFlowSimulation();
+    }
 
     if (benchmark_active) {
         beginAfterIO = std::chrono::steady_clock::now();
@@ -245,6 +279,7 @@ int main(int argc, char *argsv[]) {
         thermostat->adjustTemperature(*particles, current_time);
     }
 
+    DensityAndVelocityToCSVWriter csvWriter("profile.csv");
 
     bool pullState = true;
     while (current_time < end_time) {
@@ -265,7 +300,6 @@ int main(int argc, char *argsv[]) {
             thermostat->calcCurrentTemperature(*particles);
         }
 
-
         iteration++;
         if (iteration % outputStep == 0 && !benchmark_active) {
             particles->plotParticles(iteration);
@@ -277,6 +311,12 @@ int main(int argc, char *argsv[]) {
             std::cout << "Iteration " << iteration << "finished." << std::endl;
             std::cout << "Current time " << current_time << std::endl;
         }
+
+        if(simuFlow && iteration % 1000 == 0){
+            profile->calculateDnV(*particles);
+            csvWriter.writeToCSV(*profile, iteration);
+        }
+
         current_time += delta_t;
     }
 

@@ -69,6 +69,11 @@ private:
     bool membraneSimulation = false;
 
     /**
+     * true if nano scale flow is simulated
+     */
+    bool nanoScaleFlowSimulation = false;
+
+    /**
      * Used for periodic boundaries, stores ghosts of particles in boundary cells that are mirrored into the halo on the other side
      */
     std::vector<Particle> ghosts;
@@ -305,6 +310,11 @@ public:
     void handleBoundary();
 
     /**
+     * Iterates over particle in boundary cells and applies boundary conditions according to boundaryCondition
+     */
+    void handleNanoBoundary();
+
+    /**
      * Plots particles
      *
      * @param iteration current Iteration
@@ -360,6 +370,10 @@ public:
     void calculateHarmonicPotential(double k, double r0);
 
     void setMembraneSimulation() override;
+
+    void setNanoScaleFlowSimulation() override;
+
+    double meanYVelocity();
 
     /**
      * Updates the neighbours for each particle in membrane

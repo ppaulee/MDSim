@@ -22,7 +22,22 @@ std::array<double, 3> LennardJones::calculateF(Particle p1, Particle p2) {
             std::array<double, 3> vec = temp * difference;
             return vec;
         }
-    } else {
+    } else if(isNano_bool){
+        if(p1.getType() == 0){
+            double normNoRoot = 0;
+            std::array<double, 3> difference = p1.getX() - p2.getX();
+            for (int i = 0; i < 3; i++) {
+                normNoRoot += difference.at(i) * difference.at(i);
+            }
+            double powSigmaSix = pow(sigma, 6);
+            double powNormNoRootThree = pow(normNoRoot, 3);
+            double temp = (powSigmaSix * powNormNoRootThree) - (2 * (powSigmaSix * powSigmaSix));
+            temp = (-24 * epsilon * temp) / (normNoRoot * powNormNoRootThree * powNormNoRootThree);
+            std::array<double, 3> vec = temp * difference;
+            return vec;
+        }
+        return {0,0,0};
+    }else{
         double normNoRoot = 0;
         std::array<double, 3> difference = p1.getX() - p2.getX();
         for (int i = 0; i < 3; i++) {
@@ -40,6 +55,7 @@ std::array<double, 3> LennardJones::calculateF(Particle p1, Particle p2) {
 
 LennardJones::LennardJones(double epsilon, double sigma, int type) : epsilon(epsilon), sigma(sigma), type(type) {
     isMembrane_bool = false;
+    isNano_bool = false;
 }
 
 double LennardJones::getEpsilon() const {
@@ -62,6 +78,15 @@ bool LennardJones::isMembrane() {
     return isMembrane_bool;
 }
 
+void LennardJones::setNano() {
+    isNano_bool = true;
+}
+
+bool LennardJones::isNano() {
+    return isNano_bool;
+}
+
 LennardJones::LennardJones(double epsilon, double sigma) : epsilon(epsilon), sigma(sigma) {
     isMembrane_bool = false;
+    isNano_bool = false;
 }

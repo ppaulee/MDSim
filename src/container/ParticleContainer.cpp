@@ -153,6 +153,10 @@ void ParticleContainer::setMembraneSimulation() {
     return;
 }
 
+void  ParticleContainer::setNanoScaleFlowSimulation() {
+    return;
+}
+
 void ParticleContainer::initMembrane() {
     return;
 }

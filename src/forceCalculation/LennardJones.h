@@ -13,6 +13,9 @@ class LennardJones : public ForceCalculation {
 private:
 
     bool isMembrane_bool;
+
+    bool isNano_bool;
+
     /**
      *  Parameter for Lennard Jones potential
      */
@@ -42,5 +45,9 @@ public:
     void setMembrane();
 
     bool isMembrane();
+
+    void setNano();
+
+    bool isNano();
 };
 

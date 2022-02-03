@@ -79,6 +79,8 @@ public:
 
     void setMembraneSimulation() override;
 
+    void setNanoScaleFlowSimulation() override;
+
     void initMembrane() override;
 };
 
