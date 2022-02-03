@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include "utils/ArrayUtils.h"
+//#include <omp.h>
 
 Particle::Particle(int type_arg) {
     type = type_arg;
@@ -32,7 +33,7 @@ Particle::Particle(int type_arg) {
 
 // Todo: maybe use initializater list instead of copy?
 Particle::Particle(std::array<double, 3> x_arg, std::array<double, 3> v_arg,
-                   double m_arg, int type_arg, double sigma_arg, double epsilon_arg) {
+                   double m_arg, int type_arg, double sigma_arg, double epsilon_arg, int id_arg) {
     x = x_arg;
     v = v_arg;
     m = m_arg;
@@ -42,24 +43,53 @@ Particle::Particle(std::array<double, 3> x_arg, std::array<double, 3> v_arg,
     old_f = {0., 0., 0.};
     sigma = sigma_arg;
     epsilon = epsilon_arg;
-    //std::cout << "Particle generated!" << std::endl;
+    forceBuffer = {0, 0, 0};
+#ifdef _OPENMP
+    omp_init_lock(&lck);
+    omp_init_lock(&markLck);
+#endif
+    id = id_arg;
+    //calculated = {};
+    //std::cout << "Particle generated! ID:" << id << std::endl;
 }
 
-Particle::~Particle() { /*std::cout << "Particle destructed!" << std::endl;*/ }
+Particle::~Particle() { /*std::cout << "Particle destructed!" << std::endl;*/
+#ifdef _OPENMP
+    omp_destroy_lock(&lck);
+    omp_destroy_lock(&markLck);
+#endif
+}
 
 const std::array<double, 3> &Particle::getX() const { return x; }
 
 const std::array<double, 3> &Particle::getV() const { return v; }
 
-const std::array<double, 3> &Particle::getF() const { return f; }
+ std::array<double, 3> &Particle::getF()  { return f; }
 
-const std::array<double, 3> &Particle::getOldF() const { return old_f; }
+ std::array<double, 3> &Particle::getOldF()  { return old_f; }
 
-void Particle::mark() { marked = true; }
+void Particle::mark() {
+    //setMarkLock();
+#pragma omp atomic write
+    marked = true;
+    //unSetMarkLock();
+}
 
-void Particle::unmark() { marked = false; }
+void Particle::unmark() {
+    //setMarkLock();
+#pragma omp atomic write
+    marked = false;
+    //unSetMarkLock();
+}
 
-bool Particle::isMarked() { return marked; }
+bool Particle::isMarked() {
+    bool res;
+    //setMarkLock();
+#pragma omp atomic read
+    res = marked;
+    //unSetMarkLock();
+    return res;
+}
 
 
 double Particle::getM() const { return m; }
@@ -69,14 +99,15 @@ int Particle::getType() const { return type; }
 std::string Particle::toString() const {
     std::stringstream stream;
     stream << "Particle: X:" << x << " v: " << v << " f: " << f << " m: " << m
-           << " old_f: " << old_f << " type: " << type << " sigma: " << sigma << " epsilon: " << epsilon;
+           << " old_f: " << old_f << " type: " << type << " sigma: " << sigma << " epsilon: " << epsilon << " ID: "
+           << id;
     return stream.str();
 }
 
 bool Particle::operator==(Particle &other) {
     return (x == other.x) and (v == other.v) and (f == other.f or isnan(f[0])) and
            (type == other.type) and (m == other.m) and (old_f == other.old_f) and (sigma == other.sigma) and
-           (epsilon == other.epsilon);
+           (epsilon == other.epsilon) and (id == other.id);
 }
 
 bool Particle::operator==(const Particle &rhs) const {
@@ -123,7 +154,78 @@ const std::array<double, 3> &Particle::getForceBuffer() const {
     return forceBuffer;
 }
 
+
 std::ostream &operator<<(std::ostream &stream, Particle &p) {
     stream << p.toString();
     return stream;
 }
+
+/*bool Particle::calculatedContains(int i) {
+    bool res = false;
+    //setCalcLock();
+    for (auto &n: calculated) {
+        if (n == i) {
+            res = true;
+            break;
+        }
+    }
+    //unSetCalcLock();
+    return res;
+}*/
+#ifdef _OPENMP
+void Particle::setLock() {
+    omp_set_lock(&lck);
+}
+
+void Particle::unSetLock() {
+    omp_unset_lock(&lck);
+}
+
+int Particle::testLock() {
+    return omp_test_lock(&lck);
+}
+
+
+void Particle::setMarkLock() {
+    omp_set_lock(&markLck);
+}
+
+void Particle::unSetMarkLock() {
+    omp_unset_lock(&markLck);
+}
+
+int Particle::testMarkLock() {
+    return omp_test_lock(&markLck);
+}
+#endif //_OPENMP
+
+int Particle::getId() {
+    return id;
+}
+
+/*std::vector<int> &Particle::getCalculated() {
+    return calculated;
+}*/
+
+void Particle::setId(int id) {
+    Particle::id = id;
+}
+
+void Particle::initParallelBuffer(int numThreads) {
+    for(int i = 0;i<numThreads;i++){
+        std::array<double, 3> element = {0,0,0};
+        parallelForceBuffer.push_back(element);
+    }
+}
+
+std::array<double, 3> &Particle::getParallelForce(int index) {
+    return parallelForceBuffer.at(index);
+}
+
+void Particle::setParallelForce(int index, std::array<double, 3> force) {
+    parallelForceBuffer.at(index) = force;
+}
+
+/*void Particle::setCalculated(const std::vector<int> &calculated) {
+    Particle::calculated = calculated;
+}*/

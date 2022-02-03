@@ -9,6 +9,7 @@
 #include <list>
 #include "vector"
 #include "utils/ArrayUtils.h"
+#include "utils/MaxwellBoltzmannDistribution.h"
 
 
 void generateCube(std::array<int, 3> dimension, std::array<double, 3> startPoint, double h, double m,
