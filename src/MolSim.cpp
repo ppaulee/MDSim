@@ -102,8 +102,18 @@ int main(int argc, char *argsv[]) {
             std::cout << "container: " << m.simu().containerAlgorithm() << "\n";
             if (m.simu().containerAlgorithm() == std::string("linkedCells")) {
                 dim = {m.simu().dimension().x(), m.simu().dimension().y(), m.simu().dimension().z()};
-                bound = {m.simu().boundaryConditions().x(), m.simu().boundaryConditions().y(), m.simu().boundaryConditions().z()};
-                particles = new LinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bound);
+                bound = {m.simu().boundaryConditions().x(), m.simu().boundaryConditions().y(),
+                         m.simu().boundaryConditions().z()};
+                //parallelization strategy
+                int parallelstrategy = m.parStrat();
+                if (parallelstrategy == 0)
+                    particles = new LinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bound);
+                if (parallelstrategy == 1) {
+                    particles = new ParallelLinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bound, 1);
+                }
+                if (parallelstrategy == 1) {
+                    particles = new ParallelLinkedCells(dim, m.simu().mesh(), m.simu().cutOff(), m.gravity(), bound, 2);
+                }
             } else if (m.simu().containerAlgorithm() == std::string("naiv")) {
                 algorithm = new Gravitation();
             } else {
@@ -122,16 +132,11 @@ int main(int argc, char *argsv[]) {
                 benchmark_active = true;
             }
 
-            //parallelization strategy
-            //parallelstrategy = m.parStrat()
-
-            if(m.simulationType() == std::string("simuMembrane")){
+            if (m.simulationType() == std::string("simuMembrane")) {
                 simuFlow = false;
-            }
-            else if (m.simulationType() == std::string("simuFlow")){
+            } else if (m.simulationType() == std::string("simuFlow")) {
                 simuMembrane = false;
-            }
-            else{
+            } else {
                 simuMembrane = false;
                 simuFlow = false;
             }
@@ -150,7 +155,7 @@ int main(int argc, char *argsv[]) {
                              cube.epsilon(), *particles);
 
                 //profiler for flow simulation
-                if(simuFlow && !cube.fixed()){
+                if (simuFlow && !cube.fixed()) {
                     profileBinSize = dim[0];
                     profileH = cube.h();
                     profileStartPoint = startPoint;
@@ -171,7 +176,7 @@ int main(int argc, char *argsv[]) {
                 * end setting values from xml for simulation
                 */
             }
-            if(dim[2]==0) {
+            if (dim[2] == 0) {
                 particles->addBrownianMotion(averageV, 2);
             } else {
                 particles->addBrownianMotion(averageV, 3);
@@ -242,23 +247,23 @@ int main(int argc, char *argsv[]) {
 
     if (simuMembrane) {
         particles->setMembraneSimulation();
-        std::array<double, 3> center = {15,15,1.5};
+        std::array<double, 3> center = {15, 15, 1.5};
         std::vector<std::array<int, 3>> pull;
 
-        pull.push_back({17,24,0});
-        pull.push_back({17,25,0});
-        pull.push_back({18,24,0});
-        pull.push_back({18,25,0});
+        pull.push_back({17, 24, 0});
+        pull.push_back({17, 25, 0});
+        pull.push_back({18, 24, 0});
+        pull.push_back({18, 25, 0});
 
         //pull.push_back({4,4,0});
-        std::array<double, 3> v = {0,0,0};
-        std::array<int, 3> dim_ = {50,50,1};
+        std::array<double, 3> v = {0, 0, 0};
+        std::array<int, 3> dim_ = {50, 50, 1};
         //std::array<int, 3> dim_ = {10,10,1};
-        generateMembrane(center, v, dim_, 2.2, pull, 1,*particles);
+        generateMembrane(center, v, dim_, 2.2, pull, 1, *particles);
         particles->initMembrane();
     }
 
-    if(simuFlow){
+    if (simuFlow) {
         particles->setNanoScaleFlowSimulation();
     }
 
@@ -282,10 +287,10 @@ int main(int argc, char *argsv[]) {
         dimensions = 2;
     }
 
-    Thermostats* thermostat;
+    Thermostats *thermostat;
     if (!simuMembrane) {
         thermostat = new Thermostats(*particles, delta_t, end_time, initial_temp, stepSize, dimensions, target_temp,
-                                          max_delta_temp);
+                                     max_delta_temp);
 
         thermostat->calcCurrentTemperature(*particles);
         thermostat->adjustTemperature(*particles, current_time);
@@ -295,7 +300,7 @@ int main(int argc, char *argsv[]) {
 
     bool pullState = true;
     while (current_time < end_time) {
-       std::cout << "Number particles: " << particles->numberParticles() << "\n";
+        std::cout << "Number particles: " << particles->numberParticles() << "\n";
         if (iteration >= 15000) {
             pullState = false;
         }
@@ -324,7 +329,7 @@ int main(int argc, char *argsv[]) {
             std::cout << "Current time " << current_time << std::endl;
         }
 
-        if(simuFlow && iteration % 1000 == 0){
+        if (simuFlow && iteration % 1000 == 0) {
             profile->calculateDnV(*particles);
             csvWriter.writeToCSV(*profile, iteration);
         }
