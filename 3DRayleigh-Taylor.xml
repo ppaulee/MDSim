@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+
+<molsim xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="src/XMLReader/MolSim.xsd">
+
+    <input_file>../input.txt</input_file>
+
+    <delta_t>0.0005</delta_t>
+
+    <end_time>100</end_time>
+
+    <output_step>100</output_step>
+
+    <epsilon>1</epsilon>
+
+    <sigma>1.2</sigma>
+
+    <gravity>-12.44</gravity>
+
+    <averageV>6.3245</averageV>
+
+    <algorithm>lj</algorithm>
+
+    <simulationContainer>
+        <boundaryConditions>
+            <xBoundary>2</xBoundary>
+            <yBoundary>1</yBoundary>
+            <zBoundary>0</zBoundary>
+        </boundaryConditions>
+        <dimension>
+            <x>60</x>
+            <y>60</y>
+            <z>60</z>
+        </dimension>
+        <mesh>2.5</mesh>
+        <cutOff>2.5</cutOff>
+        <containerAlgorithm>linkedCells</containerAlgorithm>
+    </simulationContainer>
+
+    <particles>
+        <Cube>
+            <dimension>
+                <x>50</x>
+                <y>20</y>
+                <z>50</z>
+            </dimension>
+            <startPoint>
+                <x>6.2</x>
+                <y>4.2</y>
+                <z>6.2</z>
+            </startPoint>
+            <h>1.2</h>
+            <mass>1</mass>
+            <velocity>
+                <x>0</x>
+                <y>0</y>
+                <z>0</z>
+            </velocity>
+            <epsilon>1</epsilon>
+            <sigma>1.2</sigma>
+            <fixed>false</fixed>
+        </Cube>
+        <Cube>
+            <dimension>
+                <x>50</x>
+                <y>20</y>
+                <z>50</z>
+            </dimension>
+            <startPoint>
+                <x>6.2</x>
+                <y>32</y>
+                <z>6.2</z>
+            </startPoint>
+            <h>1.2</h>
+            <mass>2</mass>
+            <velocity>
+                <x>0</x>
+                <y>0</y>
+                <z>0</z>
+            </velocity>
+            <epsilon>1</epsilon>
+            <sigma>1.1</sigma>
+            <fixed>false</fixed>
+        </Cube>
+    </particles>
+
+    <thermostats>
+        <initialTemperature>0.5</initialTemperature>
+        <targetTemperature>0.5</targetTemperature>
+        <maxDelta>-1</maxDelta>
+        <stepSize>1000</stepSize>
+    </thermostats>
+
+    <parallelizationStrategy>1</parallelizationStrategy>
+
+    <benchmark>no</benchmark>
+
+</molsim>
